@@ -1,6 +1,10 @@
 <section class="banners-section">
   <div class="container">
-    @if (slides().length === 0) {
+    @if (loading()) {
+      <div class="slides-track banner-skeleton" role="status" aria-label="Loading banners">
+        <span class="banner-skeleton__spinner" aria-hidden="true"></span>
+      </div>
+    } @else if (slides().length === 0) {
       <div class="slides-track slides-track--empty">
         <div class="slide active">
           <div class="slide__placeholder slide__placeholder--desktop" style="display:flex">
@@ -24,7 +28,12 @@
               @if (slide.desktop_image_url) {
                 <img [src]="slide.desktop_image_url"
                      [alt]="'Home banner slide ' + slide.slide_number"
-                     class="slide__desktop-image">
+                     class="slide__desktop-image"
+                     decoding="async"
+                     [attr.loading]="i === 0 ? 'eager' : 'lazy'"
+                     [attr.fetchpriority]="i === 0 ? 'high' : 'auto'"
+                     (load)="onImageSettled(slide.desktop_image_url)"
+                     (error)="onImageSettled(slide.desktop_image_url)">
               } @else {
                 <div class="slide__placeholder slide__placeholder--desktop">
                   <span class="slide__placeholder-label">Slide {{ slide.slide_number }}</span>
@@ -35,7 +44,12 @@
               @if (slide.mobile_image_url) {
                 <img [src]="slide.mobile_image_url"
                      [alt]="'Home banner slide ' + slide.slide_number"
-                     class="slide__mobile-image">
+                     class="slide__mobile-image"
+                     decoding="async"
+                     [attr.loading]="i === 0 ? 'eager' : 'lazy'"
+                     [attr.fetchpriority]="i === 0 ? 'high' : 'auto'"
+                     (load)="onImageSettled(slide.mobile_image_url)"
+                     (error)="onImageSettled(slide.mobile_image_url)">
               } @else {
                 <div class="slide__placeholder slide__placeholder--mobile">
                   <span class="slide__placeholder-label">Slide {{ slide.slide_number }}</span>
@@ -46,6 +60,12 @@
             </div>
           }
         </div>
+
+        @if (imageLoading()) {
+          <div class="banner-skeleton banner-skeleton--overlay" role="status" aria-label="Loading banner image">
+            <span class="banner-skeleton__spinner" aria-hidden="true"></span>
+          </div>
+        }
 
         @if (slides().length > 1) {
           <button class="slider__btn slider__btn--prev" (click)="prev()" aria-label="Previous slide">

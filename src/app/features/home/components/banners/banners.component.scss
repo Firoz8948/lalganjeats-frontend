@@ -114,6 +114,44 @@
   }
 }
 
+.banner-skeleton {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(100deg, #efefef 30%, #f9f9f9 50%, #efefef 70%);
+  background-size: 240% 100%;
+  animation: banner-shimmer 1.2s ease-in-out infinite;
+
+  &--overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    border-radius: var(--radius-lg);
+  }
+}
+
+.banner-skeleton__spinner {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid rgba(240, 90, 55, 0.22);
+  border-top-color: var(--color-primary, #f05a37);
+  animation: banner-spin 0.7s linear infinite;
+}
+
+@keyframes banner-shimmer {
+  0%   { background-position: 130% 0; }
+  100% { background-position: -30% 0; }
+}
+
+@keyframes banner-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner-skeleton { animation-duration: 3s; }
+  .banner-skeleton__spinner { animation-duration: 1.6s; }
+}
+
 .slider__btn {
   position: absolute;
   top: 50%;
