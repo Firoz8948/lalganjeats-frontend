@@ -6,14 +6,16 @@
         <h2 class="section-title">Restaurants Near You</h2>
         <p class="section-subtitle">Order from the best places in Lalganj</p>
       </div>
-      <a routerLink="/restaurants" class="see-all-link">
-        See all
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.5">
-          <line x1="5" y1="12" x2="19" y2="12"/>
-          <polyline points="12 5 19 12 12 19"/>
-        </svg>
-      </a>
+      @if (restaurants().length > 0) {
+        <a routerLink="/restaurants" class="see-all-link">
+          See all
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </a>
+      }
     </div>
 
     @if (loading()) {
@@ -25,7 +27,19 @@
     }
 
     @if (!loading() && !error() && restaurants().length === 0) {
-      <p class="section-subtitle">No restaurants yet. Add them from the admin portal.</p>
+      <div class="empty-restaurants" role="status">
+        <div class="empty-restaurants__icon" aria-hidden="true">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </div>
+        <p class="empty-restaurants__title">We're expanding soon</p>
+        <p class="empty-restaurants__sub">
+          No restaurants in this area yet. You'll see great places here as we grow.
+        </p>
+      </div>
     }
 
     <div class="restaurants-grid">
