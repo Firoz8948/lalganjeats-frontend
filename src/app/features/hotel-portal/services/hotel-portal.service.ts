@@ -2,6 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface Restaurant {
   id:          number;
@@ -77,7 +78,7 @@ export interface EarningOrder {
 @Injectable({ providedIn: 'root' })
 export class HotelPortalService {
 
-  private api = 'http://localhost:8000/api/v1/hotel-portal';
+  private api = `${environment.apiBaseUrl}/hotel-portal`;
 
   constructor(private http: HttpClient) {}
 

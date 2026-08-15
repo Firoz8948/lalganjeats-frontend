@@ -3,6 +3,7 @@ import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 import { getDefaultLandingPath } from '../utils/client-channel';
 
 export interface AuthUser {
@@ -17,7 +18,7 @@ export interface AuthUser {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private apiUrl   = 'http://localhost:8000/api/v1/auth';
+  private apiUrl   = `${environment.apiBaseUrl}/auth`;
   currentUser      = signal<AuthUser | null>(this.loadFromStorage());
 
   // ── Computed helpers ──────────────────────────────────
@@ -101,7 +102,7 @@ export class AuthService {
   loadCustomerDisplayInfo() {
     if (!this.isCustomer()) return;
     this.http.get<{ full_name: string; phone: string }>(
-      'http://localhost:8000/api/v1/users/profile'
+      `${environment.apiBaseUrl}/users/profile`
     ).subscribe({
       next: (profile) => this.patchUser({
         full_name: profile.full_name,
