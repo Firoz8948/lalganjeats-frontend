@@ -1,0 +1,63 @@
+<div class="profile-card">
+
+  <div class="card-header">
+    <div>
+      <h2 class="card-title">Settings</h2>
+      <p class="card-subtitle">Notifications and preferences</p>
+    </div>
+  </div>
+
+  @if (success()) {
+    <div class="alert-success">✅ {{ success() }}</div>
+  }
+
+  @if (error()) {
+    <div class="alert-error">⚠️ {{ error() }}</div>
+  }
+
+  <div class="settings-body">
+    @if (loading()) {
+      <p class="empty-state">Loading settings…</p>
+    } @else {
+      <section class="settings-section">
+        <h3>Notifications</h3>
+        <label class="toggle-row">
+          <span>Order updates</span>
+          <input type="checkbox" [(ngModel)]="form.notif_order_updates" />
+        </label>
+        <label class="toggle-row">
+          <span>Offers and promotions</span>
+          <input type="checkbox" [(ngModel)]="form.notif_offers" />
+        </label>
+        <label class="toggle-row">
+          <span>SMS notifications</span>
+          <input type="checkbox" [(ngModel)]="form.notif_sms" />
+        </label>
+      </section>
+
+      <section class="settings-section">
+        <h3>Preferences</h3>
+        <div class="form-field">
+          <label>Language</label>
+          <select [(ngModel)]="form.preferred_language">
+            <option value="en">English</option>
+            <option value="hi">Hindi</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Preferred payment</label>
+          <select [(ngModel)]="form.preferred_payment">
+            <option value="cod">Cash on Delivery</option>
+            <option value="upi">UPI</option>
+            <option value="card">Card</option>
+          </select>
+        </div>
+      </section>
+
+      <button type="button" class="save-btn" (click)="saveSettings()" [disabled]="saving()">
+        @if (saving()) { Saving… } @else { Save Settings }
+      </button>
+    }
+  </div>
+
+</div>

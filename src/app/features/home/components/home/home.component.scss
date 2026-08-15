@@ -1,0 +1,9 @@
+// Home shell — layout handled by children and global styles
+
+// The Instagram CTA sits after page content and carries the
+// bottom-nav clearance itself, so the main region must not reserve it too.
+:host ::ng-deep .page-content--flush {
+  @media (max-width: 768px) {
+    padding-bottom: 0;
+  }
+}

@@ -1,0 +1,16 @@
+@use '../shared/admin-shared';
+.page-title-row, .slide header, .preview-card header, footer { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.page-title-row { margin-bottom:8px; .page-title { margin:0; } }
+.slide { margin-bottom:28px; padding:18px; border:1px solid #eee; border-radius:12px; background:#fff; &.inactive{opacity:.72} header{margin-bottom:14px} h2{margin:0;font-size:18px} header div{display:flex;gap:14px} }
+.badge { padding:3px 8px; border-radius:999px; background:#e6faf3; color:#0b7a5a; font-size:11px; text-transform:uppercase; }
+.upload-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; @media(max-width:900px){grid-template-columns:1fr} }
+.upload { padding:16px; border:1px solid #e5e5e5; border-radius:12px; background:#fafafa; h3{margin:0 0 4px;font-size:15px} p{margin:0 0 4px;color:#666;font-size:12px} small{color:#3b72ff;font-weight:600} }
+.image { position:relative; margin-top:12px; overflow:hidden; border-radius:10px; img{display:block;width:100%;aspect-ratio:2140/735;object-fit:cover} &.mobile img{aspect-ratio:828/350} span{position:absolute;inset:0;display:grid;place-items:center;background:#ffffffbf} }
+.upload-actions{display:flex;gap:12px;margin-top:8px;label{color:#3b72ff;font-size:13px;text-decoration:underline;cursor:pointer}}
+.dropzone{display:grid;place-items:center;min-height:100px;margin-top:12px;padding:16px;border:2px dashed #ccc;border-radius:10px;background:#fff;color:#888;cursor:pointer}
+.preview-backdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:20px;background:#0008}
+.preview-card{width:min(960px,100%);max-height:92vh;overflow:auto;padding:20px 22px;border-radius:14px;background:#fff;box-shadow:0 16px 40px #0003;header button{border:0;background:none;font-size:28px;cursor:pointer}p{color:#555;font-size:13px}}
+.preview-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;@media(max-width:800px){grid-template-columns:1fr}h3{font-size:13px;color:#444}}
+.crop{position:relative;overflow:hidden;border-radius:10px;background:#111;img{width:100%;height:100%;object-fit:fill;opacity:.55}i{position:absolute;border:2px solid #2ecc71;box-sizing:border-box}}
+.live{width:100%;aspect-ratio:2140/735;overflow:hidden;border-radius:10px;img{width:100%;height:100%;object-fit:cover}&.mobile{max-width:320px;aspect-ratio:358/175;margin:auto}}
+footer{justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid #eee}

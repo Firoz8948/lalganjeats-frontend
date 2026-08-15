@@ -1,0 +1,174 @@
+<!-- features/hotel-portal/components/hp-order-history/hp-order-history.component.html -->
+<div class="hp-page">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Order History</h1>
+      <p class="page-subtitle">All past and completed orders</p>
+    </div>
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="filter-bar">
+    @for (f of filters; track f.key) {
+      <button
+        class="filter-tab"
+        [class.active]="activeFilter() === f.key"
+        (click)="loadOrders(f.key)">
+        @if (f.key !== 'all') {
+          <app-hp-icon [name]="f.key === 'delivered' ? 'check' : 'x'" [size]="13" />
+        }
+        {{ f.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="page-loading">
+      <div class="spinner"></div>
+      <p>Loading order history…</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!loading() && orders().length === 0) {
+    <div class="empty-full">
+      <app-hp-icon class="empty-icon" name="clipboard" [size]="56" />
+      <h3>No orders found</h3>
+      <p>
+        @if (activeFilter() === 'all') {
+          Your completed orders will appear here
+        } @else {
+          No {{ activeFilter() }} orders found
+        }
+      </p>
+    </div>
+  }
+
+  <!-- Orders Table -->
+  @if (!loading() && orders().length > 0) {
+    <div class="history-list">
+      @for (order of orders(); track order.id) {
+        <div class="history-card">
+
+          <!-- Card Header — click to expand -->
+          <div class="history-card__header"
+               (click)="toggleExpand(order.id)">
+
+            <div class="history-card__left">
+              <div class="order-icon">
+                <app-hp-icon name="utensils" [size]="20" />
+              </div>
+              <div class="order-meta-info">
+                <p class="order-number">{{ order.order_number }}</p>
+                <p class="order-customer">
+                  <app-hp-icon name="user" [size]="13" />
+                  {{ order.customer || 'Customer' }}
+                </p>
+                <p class="order-date">
+                  {{ order.created_at | date:'d MMM yyyy, h:mm a' }}
+                </p>
+              </div>
+            </div>
+
+            <div class="history-card__right">
+              <div class="right-top">
+                <span class="status-badge"
+                      [class]="'status-badge status-' + getStatusColor(order.status)">
+                  <app-hp-icon [name]="getStatusIcon(order.status)" [size]="12" />
+                  {{ getStatusLabel(order.status) }}
+                </span>
+                <span class="order-total">₹{{ order.total_amount }}</span>
+              </div>
+              <div class="right-meta">
+                <span class="items-count">{{ getTotalItems(order) }} item(s)</span>
+                <span class="payment-tag">
+                  <app-hp-icon
+                    [name]="order.payment_method === 'cash' ? 'cash' : 'payment'"
+                    [size]="12" />
+                  {{ order.payment_method === 'cash' ? 'Cash' : 'UPI' }}
+                </span>
+              </div>
+              <svg class="expand-icon"
+                   [class.rotated]="expandedId() === order.id"
+                   width="16" height="16" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>
+
+          </div>
+
+          <!-- Expanded Details -->
+          @if (expandedId() === order.id) {
+            <div class="history-card__body">
+
+              <!-- Items List -->
+              <div class="body-section">
+                <p class="section-label">Items Ordered</p>
+                <div class="items-box">
+                  @for (item of order.items; track item.name) {
+                    <div class="item-row">
+                      <div class="item-row__left">
+                        <span class="item-qty">{{ item.quantity }}×</span>
+                        <span class="item-name">{{ item.name }}</span>
+                      </div>
+                      <span class="item-price">₹{{ item.price * item.quantity }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Bill Summary -->
+              <div class="bill-summary">
+                <div class="bill-row">
+                  <span>Item Total</span>
+                  <span>₹{{ order.total_amount }}</span>
+                </div>
+                <div class="bill-row">
+                  <span>Delivery Fee</span>
+                  <span>₹0</span>
+                </div>
+                <div class="bill-row bill-row--total">
+                  <span>Grand Total</span>
+                  <span>₹{{ order.total_amount }}</span>
+                </div>
+              </div>
+
+              <!-- Delivery Address -->
+              @if (order.delivery_address) {
+                <div class="address-row">
+                  <span class="address-label">
+                    <app-hp-icon name="map-pin" [size]="13" />
+                    Delivery Address
+                  </span>
+                  <span class="address-value">{{ order.delivery_address }}</span>
+                </div>
+              }
+
+              <!-- Cancelled Notice -->
+              @if (order.status === 'cancelled') {
+                <div class="cancelled-notice">
+                  <app-hp-icon name="x" [size]="15" />
+                  This order was cancelled.
+                </div>
+              }
+
+              <!-- View Full Detail Link -->
+              <div class="detail-action">
+                <a [routerLink]="['/hotel-portal/orders', order.id]"
+                   class="view-detail-btn">
+                  View Full Details →
+                </a>
+              </div>
+
+            </div>
+          }
+
+        </div>
+      }
+    </div>
+  }
+
+</div>

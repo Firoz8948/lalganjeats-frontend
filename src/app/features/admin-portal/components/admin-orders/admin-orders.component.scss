@@ -1,0 +1,49 @@
+@use '../shared/admin-shared';
+
+.coupon-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border: 1px solid #ffc0c0;
+  border-radius: 999px;
+  background: #fff0f0;
+  color: #c44a28;
+  font-size: 12px;
+  font-weight: 600;
+}
+.money-result { color: #15803d; &.loss { color: #dc2626; } }
+.order-breakdown-modal { max-width: 560px; padding-bottom: 8px; }
+.breakdown-section {
+  margin: 0 24px 20px;
+  h3 {
+    margin: 16px 0 10px;
+    color: #888;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+}
+.breakdown-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+  color: #333;
+  font-size: 14px;
+  span { flex: 1 1 auto; min-width: 0; line-height: 1.4; }
+  strong { flex: 0 0 auto; white-space: nowrap; }
+  &.muted { color: #888; }
+  &.total { margin-top: 4px; padding-top: 12px; border-top: 1px solid #e5e5e5; border-bottom: 0; font-size: 15px; }
+  &.highlight {
+    margin-top: 8px;
+    padding: 12px 14px;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    background: #f0fdf4;
+    color: #15803d;
+    &.loss { border-color: #fecaca; background: #fef2f2; color: #dc2626; }
+  }
+}
+.breakdown-note { color: #888; font-size: 12px; line-height: 1.4; }

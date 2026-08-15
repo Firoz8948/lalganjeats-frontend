@@ -1,0 +1,94 @@
+<!-- hp-incoming-orders.component.html -->
+<div class="hp-page">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Incoming Orders</h1>
+      <p class="page-subtitle">New orders waiting for your confirmation</p>
+    </div>
+    <button class="refresh-btn" (click)="loadOrders()">
+      <app-hp-icon name="refresh" [size]="15" />
+      Refresh
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="page-loading">Loading orders…</div>
+  }
+
+  @if (!loading() && orders().length === 0) {
+    <div class="empty-full">
+      <app-hp-icon class="empty-icon" name="bell" [size]="56" />
+      <h3>No pending orders</h3>
+      <p>New orders will appear here automatically</p>
+      <p class="auto-refresh-note">
+        Auto-refreshes every 30 seconds
+      </p>
+    </div>
+  }
+
+  <div class="incoming-list">
+    @for (order of orders(); track order.id) {
+      <div class="incoming-card">
+
+        <!-- Card Top -->
+        <div class="incoming-card__top">
+          <div class="incoming-card__id">
+            <span class="order-num">{{ order.order_number }}</span>
+            <span class="order-time">
+              {{ order.created_at | date:'h:mm a' }}
+            </span>
+          </div>
+          <div class="incoming-card__amount">
+            <span class="amount">₹{{ order.total_amount }}</span>
+            <span class="payment-method">
+              <app-hp-icon
+                [name]="order.payment_method === 'cash' ? 'cash' : 'payment'"
+                [size]="13" />
+              {{ order.payment_method === 'cash' ? 'Cash' : 'UPI' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Customer -->
+        <div class="incoming-card__customer">
+          <app-hp-icon name="user" [size]="14" />
+          {{ order.customer || 'Customer' }}
+        </div>
+
+        <!-- Items -->
+        <div class="incoming-card__items">
+          @for (item of order.items; track item.name) {
+            <div class="order-item-row">
+              <span class="item-qty-badge">{{ item.quantity }}×</span>
+              <span class="item-name">{{ item.name }}</span>
+              <span class="item-price">₹{{ item.price * item.quantity }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Delivery Address -->
+        @if (order.delivery_address) {
+          <div class="incoming-card__address">
+            <app-hp-icon name="map-pin" [size]="14" />
+            {{ order.delivery_address }}
+          </div>
+        }
+
+        <!-- Actions -->
+        <div class="incoming-card__actions">
+          <button class="accept-btn" (click)="accept(order.id)">
+            <app-hp-icon name="check" [size]="15" />
+            Accept Order
+          </button>
+          <button class="reject-btn" (click)="reject(order.id)">
+            <app-hp-icon name="x" [size]="15" />
+            Cancel
+          </button>
+        </div>
+
+      </div>
+    }
+  </div>
+
+</div>

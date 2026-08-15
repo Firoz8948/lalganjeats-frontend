@@ -1,0 +1,58 @@
+@if (loading()) {
+  <div class="loading-state">Loading dashboard…</div>
+} @else {
+@if (stats(); as dashboardStats) {
+  <div class="content-area">
+    <h1 class="page-title">Dashboard Overview</h1>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card__icon">♙</div>
+        <div class="stat-card__value">{{ dashboardStats.total_customers }}</div>
+        <div class="stat-card__label">Total Customers</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__icon">⌂</div>
+        <div class="stat-card__value">{{ dashboardStats.total_restaurants }}</div>
+        <div class="stat-card__label">Restaurants</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__icon">□</div>
+        <div class="stat-card__value">{{ dashboardStats.total_orders }}</div>
+        <div class="stat-card__label">Total Orders</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__icon">♧</div>
+        <div class="stat-card__value">{{ dashboardStats.total_delivery }}</div>
+        <div class="stat-card__label">Delivery Partners</div>
+      </div>
+      <div class="stat-card highlight">
+        <div class="stat-card__icon">₹</div>
+        <div class="stat-card__value">₹{{ dashboardStats.total_revenue | number }}</div>
+        <div class="stat-card__label">Total Revenue</div>
+      </div>
+      <div class="stat-card warning">
+        <div class="stat-card__icon">◷</div>
+        <div class="stat-card__value">{{ dashboardStats.pending_approvals }}</div>
+        <div class="stat-card__label">Pending Approvals</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Recent Orders</h2>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Order #</th><th>Status</th><th>Amount</th><th>Date</th></tr></thead>
+        <tbody>
+          @for (order of recentOrders(); track order.id) {
+            <tr>
+              <td>{{ order.order_number }}</td>
+              <td><span class="status-chip status-{{ order.status }}">{{ order.status }}</span></td>
+              <td>₹{{ order.total_amount }}</td>
+              <td>{{ order.created_at | date:'d MMM, h:mm a' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}
+}

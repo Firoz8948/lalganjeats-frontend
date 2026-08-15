@@ -1,0 +1,141 @@
+<!-- my-profile.component.html -->
+<div class="profile-card">
+
+  <!-- Header -->
+  <div class="card-header">
+    <div>
+      <h2 class="card-title">My Profile</h2>
+      <p class="card-subtitle">Manage your personal information</p>
+    </div>
+    @if (!editing()) {
+      <button class="edit-btn" (click)="startEditing()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14
+                   a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Edit
+      </button>
+    }
+  </div>
+
+  <!-- Success -->
+  @if (success()) {
+    <div class="alert-success">✅ {{ success() }}</div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="alert-error">⚠️ {{ error() }}</div>
+  }
+
+  @if (profile()) {
+
+    <!-- View Mode -->
+    @if (!editing()) {
+      <div class="profile-view">
+
+        <div class="profile-avatar-big">
+          {{ (profile()!.full_name || 'U').charAt(0).toUpperCase() }}
+        </div>
+
+        <div class="profile-fields">
+          <div class="field-row">
+            <div class="field-item">
+              <label>Full Name</label>
+              <p>{{ profile()!.full_name || '—' }}</p>
+            </div>
+            <div class="field-item">
+              <label>Phone</label>
+              <p>{{ profile()!.phone }}</p>
+              <span class="verified-tag">✓ Verified</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field-item">
+              <label>Email</label>
+              <p>{{ profile()!.email || '—' }}</p>
+            </div>
+            <div class="field-item">
+              <label>Gender</label>
+              <p>{{ profile()!.gender || '—' }}</p>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field-item">
+              <label>Date of Birth</label>
+              <p>{{ profile()!.date_of_birth
+                   ? (profile()!.date_of_birth | date:'d MMMM yyyy')
+                   : '—' }}</p>
+            </div>
+            <div class="field-item">
+              <label>Member Since</label>
+              <p>{{ profile()!.created_at | date:'MMMM yyyy' }}</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- Edit Mode -->
+    @if (editing()) {
+      <div class="profile-edit">
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Full Name *</label>
+            <input type="text" [(ngModel)]="form.full_name"
+                   placeholder="Enter your full name"/>
+          </div>
+
+          <div class="form-field">
+            <label>Phone</label>
+            <input type="tel" [value]="profile()!.phone"
+                   disabled class="disabled-input"/>
+            <span class="field-hint">Phone cannot be changed</span>
+          </div>
+
+          <div class="form-field">
+            <label>Email</label>
+            <input type="email" [(ngModel)]="form.email"
+                   placeholder="Enter email address"/>
+          </div>
+
+          <div class="form-field">
+            <label>Gender</label>
+            <select [(ngModel)]="form.gender">
+              <option value="">Select gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+              <option value="prefer_not">Prefer not to say</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label>Date of Birth</label>
+            <input type="date" [(ngModel)]="form.date_of_birth"/>
+          </div>
+        </div>
+
+        <!-- Edit Actions -->
+        <div class="edit-actions">
+          <button class="save-btn" (click)="saveProfile()"
+                  [disabled]="saving()">
+            @if (saving()) { Saving… } @else { Save Changes }
+          </button>
+          <button class="cancel-btn" (click)="cancelEditing()">
+            Cancel
+          </button>
+        </div>
+
+      </div>
+    }
+
+  }
+
+</div>

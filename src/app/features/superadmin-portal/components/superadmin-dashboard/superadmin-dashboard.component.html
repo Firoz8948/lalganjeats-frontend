@@ -1,0 +1,289 @@
+<div class="sa-layout">
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <img src="assets/images/logo.svg" alt="LalganjEats">
+      <span>Super Admin</span>
+    </div>
+
+    <nav class="sidebar__nav">
+      <div class="nav-item active">Tenants</div>
+    </nav>
+
+    <div class="sidebar__footer">
+      <p class="user-name">{{ user?.full_name }}</p>
+      <p class="user-role">Platform Owner</p>
+      <button class="logout-btn" (click)="logout()">Logout</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    @if (loading()) {
+      <div class="loading">Loading…</div>
+    } @else {
+      <header class="page-head">
+        <div>
+          <h1>Tenants</h1>
+          <p>Create city admins, edit centre / bank details, and impersonate any admin.</p>
+        </div>
+        <button class="btn-primary" (click)="openCreate()">+ Add Tenant</button>
+      </header>
+
+      @if (stats(); as s) {
+        <div class="stats">
+          <div class="stat">
+            <span class="stat__label">Tenants</span>
+            <span class="stat__value">{{ s.total_tenants }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat__label">Active</span>
+            <span class="stat__value">{{ s.active_tenants }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat__label">Restaurants</span>
+            <span class="stat__value">{{ s.total_restaurants }}</span>
+          </div>
+        </div>
+      }
+
+      @if (formSuccess()) {
+        <div class="banner success">{{ formSuccess() }}</div>
+      }
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tenant</th>
+              <th>Admin</th>
+              <th>Centre</th>
+              <th>Fee / %</th>
+              <th>Stats</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (t of tenants(); track t.id) {
+              <tr>
+                <td>
+                  <strong>{{ t.name }}</strong>
+                  <div class="muted">{{ t.slug }}</div>
+                </td>
+                <td>{{ t.admin_email || '—' }}</td>
+                <td class="addr">
+                  {{ t.center_address }}
+                  @if (t.center_latitude != null) {
+                    <div class="muted">{{ t.center_latitude }}, {{ t.center_longitude }}</div>
+                  }
+                </td>
+                <td>
+                  ₹{{ t.one_time_fee }}
+                  <div class="muted">{{ t.platform_charge_percent }}% platform</div>
+                </td>
+                <td>
+                  {{ t.restaurant_count }} restaurants
+                  <div class="muted">{{ t.zone_count }} zones</div>
+                </td>
+                <td>
+                  <span class="pill" [class.on]="t.is_active" [class.off]="!t.is_active">
+                    {{ t.is_active ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td class="actions">
+                  <button class="btn-edit" type="button" (click)="openEdit(t)">Edit</button>
+                  <button class="btn-ghost" (click)="impersonate(t)"
+                          [disabled]="impersonatingId() === t.id || !t.is_active">
+                    {{ impersonatingId() === t.id ? 'Entering…' : 'Impersonate' }}
+                  </button>
+                  <button class="btn-link" (click)="toggleActive(t)">
+                    {{ t.is_active ? 'Deactivate' : 'Activate' }}
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="empty">No tenants yet. Create the first one.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </main>
+</div>
+
+@if (showCreate()) {
+  <div class="modal-backdrop" (click)="closeCreate()">
+    <div class="modal modal-wide" (click)="$event.stopPropagation()">
+      <h2>Create Tenant Admin</h2>
+      <p class="modal-sub">
+        Centre lat/long can only be changed later by Super Admin. Tenant admin cannot edit it.
+      </p>
+
+      @if (formError()) {
+        <div class="banner error">{{ formError() }}</div>
+      }
+
+      <div class="form-grid">
+        <label>
+          Tenant name
+          <input [(ngModel)]="form.name" placeholder="e.g. Lucknow Hub"/>
+        </label>
+        <label>
+          Slug (optional)
+          <input [(ngModel)]="form.slug" placeholder="auto from name"/>
+        </label>
+        <label>
+          Admin email / username
+          <input [(ngModel)]="form.admin_email" placeholder="lucknow-admin"/>
+        </label>
+        <label>
+          Admin password
+          <input type="password" [(ngModel)]="form.admin_password"/>
+        </label>
+        <label>
+          Admin full name
+          <input [(ngModel)]="form.admin_full_name" placeholder="City Admin"/>
+        </label>
+        <label class="full">
+          Centre address
+          <input [(ngModel)]="form.center_address" placeholder="Full operating address"/>
+        </label>
+        <label>
+          Centre latitude
+          <input type="number" step="any" [(ngModel)]="form.center_latitude"/>
+        </label>
+        <label>
+          Centre longitude
+          <input type="number" step="any" [(ngModel)]="form.center_longitude"/>
+        </label>
+        <label>
+          One-time fee (₹)
+          <input type="number" min="0" [(ngModel)]="form.one_time_fee"/>
+        </label>
+        <label>
+          Platform charge (%)
+          <input type="number" min="0" max="100" step="0.01"
+                 [(ngModel)]="form.platform_charge_percent"/>
+        </label>
+
+        <div class="section-title full">Bank details</div>
+        <label>
+          Account holder
+          <input [(ngModel)]="form.bank_account_holder_name" placeholder="Name on account"/>
+        </label>
+        <label>
+          Account number
+          <input [(ngModel)]="form.bank_account_number" placeholder="XXXXXXXX"/>
+        </label>
+        <label>
+          IFSC
+          <input [(ngModel)]="form.bank_ifsc_code" placeholder="SBIN0001234"/>
+        </label>
+        <label>
+          Bank name
+          <input [(ngModel)]="form.bank_name" placeholder="e.g. SBI"/>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-ghost" (click)="closeCreate()">Cancel</button>
+        <button class="btn-primary" (click)="createTenant()" [disabled]="saving()">
+          {{ saving() ? 'Creating…' : 'Create Tenant' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showEdit()) {
+  <div class="modal-backdrop" (click)="closeEdit()">
+    <div class="modal modal-wide" (click)="$event.stopPropagation()">
+      <h2>Edit Tenant</h2>
+      <p class="modal-sub">
+        Update centre location, commercial terms, admin login, and bank settlement details.
+      </p>
+
+      @if (formError()) {
+        <div class="banner error">{{ formError() }}</div>
+      }
+
+      @if (editLoading()) {
+        <p class="loading">Loading tenant…</p>
+      } @else {
+        <div class="form-grid">
+          <label>
+            Tenant name
+            <input [(ngModel)]="editForm.name"/>
+          </label>
+          <label>
+            Active
+            <select [(ngModel)]="editForm.is_active">
+              <option [ngValue]="true">Active</option>
+              <option [ngValue]="false">Inactive</option>
+            </select>
+          </label>
+          <label>
+            Admin email / username
+            <input [(ngModel)]="editForm.admin_email"/>
+          </label>
+          <label>
+            Admin full name
+            <input [(ngModel)]="editForm.admin_full_name"/>
+          </label>
+          <label class="full">
+            New admin password (optional)
+            <input type="password" [(ngModel)]="editForm.admin_password"
+                   placeholder="Leave blank to keep current"/>
+          </label>
+          <label class="full">
+            Centre address
+            <input [(ngModel)]="editForm.center_address"/>
+          </label>
+          <label>
+            Centre latitude
+            <input type="number" step="any" [(ngModel)]="editForm.center_latitude"/>
+          </label>
+          <label>
+            Centre longitude
+            <input type="number" step="any" [(ngModel)]="editForm.center_longitude"/>
+          </label>
+          <label>
+            One-time fee (₹)
+            <input type="number" min="0" [(ngModel)]="editForm.one_time_fee"/>
+          </label>
+          <label>
+            Platform charge (%)
+            <input type="number" min="0" max="100" step="0.01"
+                   [(ngModel)]="editForm.platform_charge_percent"/>
+          </label>
+
+          <div class="section-title full">Bank details</div>
+          <label>
+            Account holder
+            <input [(ngModel)]="editForm.bank_account_holder_name"/>
+          </label>
+          <label>
+            Account number
+            <input [(ngModel)]="editForm.bank_account_number"/>
+          </label>
+          <label>
+            IFSC
+            <input [(ngModel)]="editForm.bank_ifsc_code"/>
+          </label>
+          <label>
+            Bank name
+            <input [(ngModel)]="editForm.bank_name"/>
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-ghost" type="button" (click)="closeEdit()">Cancel</button>
+          <button class="btn-primary" type="button" (click)="saveEdit()" [disabled]="saving()">
+            {{ saving() ? 'Saving…' : 'Save Changes' }}
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+}

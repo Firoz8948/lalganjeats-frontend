@@ -1,0 +1,109 @@
+// frontend/src/app/features/profile/services/profile.service.ts
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+export interface CustomerProfile {
+  id:            number;
+  phone:         string;
+  full_name:     string;
+  email:         string | null;
+  gender:        string | null;
+  date_of_birth: string | null;
+  profile_image: string | null;
+  created_at:    string;
+}
+
+export interface Address {
+  id:           number;
+  label:        string;
+  full_address: string;
+  landmark:     string | null;
+  city:         string;
+  pincode:      string | null;
+  is_default:   boolean;
+}
+
+export interface CustomerSettings {
+  notif_order_updates: boolean;
+  notif_offers:        boolean;
+  notif_sms:           boolean;
+  preferred_language:  string;
+  preferred_payment:   string;
+}
+
+export interface CustomerOrder {
+  id:              number;
+  order_number:    string;
+  restaurant_id:   number;
+  restaurant_name: string;
+  status:          string;
+  payment_method:  string;
+  payment_status:  string;
+  subtotal:        number;
+  delivery_fee:    number;
+  total_amount:    number;
+  items:           OrderItem[];
+  created_at:      string;
+}
+
+export interface OrderItem {
+  name:     string;
+  price:    number;
+  quantity: number;
+  subtotal: number;
+}
+
+@Injectable({ providedIn: 'root' })
+export class ProfileService {
+
+  private api = 'http://localhost:8000/api/v1/users';
+
+  constructor(private http: HttpClient) {}
+
+  // Profile
+  getProfile(): Observable<CustomerProfile> {
+    return this.http.get<CustomerProfile>(`${this.api}/profile`);
+  }
+
+  updateProfile(data: Partial<CustomerProfile>): Observable<any> {
+    return this.http.put(`${this.api}/profile`, data);
+  }
+
+  // Addresses
+  getAddresses(): Observable<Address[]> {
+    return this.http.get<Address[]>(`${this.api}/addresses`);
+  }
+
+  addAddress(data: Partial<Address>): Observable<any> {
+    return this.http.post(`${this.api}/addresses`, data);
+  }
+
+  updateAddress(id: number, data: Partial<Address>): Observable<any> {
+    return this.http.put(`${this.api}/addresses/${id}`, data);
+  }
+
+  deleteAddress(id: number): Observable<any> {
+    return this.http.delete(`${this.api}/addresses/${id}`);
+  }
+
+  setDefaultAddress(id: number): Observable<any> {
+    return this.http.patch(`${this.api}/addresses/${id}/set-default`, {});
+  }
+
+  // Orders
+  getOrders(filter: string = 'all'): Observable<CustomerOrder[]> {
+    return this.http.get<CustomerOrder[]>(
+      `${this.api}/orders?filter=${filter}`
+    );
+  }
+
+  // Settings
+  getSettings(): Observable<CustomerSettings> {
+    return this.http.get<CustomerSettings>(`${this.api}/settings`);
+  }
+
+  updateSettings(data: Partial<CustomerSettings>): Observable<any> {
+    return this.http.put(`${this.api}/settings`, data);
+  }
+}

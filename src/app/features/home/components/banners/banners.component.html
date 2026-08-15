@@ -1,0 +1,78 @@
+<section class="banners-section">
+  <div class="container">
+    @if (slides().length === 0) {
+      <div class="slides-track slides-track--empty">
+        <div class="slide active">
+          <div class="slide__placeholder slide__placeholder--desktop" style="display:flex">
+            <span class="slide__placeholder-label">No banners yet</span>
+            <span class="slide__placeholder-size">Admin can add slides in Banners tab</span>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="slider"
+           (mouseenter)="stopAutoPlay()"
+           (mouseleave)="startAutoPlay()">
+
+        <div class="slides-track">
+          @for (slide of slides(); track slide.id ?? slide.slide_number; let i = $index) {
+            <div class="slide"
+                 [class.active]="i === currentIndex()"
+                 [class.slide--has-desktop-image]="slide.desktop_image_url"
+                 [class.slide--has-mobile-image]="slide.mobile_image_url">
+
+              @if (slide.desktop_image_url) {
+                <img [src]="slide.desktop_image_url"
+                     [alt]="'Home banner slide ' + slide.slide_number"
+                     class="slide__desktop-image">
+              } @else {
+                <div class="slide__placeholder slide__placeholder--desktop">
+                  <span class="slide__placeholder-label">Slide {{ slide.slide_number }}</span>
+                  <span class="slide__placeholder-size">Desktop · {{ desktopSize }}</span>
+                </div>
+              }
+
+              @if (slide.mobile_image_url) {
+                <img [src]="slide.mobile_image_url"
+                     [alt]="'Home banner slide ' + slide.slide_number"
+                     class="slide__mobile-image">
+              } @else {
+                <div class="slide__placeholder slide__placeholder--mobile">
+                  <span class="slide__placeholder-label">Slide {{ slide.slide_number }}</span>
+                  <span class="slide__placeholder-size">Mobile · {{ mobileSize }}</span>
+                </div>
+              }
+
+            </div>
+          }
+        </div>
+
+        @if (slides().length > 1) {
+          <button class="slider__btn slider__btn--prev" (click)="prev()" aria-label="Previous slide">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <button class="slider__btn slider__btn--next" (click)="next()" aria-label="Next slide">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+
+          <div class="slider__dots">
+            @for (slide of slides(); track slide.id ?? slide.slide_number; let i = $index) {
+              <button
+                class="dot"
+                [class.active]="i === currentIndex()"
+                (click)="goTo(i)"
+                [attr.aria-label]="'Go to slide ' + slide.slide_number">
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</section>

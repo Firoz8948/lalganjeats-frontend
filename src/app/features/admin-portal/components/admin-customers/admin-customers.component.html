@@ -1,0 +1,25 @@
+<div class="content-area">
+  <h1 class="page-title">Customers</h1>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>Name</th><th>Phone</th><th>Email</th><th>Joined</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        @for (c of customers(); track c.id) {
+          <tr>
+            <td><strong>{{ c.full_name || '—' }}</strong></td>
+            <td>{{ c.phone }}</td>
+            <td>{{ c.email || '—' }}</td>
+            <td>{{ c.created_at | date:'d MMM yyyy' }}</td>
+            <td>
+              <span [class]="c.is_active ? 'badge-open' : 'badge-closed'">
+                {{ c.is_active ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,61 @@
+<div class="content-area">
+  <h1 class="page-title">Delivery Zones</h1>
+  <p class="page-sub">
+    Centre location is set by Super Admin and cannot be changed here.
+    Add radius rings with flat ₹ or per-km pricing.
+  </p>
+
+  @if (zoneError()) { <div class="form-error">{{ zoneError() }}</div> }
+  @if (zoneSuccess()) { <div class="form-success">{{ zoneSuccess() }}</div> }
+
+  @if (tenant(); as tenantCentre) {
+    <div class="centre-card">
+      <h3>{{ tenantCentre.name }}</h3>
+      <p>{{ tenantCentre.center_address }}</p>
+      <div class="centre-meta">
+        <span>Lat {{ tenantCentre.center_latitude }}</span>
+        <span>Lng {{ tenantCentre.center_longitude }}</span>
+        <span>Platform {{ tenantCentre.platform_charge_percent }}%</span>
+      </div>
+      <p class="locked-note">Centre coordinates are locked</p>
+    </div>
+  }
+
+  <div class="zone-form">
+    <h3>Add zone</h3>
+    <div class="zone-form__row">
+      <label>Name<input [(ngModel)]="newZone.name" placeholder="Zone 1"/></label>
+      <label>Radius (km)<input type="number" min="0.1" step="0.1" [(ngModel)]="newZone.radius_km"/></label>
+      <label>
+        Pricing
+        <select [(ngModel)]="newZone.pricing_type">
+          <option value="flat">Flat ₹ for zone</option>
+          <option value="per_km">Per km rate</option>
+        </select>
+      </label>
+      <label>Rate (₹)<input type="number" min="0" step="1" [(ngModel)]="newZone.rate"/></label>
+      <button class="approve-btn" (click)="createZone()" [disabled]="zoneSaving()">
+        {{ zoneSaving() ? 'Saving…' : 'Add Zone' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Zone</th><th>Radius</th><th>Pricing</th><th>Rate</th><th></th></tr></thead>
+      <tbody>
+        @for (zone of zones(); track zone.id) {
+          <tr>
+            <td><strong>{{ zone.name }}</strong></td>
+            <td>{{ zone.radius_km }} km</td>
+            <td>{{ zone.pricing_type === 'flat' ? 'Flat' : 'Per km' }}</td>
+            <td>₹{{ zone.rate }}{{ zone.pricing_type === 'per_km' ? '/km' : '' }}</td>
+            <td><button class="danger-link" (click)="deleteZone(zone)">Delete</button></td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5" class="empty-table-cell">No zones yet. Add Zone 1 with a radius to get started.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

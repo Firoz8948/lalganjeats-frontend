@@ -1,0 +1,35 @@
+@use '../shared/admin-shared';
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.stat-card {
+  padding: 20px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  &.highlight { border-left: 4px solid #2ecc71; }
+  &.warning { border-left: 4px solid #c70000; }
+}
+.stat-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  background: #f3f4f6;
+  color: #374151;
+}
+.stat-card__value { font-size: 28px; font-weight: 700; }
+.stat-card__label { color: #666; font-size: 13px; }
+.status-chip {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #eee;
+  font-size: 12px;
+}

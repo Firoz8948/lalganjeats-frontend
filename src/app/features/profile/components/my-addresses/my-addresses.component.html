@@ -1,0 +1,94 @@
+<div class="profile-card">
+
+  <div class="card-header">
+    <div>
+      <h2 class="card-title">My Addresses</h2>
+      <p class="card-subtitle">Manage delivery locations</p>
+    </div>
+    @if (!showForm()) {
+      <button type="button" class="action-btn" (click)="openForm()">+ Add Address</button>
+    }
+  </div>
+
+  @if (success()) {
+    <div class="alert-success">✅ {{ success() }}</div>
+  }
+
+  @if (error()) {
+    <div class="alert-error">⚠️ {{ error() }}</div>
+  }
+
+  @if (showForm()) {
+    <div class="address-form">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Label</label>
+          <select [(ngModel)]="form.label">
+            <option value="Home">Home</option>
+            <option value="Work">Work</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>City</label>
+          <input type="text" [(ngModel)]="form.city" />
+        </div>
+        <div class="form-field form-field--full">
+          <label>Full Address *</label>
+          <input type="text" [(ngModel)]="form.full_address" placeholder="House no., street, area" />
+        </div>
+        <div class="form-field">
+          <label>Landmark</label>
+          <input type="text" [(ngModel)]="form.landmark" placeholder="Near market, temple, etc." />
+        </div>
+        <div class="form-field">
+          <label>Pincode</label>
+          <input type="text" [(ngModel)]="form.pincode" maxlength="6" />
+        </div>
+      </div>
+      <label class="checkbox-row">
+        <input type="checkbox" [(ngModel)]="form.is_default" />
+        Set as default address
+      </label>
+      <div class="form-actions">
+        <button type="button" class="save-btn" (click)="saveAddress()" [disabled]="saving()">
+          @if (saving()) { Saving… } @else { Save Address }
+        </button>
+        <button type="button" class="cancel-btn" (click)="cancelForm()">Cancel</button>
+      </div>
+    </div>
+  }
+
+  <div class="addresses-body">
+    @if (loading()) {
+      <p class="empty-state">Loading addresses…</p>
+    } @else if (addresses().length === 0) {
+      <p class="empty-state">No saved addresses yet.</p>
+    } @else {
+      @for (address of addresses(); track address.id) {
+        <div class="address-card" [class.address-card--default]="address.is_default">
+          <div>
+            <p class="address-card__label">
+              {{ address.label }}
+              @if (address.is_default) {
+                <span class="default-tag">Default</span>
+              }
+            </p>
+            <p class="address-card__text">{{ address.full_address }}</p>
+            @if (address.landmark) {
+              <p class="address-card__meta">Near {{ address.landmark }}</p>
+            }
+            <p class="address-card__meta">{{ address.city }} @if (address.pincode) { · {{ address.pincode }} }</p>
+          </div>
+          <div class="address-card__actions">
+            @if (!address.is_default) {
+              <button type="button" class="link-btn" (click)="setDefault(address.id)">Set Default</button>
+            }
+            <button type="button" class="link-btn link-btn--danger" (click)="deleteAddress(address.id)">Delete</button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+</div>

@@ -1,0 +1,45 @@
+<div class="auth-page sa-theme">
+  <header class="auth-topbar">
+    <a routerLink="/" class="auth-topbar__logo">
+      <img src="assets/images/logo.svg" alt="LalganjEats">
+    </a>
+    <span class="auth-topbar__role">Platform Super Admin</span>
+  </header>
+
+  <div class="auth-card">
+    <h1 class="auth-title">Super Admin</h1>
+    <p class="auth-subtitle">Multi-tenant control panel</p>
+
+    @if (error()) {
+      <div class="auth-error">{{ error() }}</div>
+    }
+
+    <div class="auth-form">
+      <div class="input-wrap">
+        <label>Username</label>
+        <div class="input-group">
+          <input type="text" placeholder="superadmin"
+                 [(ngModel)]="username" (keyup.enter)="login()"/>
+        </div>
+      </div>
+
+      <div class="input-wrap">
+        <label>Password</label>
+        <div class="input-group">
+          <input [type]="showPwd() ? 'text' : 'password'"
+                 placeholder="Enter password"
+                 [(ngModel)]="password" (keyup.enter)="login()"/>
+          <button type="button" class="toggle-pwd" (click)="togglePassword()">
+            {{ showPwd() ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+      </div>
+
+      <button class="auth-btn sa-btn" (click)="login()" [disabled]="loading()">
+        @if (loading()) { Logging in… } @else { Enter Control Panel }
+      </button>
+    </div>
+
+    <p class="auth-footer-note">Restricted — platform owner only</p>
+  </div>
+</div>

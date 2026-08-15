@@ -1,0 +1,35 @@
+@use '../shared/admin-shared';
+
+.promo-form-row { align-items: flex-end; }
+.promo-delivery-block {
+  max-width: 360px;
+  margin: 14px 0 18px;
+  padding: 14px 16px;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  background: #fafafa;
+  &__title { margin: 0 0 10px; color: #222; font-size: 14px; }
+  &__check {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #333;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    input { width: 18px; height: 18px; accent-color: #ff0000; }
+  }
+  &__hint { margin: 8px 0 0; color: #777; font-size: 12px; }
+}
+.promo-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.usage-modal { max-width: 640px; max-height: 85vh; overflow: auto; }
+.usage-card {
+  margin: 0 24px 10px;
+  padding: 12px 14px;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  background: #fafafa;
+  &__head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 4px; font-size: 14px; }
+  &__meta { margin-top: 2px; color: #666; font-size: 12px; }
+}
+.usage-items { margin: 8px 0 0; padding-left: 18px; color: #333; font-size: 13px; }

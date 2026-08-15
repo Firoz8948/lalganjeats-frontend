@@ -1,0 +1,215 @@
+// my-profile.component.scss
+.profile-card {
+  background: var(--color-white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 24px 24px 0;
+  margin-bottom: 24px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.card-subtitle {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border: 1.5px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 600;
+  background: transparent;
+  transition: var(--transition);
+
+  &:hover {
+    background: var(--color-primary);
+    color: white;
+  }
+}
+
+.alert-success {
+  margin: 0 24px 16px;
+  padding: 10px 14px;
+  background: #E8F8F0;
+  border: 1px solid rgba(39,174,96,0.2);
+  border-radius: var(--radius-sm);
+  color: #27AE60;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.alert-error {
+  margin: 0 24px 16px;
+  padding: 10px 14px;
+  background: #FFECEC;
+  border: 1px solid rgba(231,76,60,0.2);
+  border-radius: var(--radius-sm);
+  color: #E74C3C;
+  font-size: 13px;
+}
+
+// ── View Mode ─────────────────────────────────────────────
+.profile-view { padding: 0 24px 24px; }
+
+.profile-avatar-big {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: white;
+  font-size: 28px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.profile-fields { display: flex; flex-direction: column; gap: 20px; }
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+
+  @media (max-width: 600px) { grid-template-columns: 1fr; gap: 14px; }
+}
+
+.field-item {
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  p {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+}
+
+.verified-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #27AE60;
+  background: #E8F8F0;
+  padding: 2px 8px;
+  border-radius: var(--radius-xl);
+  margin-top: 4px;
+}
+
+// ── Edit Mode ─────────────────────────────────────────────
+.profile-edit { padding: 0 24px 24px; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
+}
+
+.form-field {
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    color: var(--color-text);
+    background: var(--color-bg);
+    font-family: var(--font-family);
+    transition: var(--transition);
+
+    &:focus {
+      border-color: var(--color-primary);
+      background: var(--color-white);
+      outline: none;
+    }
+
+    &::placeholder { color: var(--color-muted); }
+  }
+}
+
+.disabled-input {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+  background: var(--color-border) !important;
+}
+
+.field-hint {
+  font-size: 11px;
+  color: var(--color-muted);
+  margin-top: 4px;
+  display: block;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.save-btn {
+  padding: 12px 28px;
+  background: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 700;
+  transition: var(--transition);
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+  }
+
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.cancel-btn {
+  padding: 12px 24px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--color-muted);
+  font-weight: 500;
+  transition: var(--transition);
+
+  &:hover { border-color: var(--color-text); color: var(--color-text); }
+}

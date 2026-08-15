@@ -1,0 +1,20 @@
+@use '../shared/admin-shared';
+
+.centre-card {
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  background: #fff;
+  h3 { margin: 0 0 6px; font-size: 16px; }
+  p { margin: 0; color: #555; font-size: 14px; }
+  .centre-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 10px;
+    color: #888;
+    font-size: 12px;
+  }
+  .locked-note { margin-top: 10px; color: #c0392b; font-size: 12px; font-weight: 600; }
+}

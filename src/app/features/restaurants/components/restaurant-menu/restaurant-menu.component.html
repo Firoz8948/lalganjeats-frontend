@@ -1,0 +1,250 @@
+<app-navbar />
+
+<main class="page-content">
+
+  <div class="menu-hero-section">
+    <div class="container">
+
+      <button class="back-btn" (click)="goBack()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Back
+      </button>
+
+      <div class="hotel-hero"
+           [class.has-banner]="!!restaurant().bannerUrl"
+           [style.background]="restaurant().bannerUrl ? null : restaurant().imageBg">
+
+        @if (restaurant().bannerUrl) {
+          <img class="hotel-hero__banner"
+               [src]="restaurant().bannerUrl"
+               [alt]="restaurant().name">
+          <div class="hotel-hero__scrim"></div>
+        }
+
+        <div class="hotel-hero__content">
+          @if (restaurant().logoUrl) {
+            <img class="hotel-hero__logo"
+                 [src]="restaurant().logoUrl"
+                 [alt]="restaurant().name">
+          } @else {
+            <div class="hotel-hero__emoji">{{ restaurant().emoji }}</div>
+          }
+          <div class="hotel-hero__info">
+            <div class="hotel-status" [class.open]="restaurant().isOpen">
+              {{ restaurant().isOpen ? '● Open Now' : '● Closed' }}
+            </div>
+            <h1 class="hotel-hero__name">{{ restaurant().name }}</h1>
+            <p class="hotel-hero__cuisine">{{ restaurant().cuisine }}</p>
+            <div class="hotel-hero__meta">
+              <span class="meta-chip">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                {{ restaurant().rating }} ({{ restaurant().reviewCount }} reviews)
+              </span>
+              <span class="meta-chip">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9"/>
+                  <polyline points="12 7 12 12 15 14"/>
+                </svg>
+                {{ restaurant().deliveryTime }}
+              </span>
+              <span class="meta-chip">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="5" cy="18" r="2.5"/><circle cx="17" cy="18" r="2.5"/>
+                  <path d="M7.5 18h6l2-6h3l1.5 4H19"/>
+                  <path d="M3 18H2V9h8l2 5"/>
+                </svg>
+                {{ restaurant().deliveryFee }}
+              </span>
+              <span class="meta-chip">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                {{ restaurant().address }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="menu-section">
+    <div class="container">
+
+      @if (loading()) {
+        <div class="menu-loading">
+          <div class="spinner"></div>
+          <p>Loading menu…</p>
+        </div>
+      }
+
+      @if (!loading() && menuItems().length === 0) {
+        <div class="menu-empty">
+          <span class="menu-empty__icon">🍽️</span>
+          <h3>No menu items available</h3>
+          <p>This restaurant hasn't added any items yet.</p>
+        </div>
+      }
+
+      @if (!loading() && menuItems().length > 0) {
+        <div class="menu-layout">
+
+          <div class="menu-main">
+
+            <div class="category-tabs">
+              @for (cat of categories(); track cat) {
+                <button
+                  class="category-tab"
+                  [class.active]="activeCategory() === cat"
+                  (click)="setCategory(cat)">
+                  {{ cat }}
+                </button>
+              }
+            </div>
+
+            <div class="menu-items">
+              @for (item of filteredItems(); track item.id) {
+                <div class="menu-card" [class.unavailable]="!item.is_available">
+
+                  <div class="menu-card__info">
+
+                    <div class="menu-card__badges">
+                      <div class="veg-badge" [class.non-veg]="!item.is_veg">
+                        <span></span>
+                      </div>
+
+                      @if (item.is_bestseller) {
+                        <span class="bestseller-tag">🔥 Bestseller</span>
+                      }
+
+                      @if (!item.is_available) {
+                        <span class="unavailable-tag">Not Available</span>
+                      }
+                    </div>
+
+                    <h3 class="menu-card__name">{{ item.name }}</h3>
+
+                    <div class="menu-card__price">
+                      <span class="price-current">₹{{ item.price }}</span>
+                      @if (item.original_price) {
+                        <span class="price-original">₹{{ item.original_price }}</span>
+                        <span class="price-discount">
+                          {{ ((item.original_price - item.price) / item.original_price * 100) | number:'1.0-0' }}% OFF
+                        </span>
+                      }
+                    </div>
+
+                    <p class="menu-card__desc">{{ item.description }}</p>
+                  </div>
+
+                  <div class="menu-card__right">
+                    <div class="menu-card__image">
+                      @if (item.image_url) {
+                        <img [src]="item.image_url" [alt]="item.name" class="item-img">
+                      } @else {
+                        <span class="item-emoji">{{ item.is_veg ? '🥗' : '🍗' }}</span>
+                      }
+                    </div>
+
+                    @if (item.is_available) {
+                      <div class="menu-card__add">
+                        @if (getCartQuantity(item.id) === 0) {
+                          <button class="add-btn" (click)="addToCart(item)">
+                            + ADD
+                          </button>
+                        } @else {
+                          <div class="qty-control">
+                            <button class="qty-btn" (click)="removeFromCart(item.id)">−</button>
+                            <span class="qty-value">{{ getCartQuantity(item.id) }}</span>
+                            <button class="qty-btn" (click)="addToCart(item)">+</button>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                </div>
+              }
+            </div>
+
+          </div>
+
+          <div class="cart-sidebar">
+            <div class="cart-box">
+              <h3 class="cart-box__title">Your Order</h3>
+
+              @if (cartItems().length === 0) {
+                <div class="cart-empty">
+                  <span class="cart-empty__emoji">🛒</span>
+                  <p>Your cart is empty</p>
+                  <span>Add items to get started</span>
+                </div>
+              } @else {
+                <div class="cart-items">
+                  @for (item of cartItems(); track item.id) {
+                    <div class="cart-item">
+                      <div class="cart-item__left">
+                        <div class="veg-badge mini" [class.non-veg]="!item.is_veg">
+                          <span></span>
+                        </div>
+                        <span class="cart-item__name">{{ item.name }}</span>
+                      </div>
+                      <div class="cart-item__right">
+                        <div class="qty-control mini">
+                          <button class="qty-btn" (click)="removeFromCart(item.id)">−</button>
+                          <span class="qty-value">{{ item.quantity }}</span>
+                          <button class="qty-btn" (click)="incrementCartItem(item)">+</button>
+                        </div>
+                        <span class="cart-item__price">₹{{ item.price * item.quantity }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <div class="cart-total">
+                  <span>Total</span>
+                  <span class="cart-total__amount">₹{{ cartTotal() }}</span>
+                </div>
+
+                <a routerLink="/checkout" class="checkout-btn">
+                  Proceed to Checkout →
+                </a>
+
+                <p class="cart-note">
+                  Min. order {{ restaurant().minOrder }} · {{ restaurant().deliveryFee }}
+                </p>
+              }
+            </div>
+          </div>
+
+        </div>
+      }
+
+    </div>
+  </div>
+
+</main>
+
+@if (cartItemCount() > 0) {
+  <div class="mobile-cart-bar">
+    <div class="mobile-cart-bar__info">
+      <span class="mobile-cart-bar__count">{{ cartItemCount() }} item(s)</span>
+      <span class="mobile-cart-bar__total">₹{{ cartTotal() }}</span>
+    </div>
+    <a routerLink="/checkout" class="mobile-cart-bar__btn">
+      View Cart →
+    </a>
+  </div>
+}
+
+<app-footer />

@@ -1,0 +1,85 @@
+<!-- features/hotel-portal/components/hp-menu-manage/hp-menu-manage.component.html -->
+<div class="hp-page">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Menu Items</h1>
+      <p class="page-subtitle">{{ items().length }} items · toggle availability below</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="page-loading">
+      <div class="spinner"></div>
+      <p>Loading menu…</p>
+    </div>
+  }
+
+  @if (!loading() && items().length === 0) {
+    <div class="empty-state">
+      <app-hp-icon class="empty-icon" name="utensils" [size]="56" />
+      <h3>No menu items yet</h3>
+      <p>Contact the admin to add items to your menu</p>
+    </div>
+  }
+
+  @if (!loading() && items().length > 0) {
+    <div class="menu-list">
+      @for (item of items(); track item.id) {
+        <div class="menu-item-card" [class.unavailable]="!item.is_available">
+
+          <!-- Item Info -->
+          <div class="item-info">
+            <div class="item-veg-dot" [class.non-veg]="!item.is_veg"></div>
+            <div class="item-details">
+              <div class="item-name-row">
+                <span class="item-name">{{ item.name }}</span>
+                @if (item.is_bestseller) {
+                  <span class="bestseller-tag">
+                    <app-hp-icon name="star" [size]="12" />
+                    Bestseller
+                  </span>
+                }
+              </div>
+              @if (item.description) {
+                <p class="item-desc">{{ item.description }}</p>
+              }
+              <span class="item-category">
+                <app-hp-icon name="folder" [size]="12" />
+                {{ getCategoryName(item.category_id) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Price & Availability Toggle -->
+          <div class="item-actions">
+            <div class="item-price-block">
+              <span class="item-price">₹{{ item.price }}</span>
+              @if (item.original_price) {
+                <span class="item-original-price">₹{{ item.original_price }}</span>
+              }
+            </div>
+
+            <div class="item-controls">
+              <button
+                class="avail-toggle"
+                [class.available]="item.is_available"
+                (click)="toggleAvailability(item)"
+                [title]="item.is_available ? 'Mark Unavailable' : 'Mark Available'">
+                @if (item.is_available) {
+                  <app-hp-icon name="check" [size]="14" />
+                  Available
+                } @else {
+                  <app-hp-icon name="x" [size]="14" />
+                  Unavailable
+                }
+              </button>
+            </div>
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+
+</div>

@@ -1,0 +1,89 @@
+<div class="payment-settings">
+  <div class="section-header">
+    <h2>Payment Settings</h2>
+    <p>Configure delivery charges and partner earnings</p>
+  </div>
+
+  @if (loading) {
+    <div class="loading">Loading settings...</div>
+  }
+
+  @if (!loading) {
+    <form [formGroup]="form" (ngSubmit)="save()">
+
+      <div class="settings-card">
+        <h3>Delivery Charges</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Delivery Charge (₹)</label>
+            <div class="input-prefix">
+              <span>₹</span>
+              <input type="number" formControlName="delivery_charge" min="0" step="1" />
+            </div>
+            <small>Charged to customer per order</small>
+          </div>
+          <div class="form-group">
+            <label>Free Delivery Above (₹)</label>
+            <div class="input-prefix">
+              <span>₹</span>
+              <input type="number" formControlName="free_delivery_above" min="0" step="1" />
+            </div>
+            <small>Orders above this amount get free delivery</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <h3>Earnings Split</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Delivery Boy Per Order Earning (₹)</label>
+            <div class="input-prefix">
+              <span>₹</span>
+              <input type="number" formControlName="delivery_boy_per_order_earning" min="0" step="1" />
+            </div>
+            <small>Fixed amount delivery partner earns per order</small>
+          </div>
+        </div>
+
+        <div class="split-preview">
+          <h4>Live Split Preview</h4>
+          <p class="preview-note">
+            ₹100 display price, ₹70 seller transfer price. MRP does not affect this calculation.
+          </p>
+          <div class="split-row">
+            <span>Seller transfer</span>
+            <strong>₹{{ previewTransferPrice | number:'1.2-2' }}</strong>
+          </div>
+          <div class="split-row">
+            <span>Remaining after seller transfer</span>
+            <strong>₹{{ previewDisplayPrice - previewTransferPrice | number:'1.2-2' }}</strong>
+          </div>
+          <div class="split-row">
+            <span>Delivery partner earns</span>
+            <strong>₹{{ form.get('delivery_boy_per_order_earning')?.value || 0 | number:'1.2-2' }}</strong>
+          </div>
+          <div class="split-row highlight" [class.loss]="adminProfitPreview < 0">
+            <span>{{ adminProfitPreview < 0 ? 'Admin loss' : 'Admin profit' }}</span>
+            <strong>
+              {{ adminProfitPreview < 0 ? '−' : '' }}₹{{ (adminProfitPreview < 0 ? -adminProfitPreview : adminProfitPreview) | number:'1.2-2' }}
+            </strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        @if (success) {
+          <div class="success-msg">Settings saved successfully</div>
+        }
+        @if (error) {
+          <div class="error-msg">{{ error }}</div>
+        }
+        <button type="submit" class="btn-save" [disabled]="saving || form.invalid">
+          {{ saving ? 'Saving...' : 'Save Settings' }}
+        </button>
+      </div>
+
+    </form>
+  }
+</div>

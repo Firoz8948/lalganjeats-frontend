@@ -1,0 +1,137 @@
+.track {
+  min-height: 100vh;
+  background: #0f0f0f;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.track__top {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px 8px;
+  background: #161616;
+
+  h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  .sub {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: #aaa;
+  }
+}
+
+.back {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  padding-top: 2px;
+}
+
+.live-pill {
+  margin-left: auto;
+  align-self: center;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #333;
+  color: #ccc;
+
+  &.ws {
+    background: #1f9d55;
+    color: #fff;
+  }
+
+  &.fallback {
+    background: #555;
+    color: #fff;
+  }
+}
+
+.eta-bubble {
+  margin: 10px 16px 0;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff0000, #e10000);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(232, 93, 4, 0.35);
+  animation: pulseSoft 2.4s ease-in-out infinite;
+
+  strong { font-size: 15px; }
+  span { font-size: 13px; opacity: 0.95; }
+
+  &.done {
+    background: #1f9d55;
+    animation: none;
+  }
+}
+
+.map-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 55vh;
+  margin: 12px 0 0;
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+
+  &.hidden {
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+.map-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+  background: rgba(15, 15, 15, 0.72);
+  font-size: 14px;
+
+  code {
+    background: #333;
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  .hint { color: #bbb; font-size: 12px; }
+}
+
+.meta {
+  padding: 14px 16px 28px;
+  background: #161616;
+
+  p { margin: 0 0 6px; font-size: 14px; }
+  .hint { color: #999; font-size: 13px; }
+}
+
+.err {
+  margin: 8px 16px;
+  color: #ff8a80;
+  font-size: 13px;
+}
+
+@keyframes pulseSoft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}

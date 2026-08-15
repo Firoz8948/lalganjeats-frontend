@@ -1,0 +1,61 @@
+<div class="content-area">
+  <div class="page-title-row">
+    <h1 class="page-title">Home Page Banners</h1>
+    <button class="approve-btn" [disabled]="saving()" (click)="addSlide()">{{ saving() ? 'Adding…' : '+ Add Slide' }}</button>
+  </div>
+  <p class="page-sub">Add, edit, activate/deactivate, or delete carousel slides. Upload separate desktop and mobile images. Preview shows what <strong>object-fit: cover</strong> will keep vs crop before you confirm.</p>
+  @if (error()) { <p class="form-msg form-msg--error">{{ error() }}</p> }
+  @if (success()) { <p class="form-msg form-msg--success">{{ success() }}</p> }
+  @if (loading()) {
+    <div class="loading-state">Loading banners…</div>
+  } @else if (!homeSlides().length) {
+    <div class="loading-state">No slides yet. Click <strong>Add Slide</strong> to create one.</div>
+  } @else {
+    @for (slide of homeSlides(); track slide.id ?? slide.slide_number) {
+      <section class="slide" [class.inactive]="slide.is_active === false">
+        <header>
+          <h2>Slide {{ slide.slide_number }} <span class="badge">{{ slide.is_active === false ? 'Inactive' : 'Active' }}</span></h2>
+          <div><button class="btn-link" (click)="toggle(slide)">{{ slide.is_active === false ? 'Activate' : 'Deactivate' }}</button><button class="danger-link" (click)="remove(slide)">Delete</button></div>
+        </header>
+        <div class="upload-grid">
+          @for (variant of variants; track variant) {
+            <div class="upload">
+              <h3>{{ variant === 'desktop' ? desktopSpec.label : mobileSpec.label }}</h3>
+              <p>{{ variant === 'desktop' ? desktopSpec.hint : mobileSpec.hint }}</p>
+              <small>Recommended: {{ variant === 'desktop' ? desktopSpec.size : mobileSpec.size }} · JPG, PNG, or WebP · max 5 MB</small>
+              @if (variant === 'desktop' ? slide.desktop_image_url : slide.mobile_image_url; as imageUrl) {
+                <div class="image" [class.mobile]="variant === 'mobile'">
+                  <img [src]="imageUrl" [alt]="variant + ' banner preview'">
+                  @if (isUploading(slide.id!, variant)) { <span>Uploading…</span> }
+                </div>
+                <div class="upload-actions">
+                  <label><input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="select($event, slide, variant)">Replace</label>
+                  <button class="danger-link" (click)="clear(slide, variant)">Remove</button>
+                </div>
+              } @else {
+                <label class="dropzone">
+                  <input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="select($event, slide, variant)">
+                  Upload {{ variant }} banner
+                </label>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
+</div>
+
+@if (preview(); as value) {
+  <div class="preview-backdrop" (click)="closePreview()">
+    <div class="preview-card" (click)="$event.stopPropagation()">
+      <header><h2>Preview · Slide {{ value.slideNumber }} · {{ value.variant === 'desktop' ? 'Desktop' : 'Mobile' }}</h2><button (click)="closePreview()">×</button></header>
+      <p>Home page uses <strong>object-fit: cover</strong> (center). Shaded areas outside the green box will be cropped. Image {{ value.naturalW }}×{{ value.naturalH }}px.</p>
+      <div class="preview-grid">
+        <div><h3>Full image — green = visible</h3><div class="crop" [style.aspect-ratio]="value.naturalW + ' / ' + value.naturalH"><img [src]="value.objectUrl"><i [style.left.%]="value.crop.left" [style.top.%]="value.crop.top" [style.width.%]="value.crop.width" [style.height.%]="value.crop.height"></i></div></div>
+        <div><h3>How it appears on site</h3><div class="live" [class.mobile]="value.variant === 'mobile'"><img [src]="value.objectUrl"></div></div>
+      </div>
+      <footer><button class="btn-secondary" (click)="closePreview()" [disabled]="uploading()">Cancel</button><button class="approve-btn" (click)="confirmUpload()" [disabled]="uploading()">{{ uploading() ? 'Uploading…' : 'Confirm & Upload' }}</button></footer>
+    </div>
+  </div>
+}

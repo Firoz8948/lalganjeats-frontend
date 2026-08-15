@@ -1,0 +1,409 @@
+// features/hotel-portal/components/hp-order-history/hp-order-history.component.scss
+
+.hp-page { max-width: 960px; }
+
+// ── Page Header ───────────────────────────────────────────
+.page-header {
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.page-subtitle { font-size: 13px; color: var(--color-muted); }
+
+// ── Filter Bar ────────────────────────────────────────────
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.filter-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: var(--radius-xl);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-muted);
+  white-space: nowrap;
+  transition: var(--transition);
+  cursor: pointer;
+
+  &:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+  &.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+    font-weight: 600;
+  }
+}
+
+// ── Loading ───────────────────────────────────────────────
+.page-loading {
+  height: 40vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Empty State ───────────────────────────────────────────
+.empty-full {
+  height: 50vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+
+  .empty-icon { color: var(--color-muted); }
+  h3 { font-size: 18px; font-weight: 700; color: var(--color-text); }
+  p  { font-size: 14px; color: var(--color-muted); }
+}
+
+// ── History List ──────────────────────────────────────────
+.history-list {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.history-card {
+  border-bottom: 1px solid var(--color-border);
+
+  &:last-child { border-bottom: none; }
+}
+
+// ── Card Header ───────────────────────────────────────────
+.history-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: var(--transition);
+  gap: 12px;
+
+  &:hover { background: var(--color-bg); }
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.history-card__left {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.order-icon {
+  width: 42px; height: 42px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.order-meta-info { flex: 1; min-width: 0; }
+
+.order-number {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 3px;
+}
+
+.order-customer {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-bottom: 2px;
+}
+
+.order-date {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.history-card__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+
+  @media (max-width: 640px) {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+.right-top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+
+  @media (max-width: 640px) {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.right-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+
+  @media (max-width: 640px) {
+    display: none;
+  }
+}
+
+.items-count {
+  font-size: 11px;
+  color: var(--color-muted);
+}
+
+.payment-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--color-muted);
+}
+
+.order-total {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.expand-icon {
+  color: var(--color-muted);
+  transition: transform 0.22s ease;
+  flex-shrink: 0;
+  &.rotated { transform: rotate(180deg); }
+}
+
+// ── Status Badge ──────────────────────────────────────────
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-xl);
+  font-size: 11px;
+  font-weight: 600;
+
+  &.status-success { background: #E8F8F0; color: #27AE60; }
+  &.status-danger  { background: #FDECEA; color: #E74C3C; }
+  &.status-default { background: var(--color-bg); color: var(--color-muted); }
+}
+
+// ── Card Body (Expanded) ──────────────────────────────────
+.history-card__body {
+  padding: 16px 20px 20px;
+  border-top: 1px dashed var(--color-border);
+  background: #FAFAFA;
+  animation: expandDown 0.22s ease;
+}
+
+@keyframes expandDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.body-section { margin-bottom: 14px; }
+
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+
+// Items Box
+.items-box {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.item-qty {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: rgba(240, 90, 55, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.item-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-price {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  flex-shrink: 0;
+}
+
+// Bill Summary
+.bill-summary {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.bill-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--color-muted);
+  padding: 4px 0;
+
+  &--total {
+    border-top: 1px solid var(--color-border);
+    margin-top: 6px;
+    padding-top: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+}
+
+// Delivery Address
+.address-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+
+.address-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.address-value {
+  font-size: 13px;
+  color: var(--color-text);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+// Cancelled Notice
+.cancelled-notice {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  background: #FFECEC;
+  border: 1px solid rgba(231, 76, 60, 0.15);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: #E74C3C;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+// Detail Action
+.detail-action {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.view-detail-btn {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: var(--transition);
+  padding: 8px 0;
+
+  &:hover { opacity: 0.7; }
+}

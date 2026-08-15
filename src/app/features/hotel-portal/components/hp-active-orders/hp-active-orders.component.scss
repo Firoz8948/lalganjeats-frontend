@@ -1,0 +1,320 @@
+// hp-active-orders.component.scss
+.hp-page { max-width: 960px; }
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.page-subtitle { font-size: 13px; color: var(--color-muted); }
+
+.refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  background: var(--color-bg);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-muted);
+  transition: var(--transition);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+}
+
+.page-loading {
+  height: 40vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-full {
+  height: 50vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+
+  .empty-icon { color: var(--color-muted); }
+  h3 { font-size: 18px; font-weight: 700; color: var(--color-text); }
+  p  { font-size: 14px; color: var(--color-muted); }
+}
+
+// ── Active Cards ──────────────────────────────────────────
+.active-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.active-card {
+  background: var(--color-white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: var(--transition);
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+    border-color: rgba(240, 90, 55, 0.2);
+  }
+
+  // Card Header
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border);
+    background: linear-gradient(to right, #FAFAFA, var(--color-white));
+    gap: 12px;
+
+    @media (max-width: 580px) {
+      flex-direction: column;
+    }
+  }
+
+  &__id {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+
+    @media (max-width: 580px) {
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+
+  // Items
+  &__items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 12px 20px;
+    border-bottom: 1px solid #F5F5F5;
+  }
+
+  // Payment
+  &__payment {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    font-size: 12px;
+    color: var(--color-muted);
+    border-bottom: 1px solid #F5F5F5;
+  }
+
+  // Footer
+  &__footer {
+    padding: 14px 20px;
+  }
+}
+
+.order-num {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.order-customer {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--color-muted);
+  font-weight: 500;
+}
+
+.order-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.amount {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.detail-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: var(--transition);
+  &:hover { opacity: 0.7; }
+}
+
+// ── Progress Track ────────────────────────────────────────
+.progress-track {
+  display: flex;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid #F5F5F5;
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  min-width: 80px;
+
+  .step-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--color-border);
+    background: var(--color-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+  }
+
+  .step-label {
+    font-size: 10px;
+    color: var(--color-muted);
+    white-space: nowrap;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  &.done {
+    .step-dot {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      app-hp-icon { color: white; }
+    }
+    .step-label { color: var(--color-primary); font-weight: 700; }
+  }
+
+  &.current {
+    .step-dot {
+      border-color: var(--color-primary);
+      background: rgba(240, 90, 55, 0.08);
+      box-shadow: 0 0 0 4px rgba(240, 90, 55, 0.12);
+    }
+    .step-label { color: var(--color-primary); font-weight: 700; }
+  }
+
+  &.future {
+    .step-dot { background: #F5F5F5; }
+    .step-label { color: #C5C5C5; }
+  }
+}
+
+.step-line {
+  flex: 1;
+  height: 2px;
+  background: var(--color-border);
+  margin: 0 3px;
+  margin-bottom: 22px;
+  min-width: 20px;
+  transition: var(--transition);
+
+  &.filled { background: var(--color-primary); }
+}
+
+// ── Item Chips ────────────────────────────────────────────
+.item-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text);
+
+  &__qty {
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+}
+
+// ── Advance Button ────────────────────────────────────────
+.advance-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 11px 16px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+
+  &:hover { background: var(--color-primary-dark); }
+}
+
+.awaiting-pickup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 14px;
+  background: #FFF5F5;
+  border: 1px solid rgba(230, 126, 34, 0.2);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: #c70000;
+  text-align: center;
+}

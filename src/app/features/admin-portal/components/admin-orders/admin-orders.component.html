@@ -1,0 +1,92 @@
+<div class="content-area">
+  <h1 class="page-title">Orders</h1>
+  @if (ordersLoading()) { <p class="page-sub">Loading orders…</p> }
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Order</th><th>Customer</th><th>Restaurant</th><th>Status</th>
+          <th>Coupon</th><th>Total</th><th>Profit / Loss</th><th>Date</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (order of orders(); track order.id) {
+          <tr>
+            <td><strong>{{ order.order_number }}</strong></td>
+            <td>{{ order.customer || '—' }}</td>
+            <td>{{ order.restaurant || '—' }}</td>
+            <td>{{ order.status }}</td>
+            <td>
+              @if (order.promo_code) {
+                <span class="coupon-pill">{{ couponLabel(order) }}</span>
+              } @else { — }
+            </td>
+            <td>₹{{ order.total_amount }}</td>
+            <td>
+              <strong class="money-result" [class.loss]="order.admin_earning < 0">
+                {{ order.admin_earning < 0 ? '−' : '+' }}₹{{ (order.admin_earning < 0 ? -order.admin_earning : order.admin_earning) | number:'1.2-2' }}
+              </strong>
+            </td>
+            <td>{{ order.created_at | date:'d MMM yyyy, h:mm a' }}</td>
+            <td>
+              <button type="button" class="approve-btn small" (click)="openOrderBreakdown(order)">
+                Breakdown
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="9" class="empty-table-cell">No orders yet.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (breakdownOpen()) {
+  <div class="modal-backdrop" (click)="closeOrderBreakdown()">
+    <div class="modal order-breakdown-modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <div>
+          <h2 class="modal__title">Order Breakdown</h2>
+          @if (breakdown(); as details) {
+            <p class="modal__sub">{{ details.order_number }} · {{ details.restaurant || 'Restaurant' }}</p>
+          }
+        </div>
+        <button type="button" class="modal__close" (click)="closeOrderBreakdown()">×</button>
+      </div>
+
+      @if (breakdownLoading()) {
+        <p class="modal__loading">Loading…</p>
+      } @else if (breakdownError()) {
+        <p class="form-msg form-msg--error">{{ breakdownError() }}</p>
+      } @else {
+      @if (breakdown(); as details) {
+        <div class="breakdown-section">
+          <h3>Customer pays</h3>
+          <div class="breakdown-row"><span>Order price</span><strong>₹{{ details.order_price | number:'1.2-2' }}</strong></div>
+          <div class="breakdown-row"><span>Delivery charge</span><strong>₹{{ details.delivery_charge | number:'1.2-2' }}</strong></div>
+          @if (details.discount > 0) {
+            <div class="breakdown-row muted">
+              <span>Discount{{ details.promo_code ? ' (' + details.promo_code + ')' : '' }}</span>
+              <strong>−₹{{ details.discount | number:'1.2-2' }}</strong>
+            </div>
+          }
+          <div class="breakdown-row total"><span>Customer total</span><strong>₹{{ details.customer_total | number:'1.2-2' }}</strong></div>
+        </div>
+        <div class="breakdown-section">
+          <h3>Payout split</h3>
+          <div class="breakdown-row"><span>Hotel portal price</span><strong>₹{{ details.hotel_price | number:'1.2-2' }}</strong></div>
+          <div class="breakdown-row"><span>Delivery price</span><strong>₹{{ details.delivery_price | number:'1.2-2' }}</strong></div>
+          <div class="breakdown-row highlight" [class.loss]="details.is_loss">
+            <span>{{ details.is_loss ? 'Admin loss' : 'Admin profit' }}</span>
+            <strong>{{ details.is_loss ? '−' : '+' }}₹{{ (details.admin_profit < 0 ? -details.admin_profit : details.admin_profit) | number:'1.2-2' }}</strong>
+          </div>
+          <p class="breakdown-note">
+            Display price − seller transfer − delivery partner earning. MRP, delivery charge, and legacy platform fee do not affect this result.
+          </p>
+        </div>
+      }
+      }
+    </div>
+  </div>
+}

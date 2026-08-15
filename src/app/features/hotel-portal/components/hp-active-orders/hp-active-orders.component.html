@@ -1,0 +1,123 @@
+<!-- hp-active-orders.component.html -->
+<div class="hp-page">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Active Orders</h1>
+      <p class="page-subtitle">
+        {{ orders().length }} order(s) currently being prepared
+      </p>
+    </div>
+    <button class="refresh-btn" (click)="loadOrders()">
+      <app-hp-icon name="refresh" [size]="15" />
+      Refresh
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="page-loading">
+      <div class="spinner"></div>
+      <p>Loading active orders…</p>
+    </div>
+  }
+
+  @if (!loading() && orders().length === 0) {
+    <div class="empty-full">
+      <app-hp-icon class="empty-icon" name="flame" [size]="56" />
+      <h3>No active orders right now</h3>
+      <p>Accepted orders will appear here</p>
+    </div>
+  }
+
+  <div class="active-list">
+    @for (order of orders(); track order.id) {
+      <div class="active-card">
+
+        <!-- Card Header -->
+        <div class="active-card__header">
+          <div class="active-card__id">
+            <span class="order-num">{{ order.order_number }}</span>
+            <span class="order-customer">
+              <app-hp-icon name="user" [size]="13" />
+              {{ order.customer || 'Customer' }}
+            </span>
+            <span class="order-time">
+              <app-hp-icon name="clock" [size]="13" />
+              {{ order.created_at | date:'h:mm a' }}
+            </span>
+          </div>
+          <div class="active-card__meta">
+            <span class="amount">₹{{ order.total_amount }}</span>
+            <a [routerLink]="['/hotel-portal/orders', order.id]"
+               class="detail-link">
+              View Details →
+            </a>
+          </div>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="progress-track">
+          @for (step of statusSteps; track step.key; let i = $index) {
+            <div class="progress-step"
+                 [class.done]="getStepIndex(order.status) > i"
+                 [class.current]="getStepIndex(order.status) === i"
+                 [class.future]="getStepIndex(order.status) < i">
+
+              <div class="step-dot">
+                @if (getStepIndex(order.status) > i) {
+                  <app-hp-icon name="check" [size]="10" />
+                }
+              </div>
+              <span class="step-label">{{ step.label }}</span>
+
+            </div>
+
+            @if (i < statusSteps.length - 1) {
+              <div class="step-line"
+                   [class.filled]="getStepIndex(order.status) > i">
+              </div>
+            }
+          }
+        </div>
+
+        <!-- Items Preview -->
+        <div class="active-card__items">
+          @for (item of order.items; track item.name) {
+            <span class="item-chip">
+              <span class="item-chip__qty">{{ item.quantity }}×</span>
+              {{ item.name }}
+            </span>
+          }
+        </div>
+
+        <!-- Payment Method -->
+        <div class="active-card__payment">
+          <app-hp-icon
+            [name]="order.payment_method === 'cash' ? 'cash' : 'payment'"
+            [size]="14" />
+          {{ order.payment_method === 'cash' ? 'Cash on Delivery' : 'UPI Payment' }}
+        </div>
+
+        <!-- Advance / Awaiting Button -->
+        @if (canAdvance(order.status)) {
+          <div class="active-card__footer">
+            <button class="advance-btn"
+                    (click)="advanceStatus(order)">
+              <app-hp-icon [name]="nextStatusIcon(order.status)" [size]="15" />
+              {{ nextStatusLabel(order.status) }}
+            </button>
+          </div>
+        } @else if (order.status === 'ready_for_pickup') {
+          <div class="active-card__footer">
+            <div class="awaiting-pickup">
+              <app-hp-icon name="bike" [size]="16" />
+              Waiting for delivery partner to pick up
+            </div>
+          </div>
+        }
+
+      </div>
+    }
+  </div>
+
+</div>

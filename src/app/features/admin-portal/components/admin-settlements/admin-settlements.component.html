@@ -1,0 +1,72 @@
+<div class="content-area">
+  <h1 class="page-title">Partner Settlements</h1>
+  <p class="page-sub">
+    Pay partners manually, then use Settle now to clear only their currently unpaid orders.
+  </p>
+  @if (settlementError()) { <div class="form-error">{{ settlementError() }}</div> }
+  @if (settlementSuccess()) { <div class="form-success">{{ settlementSuccess() }}</div> }
+  @if (settlementsLoading()) { <p class="page-sub">Loading settlements…</p> }
+
+  <section class="settlement-section">
+    <h2>Restaurants</h2>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>Restaurant</th><th>Unsettled orders</th><th>Not settled</th><th>Settled lifetime</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (row of restaurantSettlements(); track row.id) {
+            <tr>
+              <td><strong>{{ row.name }}</strong></td>
+              <td>{{ row.unsettled_orders }}</td>
+              <td><strong class="unsettled-amount">₹{{ row.unsettled_amount | number:'1.2-2' }}</strong></td>
+              <td>₹{{ row.settled_amount_lifetime | number:'1.2-2' }}</td>
+              <td>
+                <button type="button" class="approve-btn small"
+                        [disabled]="row.unsettled_amount <= 0 || settlementAction() === 'restaurant-' + row.id"
+                        (click)="settleRestaurant(row)">
+                  {{ settlementAction() === 'restaurant-' + row.id ? 'Settling…' : 'Settle now' }}
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="empty-table-cell">No restaurants found.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="settlement-section">
+    <h2>Delivery Partners</h2>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>Partner</th><th>Unsettled orders</th><th>Not settled</th><th>Settled lifetime</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (row of deliverySettlements(); track row.id) {
+            <tr>
+              <td>
+                <strong>{{ row.name }}</strong>
+                @if (row.phone) { <div class="settlement-phone">{{ row.phone }}</div> }
+              </td>
+              <td>{{ row.unsettled_orders }}</td>
+              <td><strong class="unsettled-amount">₹{{ row.unsettled_amount | number:'1.2-2' }}</strong></td>
+              <td>₹{{ row.settled_amount_lifetime | number:'1.2-2' }}</td>
+              <td>
+                <button type="button" class="approve-btn small"
+                        [disabled]="row.unsettled_amount <= 0 || settlementAction() === 'delivery-' + row.id"
+                        (click)="settleDeliveryPartner(row)">
+                  {{ settlementAction() === 'delivery-' + row.id ? 'Settling…' : 'Settle now' }}
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="empty-table-cell">No delivery partners found.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

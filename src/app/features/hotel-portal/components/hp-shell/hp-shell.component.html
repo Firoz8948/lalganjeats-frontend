@@ -1,0 +1,147 @@
+<!-- hp-shell.component.html -->
+<div class="hp-layout">
+
+  <!-- ══════════════════════════════════════
+       SIDEBAR
+       ══════════════════════════════════════ -->
+  <!-- Mobile Backdrop -->
+  @if (isMobile() && isSidebarOpen()) {
+    <div class="sidebar-backdrop" (click)="closeSidebar()"></div>
+  }
+
+  <aside class="hp-sidebar"
+         [class.mobile-open]="isSidebarOpen()">
+
+    <!-- Logo + Brand -->
+    <div class="sidebar__brand">
+      <img src="assets/images/logo.svg" alt="LalganjEats"
+           class="sidebar__logo">
+      <span class="sidebar__portal-tag">Hotel Portal</span>
+    </div>
+
+    <!-- Restaurant Info + Shop Toggle -->
+    <div class="sidebar__restaurant">
+      <div class="restaurant-details">
+        <div class="restaurant-avatar">
+          {{ restaurantName().charAt(0) }}
+        </div>
+        <div class="restaurant-text">
+          <p class="restaurant-name">{{ restaurantName() }}</p>
+          <p class="restaurant-owner">{{ user?.full_name }}</p>
+        </div>
+      </div>
+
+      <!-- Open / Closed Toggle -->
+      <div class="shop-toggle-row">
+        <span class="shop-toggle-label">
+          Shop Status
+        </span>
+        <button class="shop-toggle-btn"
+                [class.open]="isOpen()"
+                (click)="toggleShop()">
+          <span class="toggle-dot"></span>
+          {{ isOpen() ? 'Open' : 'Closed' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar__nav">
+      @for (item of navItems; track item.route) {
+        <a [routerLink]="item.route"
+           class="sidebar__nav-item"
+           [class.active]="isActive(item.route)"
+           (click)="isMobile() && closeSidebar()">
+
+          <app-hp-icon
+            class="nav-item__icon"
+            [name]="item.iconId"
+            [size]="18" />
+          <span class="nav-item__label">{{ item.label }}</span>
+
+          @if (item.badge && item.badge > 0) {
+            <span class="nav-item__badge">{{ item.badge }}</span>
+          }
+
+        </a>
+      }
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar__footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user__avatar">
+          {{ (user?.full_name || 'R').charAt(0) }}
+        </div>
+        <div class="sidebar-user__info">
+          <p class="sidebar-user__name">{{ user?.full_name }}</p>
+          <p class="sidebar-user__role">Restaurant Owner</p>
+        </div>
+      </div>
+      <button class="sidebar__logout" (click)="logout()">
+        <svg width="16" height="16" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Logout
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- ══════════════════════════════════════
+       MAIN CONTENT AREA
+       ══════════════════════════════════════ -->
+  <div class="hp-main">
+
+    <!-- Mobile Top Bar -->
+    <header class="hp-topbar">
+      <button class="topbar__menu-btn" (click)="toggleSidebar()">
+        <svg width="22" height="22" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6"  x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+
+      <div class="topbar__center">
+        <img src="assets/images/logo.svg" alt="LalganjEats"
+             class="topbar__logo">
+        <span class="topbar__portal-tag">Hotel Portal</span>
+      </div>
+
+      <div class="topbar__right">
+        <!-- Pending orders indicator -->
+        @if (pendingCount() > 0) {
+          <div class="topbar__alert">
+            <app-hp-icon name="bell" [size]="15" />
+            <span>{{ pendingCount() }}</span>
+          </div>
+        }
+
+        <!-- Shop status chip -->
+        <div class="topbar__status" [class.open]="isOpen()">
+          <span class="status-dot"></span>
+          {{ isOpen() ? 'Open' : 'Closed' }}
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <div class="hp-page-content">
+      <router-outlet></router-outlet>
+    </div>
+
+    <nav class="hp-bottom-nav">
+      <a routerLink="/hotel-portal/incoming-orders" routerLinkActive="active">Home</a>
+      <a routerLink="/hotel-portal/order-history" routerLinkActive="active">Orders</a>
+      <a routerLink="/hotel-portal/menu" routerLinkActive="active">Menu</a>
+      <a routerLink="/hotel-portal/earnings" routerLinkActive="active">Earnings</a>
+    </nav>
+
+  </div>
+
+</div>

@@ -1,0 +1,28 @@
+<!-- features/hotel-portal/components/hp-shop-toggle/hp-shop-toggle.component.html -->
+<div class="shop-toggle-container">
+  <div class="shop-status-card" [class.open]="isOpen()">
+
+    <div class="status-left">
+      <div class="status-icon" [class.open]="isOpen()">
+        <app-hp-icon name="circle" [size]="28" />
+      </div>
+      <div class="status-text">
+        <p class="status-title">Shop is {{ isOpen() ? 'Open' : 'Closed' }}</p>
+        <p class="status-sub">
+          {{ isOpen()
+             ? 'Currently accepting orders'
+             : 'Not accepting orders right now' }}
+        </p>
+      </div>
+    </div>
+
+    <button
+      class="toggle-btn"
+      [class.open]="isOpen()"
+      [disabled]="toggling()"
+      (click)="toggle()">
+      <span class="toggle-thumb"></span>
+    </button>
+
+  </div>
+</div>

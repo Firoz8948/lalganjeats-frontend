@@ -1,0 +1,70 @@
+<div class="auth-page">
+  <div class="auth-card auth-card--partner">
+
+    <a routerLink="/" class="auth-logo">
+      <img src="assets/images/logo.svg" alt="LalganjEats">
+    </a>
+
+    <div class="auth-badge auth-badge--hotel">
+      <svg class="auth-badge__icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span>Restaurant Partner</span>
+    </div>
+
+    <h1 class="auth-title">Restaurant Login</h1>
+    <p class="auth-subtitle">Manage your menu, orders and restaurant status</p>
+
+    @if (error()) {
+      <div class="auth-error">⚠️ {{ error() }}</div>
+    }
+
+    @if (step() === 'phone') {
+      <div class="auth-form">
+        <div class="input-group">
+          <span class="input-prefix">+91</span>
+          <input
+            type="tel"
+            maxlength="10"
+            placeholder="Owner mobile number"
+            [(ngModel)]="phone"
+            (keyup.enter)="sendOTP()"
+          />
+        </div>
+        <button class="auth-btn" (click)="sendOTP()" [disabled]="loading()">
+          @if (loading()) { Sending… } @else { Send OTP }
+        </button>
+      </div>
+    }
+
+    @if (step() === 'otp') {
+      <div class="auth-form">
+        <p class="otp-sent-msg">
+          OTP sent to <strong>+91 {{ phone }}</strong>
+          <button type="button" class="change-link" (click)="goBack()">Change</button>
+        </p>
+        <div class="input-group">
+          <input
+            type="tel"
+            maxlength="6"
+            placeholder="Enter 6-digit OTP"
+            [(ngModel)]="otp"
+            (keyup.enter)="verifyOTP()"
+          />
+        </div>
+        <button class="auth-btn" (click)="verifyOTP()" [disabled]="loading()">
+          @if (loading()) { Verifying… } @else { Verify & Login }
+        </button>
+        <button type="button" class="resend-link" (click)="resendOTP()">Resend OTP</button>
+      </div>
+    }
+
+    <p class="auth-hint auth-hint--switch">
+      Ordering food?
+      <a routerLink="/auth/login">Customer Login</a>
+    </p>
+
+  </div>
+</div>

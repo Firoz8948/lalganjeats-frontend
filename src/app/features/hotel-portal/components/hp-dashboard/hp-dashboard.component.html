@@ -1,0 +1,150 @@
+<!-- hp-dashboard.component.html -->
+<div class="hp-page">
+
+  @if (loading()) {
+    <div class="page-loading">Loading dashboard…</div>
+  }
+
+  @if (!loading() && data()) {
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">
+          Welcome back, {{ data()!.restaurant.name }}
+        </p>
+      </div>
+      <div class="header-actions">
+        <a routerLink="/hotel-portal/incoming-orders"
+           class="quick-action-btn primary">
+          <app-hp-icon name="bell" [size]="16" />
+          View Incoming Orders
+          @if (data()!.stats.pending_orders > 0) {
+            <span class="btn-badge">
+              {{ data()!.stats.pending_orders }}
+            </span>
+          }
+        </a>
+        <button
+          type="button"
+          class="quick-action-btn secondary"
+          [disabled]="refreshing()"
+          (click)="loadDashboard(true)">
+          <app-hp-icon name="refresh" [size]="16" />
+          {{ refreshing() ? 'Refreshing…' : 'Refresh' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+
+      <div class="stat-card">
+        <div class="stat-card__header">
+          <span class="stat-card__icon"><app-hp-icon name="package" [size]="24" /></span>
+          <span class="stat-card__trend up">↑ Today</span>
+        </div>
+        <div class="stat-card__value">
+          {{ data()!.stats.total_orders }}
+        </div>
+        <div class="stat-card__label">Total Orders</div>
+      </div>
+
+      <div class="stat-card warning">
+        <div class="stat-card__header">
+          <span class="stat-card__icon"><app-hp-icon name="clock" [size]="24" /></span>
+          @if (data()!.stats.pending_orders > 0) {
+            <span class="stat-card__trend alert">Action needed</span>
+          }
+        </div>
+        <div class="stat-card__value">
+          {{ data()!.stats.pending_orders }}
+        </div>
+        <div class="stat-card__label">Pending Orders</div>
+      </div>
+
+      <div class="stat-card purple">
+        <div class="stat-card__header">
+          <span class="stat-card__icon"><app-hp-icon name="flame" [size]="24" /></span>
+        </div>
+        <div class="stat-card__value">
+          {{ data()!.stats.active_orders }}
+        </div>
+        <div class="stat-card__label">Active Orders</div>
+      </div>
+
+      <div class="stat-card success">
+        <div class="stat-card__header">
+          <span class="stat-card__icon"><app-hp-icon name="wallet" [size]="24" /></span>
+        </div>
+        <div class="stat-card__value">
+          ₹{{ data()!.stats.total_revenue | number:'1.0-0' }}
+        </div>
+        <div class="stat-card__label">Total Revenue</div>
+      </div>
+
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="section-card">
+      <div class="section-card__header">
+        <h2 class="section-card__title">Recent Orders</h2>
+        <a routerLink="/hotel-portal/order-history"
+           class="see-all-link">See all →</a>
+      </div>
+
+      @if (data()!.recent_orders.length === 0) {
+        <div class="empty-state">
+          <app-hp-icon name="package" [size]="40" />
+          <p>No orders yet</p>
+        </div>
+      }
+
+      <div class="orders-table-wrap">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (order of data()!.recent_orders; track order.id) {
+              <tr (click)="''"
+                  [routerLink]="['/hotel-portal/orders', order.id]"
+                  class="table-row-link">
+                <td>
+                  <span class="order-num">{{ order.order_number }}</span>
+                </td>
+                <td>{{ order.customer || '—' }}</td>
+                <td>
+                  <span class="items-preview">
+                    {{ order.items.length || 0 }} item(s)
+                  </span>
+                </td>
+                <td>
+                  <strong>₹{{ order.total_amount }}</strong>
+                </td>
+                <td>
+                  <span class="status-chip chip-{{ getStatusColor(order.status) }}">
+                    {{ order.status | titlecase }}
+                  </span>
+                </td>
+                <td class="time-cell">
+                  {{ order.created_at | date:'h:mm a' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  }
+
+</div>

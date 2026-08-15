@@ -1,0 +1,86 @@
+<div class="dp-home">
+  @if (data(); as d) {
+    <header class="dp-home__head">
+      <div>
+        <p class="eyebrow">Delivery partner</p>
+        <h1>{{ d.profile.full_name || 'Partner' }}</h1>
+        <p class="sub">Today: {{ d.today.orders }} orders · ₹{{ d.today.earnings | number:'1.0-0' }}</p>
+      </div>
+      <button type="button" class="online-btn" [class.on]="d.profile.is_online" (click)="toggleOnline()">
+        {{ d.profile.is_online ? 'Online' : 'Offline' }}
+      </button>
+    </header>
+
+    @if (!d.profile.has_location) {
+      <p class="hint">Enable location so you can receive nearest offers.</p>
+    }
+
+    @if (error()) {
+      <p class="err">{{ error() }}</p>
+    }
+
+    @if (d.active_order; as a) {
+      <section class="card">
+        <h2>Current order</h2>
+        <p class="oid">{{ a.order_number }} · {{ a.status }}</p>
+        <p>{{ a.restaurant }}</p>
+        <p class="muted">{{ a.delivery_address }}</p>
+        <p>Payout: <strong>₹{{ a.payout }}</strong>
+          @if (a.distance_km_to_restaurant != null) {
+            · {{ a.distance_km_to_restaurant }} km to restaurant
+          }
+        </p>
+
+        @if (a.status === 'assigned' && a.map_to_restaurant) {
+          <a class="map-link" [href]="a.map_to_restaurant" target="_blank" rel="noopener">Open map to restaurant</a>
+          <button type="button" class="primary" (click)="pickedUp(a)">Mark picked up</button>
+        }
+
+        @if (a.status === 'picked_up' || a.status === 'on_the_way') {
+          @if (a.map_to_customer) {
+            <a class="map-link" [href]="a.map_to_customer" target="_blank" rel="noopener">Open map to customer</a>
+          }
+          <button type="button" class="secondary" (click)="sendOtp(a)">Send OTP to customer</button>
+          @if (lastDevOtp()) {
+            <p class="hint">Dev OTP: {{ lastDevOtp() }}</p>
+          }
+          <input class="otp-input" maxlength="6" placeholder="Enter customer OTP" [(ngModel)]="otp" />
+          <div class="row">
+            <button type="button" class="primary" (click)="complete(a, 'cash')">Cash collect</button>
+            <button type="button" class="secondary" (click)="complete(a, 'online')">Online (stub)</button>
+          </div>
+        }
+      </section>
+    }
+
+    <section class="card">
+      <h2>New offers</h2>
+      @for (o of d.available_orders; track o.id) {
+        <div class="offer">
+          <div>
+            <strong>{{ o.order_number }}</strong>
+            <p>{{ o.restaurant }}</p>
+            <p class="muted">{{ o.delivery_address }}</p>
+            <p>
+              Payout ₹{{ o.payout }}
+              @if (o.distance_km_to_restaurant != null) {
+                · {{ o.distance_km_to_restaurant }} km away
+              }
+              @if (o.distance_km_restaurant_to_customer != null) {
+                · trip {{ o.distance_km_restaurant_to_customer }} km
+              }
+            </p>
+          </div>
+          <div class="row">
+            <button type="button" class="primary" [disabled]="busyId() === o.id" (click)="accept(o)">Accept</button>
+            <button type="button" class="ghost" [disabled]="busyId() === o.id" (click)="reject(o)">Reject</button>
+          </div>
+        </div>
+      } @empty {
+        <p class="muted">No offers right now. Stay online near restaurants.</p>
+      }
+    </section>
+  } @else {
+    <p class="muted">Loading…</p>
+  }
+</div>

@@ -1,0 +1,60 @@
+<div class="track">
+  <header class="track__top">
+    <a routerLink="/profile/orders" class="back">← Orders</a>
+    <div>
+      <h1>Live tracking</h1>
+      @if (snap(); as s) {
+        <p class="sub">{{ s.order_number }} · {{ s.order_status }}</p>
+      }
+    </div>
+    <span class="live-pill" [class.ws]="liveMode() === 'websocket'" [class.fallback]="liveMode() === 'rest-fallback'">
+      @if (liveMode() === 'websocket') { Live }
+      @else if (liveMode() === 'rest-fallback') { Sync }
+      @else { Connecting… }
+    </span>
+  </header>
+
+  @if (snap()?.eta_label) {
+    <div class="eta-bubble" [class.done]="snap()?.phase === 'delivered'">
+      <strong>{{ snap()?.eta_label }}</strong>
+      @if (snap()?.distance_km != null && snap()?.phase !== 'delivered') {
+        <span>{{ snap()?.distance_km }} km</span>
+      }
+    </div>
+  }
+
+  <div class="map-wrap">
+    <!-- Capacitor native Google Maps host (Android / iOS) -->
+    <div id="le-native-map" class="map native" [class.hidden]="!usingNativeMap()"></div>
+    <!-- Web / WebView JS Maps host -->
+    <div #mapHost class="map web" [class.hidden]="usingNativeMap()"></div>
+
+    @if (mapsMissingKey()) {
+      <div class="map-overlay">
+        <p>Add <code>GOOGLE_MAPS_API_KEY</code> in backend <code>.env</code> to show the live map.</p>
+        <p class="hint">Tracking still updates over WebSocket without the map.</p>
+      </div>
+    } @else if (!mapsReady() && !error()) {
+      <div class="map-overlay"><p>Loading map…</p></div>
+    }
+  </div>
+
+  @if (error()) {
+    <p class="err">{{ error() }}</p>
+  }
+
+  @if (snap(); as s) {
+    <section class="meta">
+      <p>{{ s.message || 'Updating…' }}</p>
+      @if (s.phase === 'to_restaurant') {
+        <p class="hint">Rider is heading to the restaurant to pick up your order.</p>
+      }
+      @if (s.phase === 'to_customer') {
+        <p class="hint">Rider is on the way to you.</p>
+      }
+      @if (usingNativeMap()) {
+        <p class="hint">Using native Google Maps on this device.</p>
+      }
+    </section>
+  }
+</div>

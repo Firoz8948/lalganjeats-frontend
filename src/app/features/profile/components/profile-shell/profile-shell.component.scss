@@ -1,0 +1,100 @@
+// profile-shell.component.scss
+.profile-page {
+  padding: 32px 0 48px;
+  min-height: 60vh;
+
+  @media (max-width: 768px) { padding: 16px 0 32px; }
+}
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 28px;
+  align-items: start;
+
+  @media (max-width: 900px) { grid-template-columns: 1fr; }
+}
+
+// ── Left Sidebar ──────────────────────────────────────────
+.profile-sidebar {
+  background: var(--color-white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  position: sticky;
+  top: calc(var(--navbar-height) + 16px);
+
+  @media (max-width: 900px) { display: none; }
+}
+
+.psidebar__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: linear-gradient(135deg, #FFF0F0, #FAF5EF);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.psidebar__avatar {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.psidebar__name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.psidebar__phone {
+  font-size: 12px;
+  color: var(--color-primary);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.psidebar__nav {
+  padding: 8px 0;
+}
+
+.psidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-muted);
+  border-left: 3px solid transparent;
+  transition: var(--transition);
+
+  svg { flex-shrink: 0; }
+
+  &:hover {
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  &.active {
+    color: var(--color-primary);
+    background: rgba(240,90,55,0.05);
+    border-left-color: var(--color-primary);
+    font-weight: 600;
+    svg { stroke: var(--color-primary); }
+  }
+}
+
+// ── Right Content ─────────────────────────────────────────
+.profile-content {
+  min-width: 0;
+}

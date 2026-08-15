@@ -1,0 +1,66 @@
+.insta-cta {
+  background: var(--color-primary);
+  margin-top: 48px;
+  padding: 28px 0;
+
+  &__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  &__eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #000;
+    margin-bottom: 6px;
+  }
+
+  &__title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  &__text {
+    font-size: 14px;
+    color: #000;
+    max-width: 420px;
+    line-height: 1.5;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    color: #000;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    white-space: nowrap;
+
+    &:hover {
+      background: #000;
+      color: #fff;
+      transform: translateY(-1px);
+    }
+  }
+
+  @media (max-width: 768px) {
+    margin-top: 32px;
+    padding: 22px 0 calc(22px + var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+
+    &__title { font-size: 18px; }
+
+    &__btn { width: 100%; justify-content: center; }
+  }
+}

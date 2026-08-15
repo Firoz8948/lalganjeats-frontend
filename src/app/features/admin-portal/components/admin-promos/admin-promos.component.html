@@ -1,0 +1,127 @@
+<div class="content-area">
+  <h1 class="page-title">Promocodes</h1>
+  <p class="page-sub">
+    Create codes for all clients or mobile app only. Usage decreases when an order is placed with the code.
+  </p>
+  @if (promoError()) { <div class="form-error">{{ promoError() }}</div> }
+  @if (promoSuccess()) { <div class="form-success">{{ promoSuccess() }}</div> }
+
+  <div class="zone-form">
+    <h3>Create promocode</h3>
+    <div class="zone-form__row promo-form-row">
+      <label>Code<input [(ngModel)]="newPromo.code" placeholder="WELCOME10"/></label>
+      <label>
+        Channel
+        <select [(ngModel)]="newPromo.channel">
+          <option value="all">For all (web + app)</option>
+          <option value="mobile_app">Mobile app only</option>
+        </select>
+      </label>
+      <label>Percent off (%)<input type="number" min="0" max="100" step="0.01" [(ngModel)]="newPromo.percent_off"/></label>
+      <label>
+        Max uses
+        <select [(ngModel)]="promoMaxUsesMode">
+          <option value="unlimited">Unlimited</option>
+          <option value="custom">Custom</option>
+        </select>
+      </label>
+      @if (promoMaxUsesMode === 'custom') {
+        <label>Number of uses<input type="number" min="1" [(ngModel)]="newPromo.max_uses"/></label>
+      }
+      <label>Expiry<input type="datetime-local" [(ngModel)]="promoExpiresLocal"/></label>
+      <label>Description<input [(ngModel)]="newPromo.description" placeholder="Optional note"/></label>
+    </div>
+    <div class="promo-delivery-block">
+      <h4 class="promo-delivery-block__title">Delivery</h4>
+      <label class="promo-delivery-block__check">
+        <input type="checkbox" [(ngModel)]="newPromo.free_delivery"/>
+        <span>Free Delivery</span>
+      </label>
+      <p class="promo-delivery-block__hint">If checked, delivery is free when this coupon is applied.</p>
+    </div>
+    <button class="approve-btn" (click)="createPromo()" [disabled]="promoSaving()">
+      {{ promoSaving() ? 'Saving…' : 'Create Promo' }}
+    </button>
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>Code</th><th>Channel</th><th>Benefit</th><th>Uses left</th><th>Expiry</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        @for (promo of promos(); track promo.id) {
+          <tr>
+            <td><strong>{{ promo.code }}</strong></td>
+            <td>{{ promo.channel === 'mobile_app' ? 'Mobile app only' : 'All' }}</td>
+            <td>
+              @if (promo.percent_off) { {{ promo.percent_off }}% off }
+              @if (promo.percent_off && promo.free_delivery) { + }
+              @if (promo.free_delivery) { Free delivery }
+            </td>
+            <td>{{ promo.max_uses === 0 ? 'Unlimited' : (promo.remaining_uses + ' / ' + promo.max_uses) }}</td>
+            <td>{{ promo.expires_at ? (promo.expires_at | date:'d MMM yyyy, h:mm a') : '—' }}</td>
+            <td>
+              <span [class]="(!promo.is_expired && promo.is_active) ? 'badge-open' : 'badge-closed'">
+                {{ promo.is_expired ? 'Expired' : (promo.is_active ? 'Active' : 'Inactive') }}
+              </span>
+            </td>
+            <td class="promo-actions">
+              <button class="approve-btn" type="button" (click)="openUsage(promo)">Usage</button>
+              <button class="btn-link" type="button" (click)="togglePromo(promo)">{{ promo.is_active ? 'Deactivate' : 'Activate' }}</button>
+              <button class="danger-link" type="button" (click)="deletePromo(promo)">Delete</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7" class="empty-table-cell">No promocodes yet.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (usageModalOpen()) {
+  <div class="modal-backdrop" (click)="closeUsage()">
+    <div class="modal usage-modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <div>
+          <h2 class="modal__title">Usage — {{ usagePromoCode() }}</h2>
+          <p class="modal__sub">Orders that used this promocode</p>
+        </div>
+        <button class="modal__close" (click)="closeUsage()">×</button>
+      </div>
+      @if (usagesLoading()) {
+        <p class="modal__loading">Loading…</p>
+      } @else if (usages().length === 0) {
+        <p class="modal__empty">No one has used this code yet.</p>
+      } @else {
+        @for (usage of usages(); track usage.id) {
+          <div class="usage-card">
+            <div class="usage-card__head">
+              <strong>{{ usage.order_number }}</strong>
+              <span>{{ usage.created_at | date:'d MMM yyyy, h:mm a' }}</span>
+            </div>
+            <div class="usage-card__meta">
+              {{ usage.customer_name || 'Customer' }}
+              @if (usage.customer_phone) { · {{ usage.customer_phone }} }
+              @if (usage.restaurant_name) { · {{ usage.restaurant_name }} }
+            </div>
+            <div class="usage-card__meta">
+              Channel: {{ usage.client_channel }}
+              @if (usage.percent_off_snapshot) { · {{ usage.percent_off_snapshot }}% off }
+              @if (usage.free_delivery_applied) { · Free delivery }
+              · Discount ₹{{ usage.discount_amount }}
+            </div>
+            @if (usage.items.length) {
+              <ul class="usage-items">
+                @for (item of usage.items; track item.name + item.quantity) {
+                  <li>{{ item.quantity }}× {{ item.name }} — ₹{{ item.subtotal }}</li>
+                }
+              </ul>
+            }
+          </div>
+        }
+      }
+    </div>
+  </div>
+}

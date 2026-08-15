@@ -1,0 +1,110 @@
+<section class="restaurants-section">
+  <div class="container">
+
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Restaurants Near You</h2>
+        <p class="section-subtitle">Order from the best places in Lalganj</p>
+      </div>
+      <a routerLink="/restaurants" class="see-all-link">
+        See all
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </a>
+    </div>
+
+    @if (loading()) {
+      <p class="section-subtitle">Loading restaurants…</p>
+    }
+
+    @if (error()) {
+      <p class="section-subtitle">{{ error() }}</p>
+    }
+
+    @if (!loading() && !error() && restaurants().length === 0) {
+      <p class="section-subtitle">No restaurants yet. Add them from the admin portal.</p>
+    }
+
+    <div class="restaurants-grid">
+      @for (restaurant of restaurants(); track restaurant.id) {
+        <a class="restaurant-card" [class.closed]="!restaurant.is_open" [routerLink]="['/restaurants', restaurant.id]">
+
+          <div class="restaurant-card__image" [style.background]="restaurant.image_bg">
+            @if (restaurant.list_banner_url) {
+              <img [src]="restaurant.list_banner_url" [alt]="restaurant.name" class="restaurant-list-banner">
+            } @else if (restaurant.logo_url) {
+              <img [src]="restaurant.logo_url" [alt]="restaurant.name" class="restaurant-logo">
+            } @else {
+              <span class="restaurant-emoji">{{ restaurant.image_emoji }}</span>
+            }
+
+            <div class="restaurant-card__badges">
+              @if (!restaurant.is_open) {
+                <span class="badge badge--closed">Closed</span>
+              }
+            </div>
+
+            @if (restaurant.offer_text && restaurant.is_open) {
+              <div class="restaurant-card__offer">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                  <line x1="7" y1="7" x2="7.01" y2="7"/>
+                </svg>
+                {{ restaurant.offer_text }}
+              </div>
+            }
+          </div>
+
+          <div class="restaurant-card__body">
+            <h3 class="restaurant-card__name">{{ restaurant.name }}</h3>
+            <p class="restaurant-card__cuisine">{{ restaurant.cuisine }}</p>
+
+            <div class="restaurant-card__rating">
+              <div class="stars">
+                @for (star of getStarArray(restaurant.rating); track star; let i = $index) {
+                  <svg width="12" height="12" viewBox="0 0 24 24"
+                       [class]="'star star--' + getStarType(restaurant.rating, i)">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14
+                                    18.18 21.02 12 17.77 5.82 21.02 7 14.14
+                                    2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                }
+              </div>
+              <span class="rating-value">{{ restaurant.rating }}</span>
+              <span class="rating-count">({{ restaurant.review_count }})</span>
+            </div>
+
+            <div class="restaurant-card__info">
+              <div class="info-item">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                {{ restaurant.delivery_time }}
+              </div>
+              <span class="info-dot">·</span>
+              <div class="info-item">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+                {{ restaurant.delivery_fee }}
+              </div>
+            </div>
+
+            <div class="restaurant-card__min-order">
+              Min. order: {{ restaurant.min_order }}
+            </div>
+          </div>
+
+        </a>
+      }
+    </div>
+
+  </div>
+</section>
