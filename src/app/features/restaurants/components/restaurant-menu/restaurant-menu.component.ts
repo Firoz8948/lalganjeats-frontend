@@ -10,6 +10,7 @@ import {
 } from '../../../../core/services/restaurant.service';
 import { CartService, CartItem } from '../../../../core/services/cart.service';
 import { CustomerLocationService } from '../../../../core/services/customer-location.service';
+import { SeoService } from '../../../../core/services/seo.service';
 
 interface RestaurantInfo {
   name: string;
@@ -39,6 +40,7 @@ export class RestaurantMenuComponent implements OnInit {
   private router = inject(Router);
   private restaurantService = inject(RestaurantService);
   private customerLocation = inject(CustomerLocationService);
+  private seo = inject(SeoService);
   readonly cartService = inject(CartService);
 
   restaurantId = signal(0);
@@ -89,6 +91,10 @@ export class RestaurantMenuComponent implements OnInit {
 
     this.restaurantService.getRestaurant(id, lat, lng).subscribe({
       next: (data) => {
+        this.seo.setPage({
+          title: `${data.name} Menu & Food Delivery in Lalganj | LalganjEats`,
+          description: `Order online from ${data.name} in Lalganj Ajhara. Browse the menu, select sizes and get local food delivered with LalganjEats.`,
+        });
         this.restaurant.set({
           name: data.name,
           cuisine: data.cuisine,

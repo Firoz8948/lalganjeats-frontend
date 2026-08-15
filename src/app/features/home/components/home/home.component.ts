@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { BannersComponent } from '../banners/banners.component';
 import { FeaturedRestaurantsComponent } from '../featured-restaurants/featured-restaurants.component';
@@ -11,6 +12,7 @@ import { InstagramCtaComponent } from '../instagram-cta/instagram-cta.component'
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     NavbarComponent,
     BannersComponent,
     FeaturedRestaurantsComponent,

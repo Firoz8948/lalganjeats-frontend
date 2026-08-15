@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /home
+Allow: /restaurants
+
+Disallow: /admin
+Disallow: /superadmin
+Disallow: /hotel-portal
+Disallow: /deliverypartner
+Disallow: /auth
+Disallow: /login
+Disallow: /profile
+Disallow: /cart
+Disallow: /checkout
+Disallow: /tracking
+
+Sitemap: https://lalganjeats.com/sitemap.xml
