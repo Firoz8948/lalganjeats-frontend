@@ -35,10 +35,17 @@
             <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
         </div>
-        <p class="empty-restaurants__title">We're expanding soon</p>
-        <p class="empty-restaurants__sub">
-          No restaurants in this area yet. You'll see great places here as we grow.
-        </p>
+        @if (needsLocation()) {
+          <p class="empty-restaurants__title">Choose your location</p>
+          <p class="empty-restaurants__sub">
+            Set your exact location from the top bar so we can show restaurants that deliver to you.
+          </p>
+        } @else {
+          <p class="empty-restaurants__title">We're expanding soon</p>
+          <p class="empty-restaurants__sub">
+            No restaurants deliver to this location yet. You'll see great places here as we grow.
+          </p>
+        }
       </div>
     }
 

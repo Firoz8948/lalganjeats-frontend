@@ -1,8 +1,16 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Restaurant } from '../models/restaurant.model';
+
+export interface PublicMenuVariant {
+  id: number;
+  label: string;
+  price: number;
+  original_price: number | null;
+  is_available: boolean;
+}
 
 export interface PublicMenuItem {
   id:             number;
@@ -16,6 +24,7 @@ export interface PublicMenuItem {
   is_bestseller:  boolean;
   is_available:   boolean;
   image_url:      string | null;
+  variants?:      PublicMenuVariant[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -24,12 +33,24 @@ export class RestaurantService {
 
   constructor(private http: HttpClient) {}
 
-  getRestaurants(): Observable<Restaurant[]> {
-    return this.http.get<Restaurant[]>(this.baseUrl);
+  getRestaurants(lat?: number | null, lng?: number | null): Observable<Restaurant[]> {
+    let params = new HttpParams();
+    if (lat != null && lng != null) {
+      params = params.set('lat', String(lat)).set('lng', String(lng));
+    }
+    return this.http.get<Restaurant[]>(this.baseUrl, { params });
   }
 
-  getRestaurant(id: number): Observable<Restaurant> {
-    return this.http.get<Restaurant>(`${this.baseUrl}/${id}`);
+  getRestaurant(
+    id: number,
+    lat?: number | null,
+    lng?: number | null,
+  ): Observable<Restaurant> {
+    let params = new HttpParams();
+    if (lat != null && lng != null) {
+      params = params.set('lat', String(lat)).set('lng', String(lng));
+    }
+    return this.http.get<Restaurant>(`${this.baseUrl}/${id}`, { params });
   }
 
   getRestaurantMenu(id: number): Observable<PublicMenuItem[]> {

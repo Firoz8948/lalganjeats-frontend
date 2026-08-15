@@ -40,15 +40,27 @@
     <div class="menu-grid">
       <label class="menu-field"><span>Item name *</span><input placeholder="e.g. Paneer Butter Masala" [(ngModel)]="newMenuItem.name"></label>
       <label class="menu-field"><span>Description</span><input placeholder="Short item description" [(ngModel)]="newMenuItem.description"></label>
-      <label class="menu-field"><span>Seller transfer price (&#8377;) *</span><input type="number" min="0" step="0.01" placeholder="100" [(ngModel)]="newMenuItem.actual_price"></label>
-      <label class="menu-field menu-field--calculated"><span>Display price (&#8377;) · Auto calculated</span><input type="number" [value]="calculatedDisplayPrice()" readonly aria-readonly="true"><small>Seller transfer + {{displayPriceMarkup()}}% markup</small></label>
-      <label class="menu-field"><span>MRP (&#8377;)</span><input type="number" min="0" step="0.01" placeholder="Enter manually" [(ngModel)]="newMenuItem.original_price"></label>
       <label class="menu-field"><span>Subcategory *</span><select [(ngModel)]="newMenuItem.subcategory_id"><option [ngValue]="null">Choose subcategory</option>@for(subcategory of menuSubcategories();track subcategory.id){<option [ngValue]="subcategory.id">{{subcategory.name}}</option>}</select><small>@if(!menuSubcategories().length){No subcategories are configured for this business category.}</small></label>
       <label class="menu-check"><input type="checkbox" [(ngModel)]="newMenuItem.is_veg"> Veg</label>
       <label class="menu-check"><input type="checkbox" [(ngModel)]="newMenuItem.is_bestseller"> Bestseller</label>
     </div>
-    <p class="price-note">Settlement uses the seller transfer price. Customers see the calculated display price. MRP is entered manually.</p>
+    <div class="variant-block">
+      <div class="variant-block__head">
+        <h4>Variants (Half / Full)</h4>
+        <button type="button" class="linkish" (click)="addVariantRow()">+ Add size</button>
+      </div>
+      <p class="price-note">Enter seller transfer price per size. Display price auto-calculates with {{displayPriceMarkup()}}% markup.</p>
+      @for(v of variantDrafts;track $index;let i=$index){
+        <div class="variant-row">
+          <label class="menu-field"><span>Size label *</span><input placeholder="Half / Full" [(ngModel)]="v.label"></label>
+          <label class="menu-field"><span>Seller transfer (&#8377;) *</span><input type="number" min="0" step="0.01" [(ngModel)]="v.actual_price"></label>
+          <label class="menu-field menu-field--calculated"><span>Display (&#8377;)</span><input type="number" [value]="calculatedDisplayPrice(v.actual_price)" readonly></label>
+          <label class="menu-field"><span>MRP (&#8377;)</span><input type="number" min="0" step="0.01" [(ngModel)]="v.original_price"></label>
+          <button type="button" class="danger-link" [disabled]="variantDrafts.length<=1" (click)="removeVariantRow(i)">Remove</button>
+        </div>
+      }
+    </div>
     <button class="approve-btn" [disabled]="menuSaving()" (click)="addItem()">{{menuSaving() ? 'Adding…' : '+ Add Item'}}</button>
   </div>
-  <div class="items">@if(menuLoading()){<p>Loading items…</p>}@for(item of menuItems();track item.id){<div class="item" [class.unavailable]="!item.is_available"><div><strong>{{item.name}}</strong><small>{{item.category}}</small></div><div class="prices"><span>Display ₹{{item.price}}</span><span>Transfer ₹{{item.actual_price}}</span>@if(item.original_price){<span>MRP ₹{{item.original_price}}</span>}</div><button (click)="toggleItem(item)">{{item.is_available?'Available':'Unavailable'}}</button><button class="danger-link" [disabled]="deletingId()===item.id" (click)="deleteItem(item)">Delete</button></div>}@empty{<p>No items yet. Add the first one above.</p>}</div>
+  <div class="items">@if(menuLoading()){<p>Loading items…</p>}@for(item of menuItems();track item.id){<div class="item" [class.unavailable]="!item.is_available"><div><strong>{{item.name}}</strong><small>{{item.category}}</small>@if(item.variants?.length){<div class="variant-chips">@for(v of item.variants!;track v.label){<span>{{v.label}}: Display ₹{{v.price}} · Transfer ₹{{v.actual_price}}</span>}</div>}</div><div class="prices"><span>From ₹{{item.price}}</span></div><button (click)="toggleItem(item)">{{item.is_available?'Available':'Unavailable'}}</button><button class="danger-link" [disabled]="deletingId()===item.id" (click)="deleteItem(item)">Delete</button></div>}@empty{<p>No items yet. Add the first one above.</p>}</div>
 </div></div>}

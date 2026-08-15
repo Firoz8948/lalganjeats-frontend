@@ -6,6 +6,7 @@ import { environment } from '../../../environments/environment';
 export interface PlaceOrderItem {
   menu_item_id: number;
   quantity: number;
+  variant_id?: number | null;
 }
 
 export interface PlaceOrderPayload {

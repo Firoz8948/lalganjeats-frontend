@@ -20,9 +20,13 @@
       @if (cartData(); as c) {
         <section class="panel">
           <h2>Items</h2>
-          @for (item of c.items; track item.id) {
+          @for (item of c.items; track item.id + '-' + (item.variant_id ?? 'x')) {
             <div class="line">
-              <span>{{ item.name }} × {{ item.quantity }}</span>
+              <span>
+                {{ item.name }}
+                @if (item.variant_label) { ({{ item.variant_label }}) }
+                × {{ item.quantity }}
+              </span>
               <strong>₹{{ item.price * item.quantity }}</strong>
             </div>
           }

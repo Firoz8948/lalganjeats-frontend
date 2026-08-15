@@ -88,7 +88,15 @@
         </div>
       }
 
-      @if (!loading() && menuItems().length === 0) {
+      @if (!loading() && outOfArea()) {
+        <div class="menu-empty">
+          <h3>Outside delivery area</h3>
+          <p>Choose a location in range from the top bar to view this restaurant.</p>
+          <button class="back-btn" type="button" (click)="goBack()">Back to restaurants</button>
+        </div>
+      }
+
+      @if (!loading() && !outOfArea() && menuItems().length === 0) {
         <div class="menu-empty">
           <span class="menu-empty__icon">🍽️</span>
           <h3>No menu items available</h3>
@@ -96,7 +104,7 @@
         </div>
       }
 
-      @if (!loading() && menuItems().length > 0) {
+      @if (!loading() && !outOfArea() && menuItems().length > 0) {
         <div class="menu-layout">
 
           <div class="menu-main">
@@ -134,12 +142,27 @@
 
                     <h3 class="menu-card__name">{{ item.name }}</h3>
 
+                    @if (variantsFor(item).length > 0) {
+                      <div class="variant-pills">
+                        @for (v of variantsFor(item); track v.id) {
+                          <button
+                            type="button"
+                            class="variant-pill"
+                            [class.active]="selectedVariantFor(item)?.id === v.id"
+                            [disabled]="!v.is_available"
+                            (click)="selectVariant(item.id, v.id)">
+                            {{ v.label }}
+                          </button>
+                        }
+                      </div>
+                    }
+
                     <div class="menu-card__price">
-                      <span class="price-current">₹{{ item.price }}</span>
-                      @if (item.original_price) {
-                        <span class="price-original">₹{{ item.original_price }}</span>
+                      <span class="price-current">₹{{ displayPrice(item) }}</span>
+                      @if (displayMrp(item); as mrp) {
+                        <span class="price-original">₹{{ mrp }}</span>
                         <span class="price-discount">
-                          {{ ((item.original_price - item.price) / item.original_price * 100) | number:'1.0-0' }}% OFF
+                          {{ ((mrp - displayPrice(item)) / mrp * 100) | number:'1.0-0' }}% OFF
                         </span>
                       }
                     </div>
@@ -158,14 +181,14 @@
 
                     @if (item.is_available) {
                       <div class="menu-card__add">
-                        @if (getCartQuantity(item.id) === 0) {
+                        @if (getCartQuantity(item) === 0) {
                           <button class="add-btn" (click)="addToCart(item)">
                             + ADD
                           </button>
                         } @else {
                           <div class="qty-control">
-                            <button class="qty-btn" (click)="removeFromCart(item.id)">−</button>
-                            <span class="qty-value">{{ getCartQuantity(item.id) }}</span>
+                            <button class="qty-btn" (click)="removeFromCart(item)">−</button>
+                            <span class="qty-value">{{ getCartQuantity(item) }}</span>
                             <button class="qty-btn" (click)="addToCart(item)">+</button>
                           </div>
                         }
@@ -191,17 +214,22 @@
                 </div>
               } @else {
                 <div class="cart-items">
-                  @for (item of cartItems(); track item.id) {
+                  @for (item of cartItems(); track item.id + '-' + (item.variant_id ?? 'x')) {
                     <div class="cart-item">
                       <div class="cart-item__left">
                         <div class="veg-badge mini" [class.non-veg]="!item.is_veg">
                           <span></span>
                         </div>
-                        <span class="cart-item__name">{{ item.name }}</span>
+                        <span class="cart-item__name">
+                          {{ item.name }}
+                          @if (item.variant_label) {
+                            <small>({{ item.variant_label }})</small>
+                          }
+                        </span>
                       </div>
                       <div class="cart-item__right">
                         <div class="qty-control mini">
-                          <button class="qty-btn" (click)="removeFromCart(item.id)">−</button>
+                          <button class="qty-btn" (click)="removeFromCart(item)">−</button>
                           <span class="qty-value">{{ item.quantity }}</span>
                           <button class="qty-btn" (click)="incrementCartItem(item)">+</button>
                         </div>

@@ -17,13 +17,19 @@ export class AdminRestaurantsComponent implements OnInit {
   menuSubcategories=signal<CatalogSubcategory[]>([]);
   menuBusinessCategoryId=signal(0);
   displayPriceMarkup=signal(30);
+  variantDrafts:{label:string;actual_price:number|null;original_price:number|null}[]=[
+    {label:'Half',actual_price:null,original_price:null},
+    {label:'Full',actual_price:null,original_price:null},
+  ];
   newMenuItem:AdminMenuItemCreate={name:'',description:'',price:0,actual_price:0,category_name:'Other',subcategory_id:null,is_veg:true,is_bestseller:false};
   readonly bannerSpec={label:'Restaurant Card Banner',hint:'Shown on the restaurant card in home page & restaurants list',size:'600 × 400 px (3:2 ratio)',formats:'JPG, PNG, or WebP · max 2 MB'};
   constructor(private admin:AdminService, private paymentSettings:PaymentSettingsService){}
   ngOnInit(){this.load();this.loadCatalog();this.loadPriceMarkup();}
   loadCatalog(){this.admin.getCatalogCategories().subscribe(categories=>{this.catalogCategories.set(categories.filter(item=>item.is_active));const restaurant=categories.find(item=>item.slug==='restaurant'&&item.is_active);if(!this.newRestaurant.business_category_id)this.newRestaurant.business_category_id=restaurant?.id||categories[0]?.id||null;});}
   loadPriceMarkup(){this.paymentSettings.getSettings().subscribe({next:s=>this.displayPriceMarkup.set(s.display_price_markup_percent),error:()=>this.displayPriceMarkup.set(30)});}
-  calculatedDisplayPrice(){const transfer=Number(this.newMenuItem.actual_price)||0;return Math.round(transfer*(1+this.displayPriceMarkup()/100)*100)/100;}
+  calculatedDisplayPrice(transfer:number|null|undefined){const t=Number(transfer)||0;return Math.round(t*(1+this.displayPriceMarkup()/100)*100)/100;}
+  addVariantRow(){this.variantDrafts=[...this.variantDrafts,{label:'',actual_price:null,original_price:null}];}
+  removeVariantRow(index:number){if(this.variantDrafts.length<=1)return;this.variantDrafts=this.variantDrafts.filter((_,i)=>i!==index);}
   load(){this.admin.getRestaurants().subscribe(v=>this.restaurants.set(v));}
   phone(value:string,field:'restaurant'|'owner'){const v=value.replace(/\D/g,'').slice(0,10);field==='restaurant'?this.restaurantPhone=v:this.ownerPhone=v;}
   create(){
@@ -58,9 +64,35 @@ export class AdminRestaurantsComponent implements OnInit {
   }
   openMenu(r:AdminRestaurantRow){this.menuRestaurantId.set(r.id);this.menuName.set(r.name);this.menuBusinessCategoryId.set(r.business_category_id||0);this.menuOpen.set(true);this.menuError.set('');this.resetMenu();this.loadMenu();this.loadMenuSubcategories();}
   loadMenuSubcategories(){if(!this.menuBusinessCategoryId()){this.menuSubcategories.set([]);return}this.admin.getCatalogSubcategories(this.menuBusinessCategoryId()).subscribe(items=>this.menuSubcategories.set(items.filter(item=>item.is_active)));}
-  resetMenu(){this.newMenuItem={name:'',description:'',price:0,actual_price:0,category_name:'Other',subcategory_id:null,is_veg:true,is_bestseller:false};}
+  resetMenu(){this.newMenuItem={name:'',description:'',price:0,actual_price:0,category_name:'Other',subcategory_id:null,is_veg:true,is_bestseller:false};this.variantDrafts=[{label:'Half',actual_price:null,original_price:null},{label:'Full',actual_price:null,original_price:null}];}
   loadMenu(){this.menuLoading.set(true);this.admin.getRestaurantMenu(this.menuRestaurantId()).subscribe({next:v=>{this.menuItems.set(v);this.menuLoading.set(false)},error:()=>this.menuLoading.set(false)});}
-  addItem(){this.menuError.set('');const displayPrice=this.calculatedDisplayPrice();if(!this.newMenuItem.name.trim()||this.newMenuItem.actual_price<=0){this.menuError.set('Item name and seller transfer price are required.');return}if(!this.newMenuItem.subcategory_id){this.menuError.set('Choose a subcategory.');return}if(this.newMenuItem.original_price!=null&&this.newMenuItem.original_price<displayPrice){this.menuError.set('MRP cannot be lower than the calculated display price.');return}const subcategory=this.menuSubcategories().find(item=>item.id===Number(this.newMenuItem.subcategory_id));this.newMenuItem.category_name=subcategory?.name||'Other';this.newMenuItem.price=displayPrice;this.menuSaving.set(true);this.admin.addMenuItem(this.menuRestaurantId(),this.newMenuItem).subscribe({next:i=>{this.menuItems.update(v=>[...v,i]);this.resetMenu();this.menuSaving.set(false)},error:e=>{this.menuError.set(e.error?.detail||'Failed to add item.');this.menuSaving.set(false)}});}
+  addItem(){
+    this.menuError.set('');
+    if(!this.newMenuItem.name.trim()){this.menuError.set('Item name is required.');return}
+    if(!this.newMenuItem.subcategory_id){this.menuError.set('Choose a subcategory.');return}
+    const variants=this.variantDrafts
+      .map(v=>({label:(v.label||'').trim(),actual_price:Number(v.actual_price)||0,original_price:v.original_price!=null&&v.original_price!==(null as any)?Number(v.original_price):null}))
+      .filter(v=>v.label && v.actual_price>0);
+    if(!variants.length){this.menuError.set('Add at least one variant (e.g. Half / Full) with seller transfer price.');return}
+    for(const v of variants){
+      const display=this.calculatedDisplayPrice(v.actual_price);
+      if(v.original_price!=null && v.original_price<display){this.menuError.set(`MRP for ${v.label} cannot be lower than display ₹${display}.`);return}
+    }
+    const subcategory=this.menuSubcategories().find(item=>item.id===Number(this.newMenuItem.subcategory_id));
+    const payload:AdminMenuItemCreate={
+      ...this.newMenuItem,
+      category_name:subcategory?.name||'Other',
+      actual_price:variants[0].actual_price,
+      original_price:variants[0].original_price,
+      price:this.calculatedDisplayPrice(variants[0].actual_price),
+      variants:variants.map(v=>({label:v.label,actual_price:v.actual_price,original_price:v.original_price})),
+    };
+    this.menuSaving.set(true);
+    this.admin.addMenuItem(this.menuRestaurantId(),payload).subscribe({
+      next:i=>{this.menuItems.update(v=>[...v,i]);this.resetMenu();this.menuSaving.set(false)},
+      error:e=>{this.menuError.set(e.error?.detail||'Failed to add item.');this.menuSaving.set(false)}
+    });
+  }
   toggleItem(i:AdminMenuItem){this.admin.toggleMenuItem(this.menuRestaurantId(),i.id).subscribe(r=>this.menuItems.update(v=>v.map(x=>x.id===i.id?{...x,is_available:r.is_available}:x)));}
   deleteItem(i:AdminMenuItem){if(!confirm(`Delete "${i.name}"?`))return;this.deletingId.set(i.id);this.admin.deleteMenuItem(this.menuRestaurantId(),i.id).subscribe({next:()=>{this.menuItems.update(v=>v.filter(x=>x.id!==i.id));this.deletingId.set(null)},error:()=>this.deletingId.set(null)});}
 }

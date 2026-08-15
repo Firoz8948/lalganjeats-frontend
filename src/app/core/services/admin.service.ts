@@ -10,6 +10,15 @@ import {
 } from '../models/restaurant.model';
 import { HomeBannerSlide } from './banner.service';
 
+export interface AdminMenuVariant {
+  id?: number;
+  label: string;
+  price?: number;
+  actual_price: number;
+  original_price?: number | null;
+  is_available?: boolean;
+}
+
 export interface AdminMenuItem {
   id:             number;
   name:           string;
@@ -25,6 +34,7 @@ export interface AdminMenuItem {
   is_bestseller:  boolean;
   is_available:   boolean;
   image_url?:     string | null;
+  variants?:      AdminMenuVariant[];
 }
 
 export interface AdminMenuItemCreate {
@@ -37,6 +47,7 @@ export interface AdminMenuItemCreate {
   subcategory_id?: number | null;
   is_veg:         boolean;
   is_bestseller:  boolean;
+  variants?:      { label: string; actual_price: number; original_price?: number | null }[];
 }
 
 export interface CatalogCategory {

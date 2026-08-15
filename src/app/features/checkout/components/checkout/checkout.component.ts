@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CartService, CartItem } from '../../../../core/services/cart.service';
 import { OrderService, PlaceOrderPayload, PlaceOrderResult } from '../../../../core/services/order.service';
+import { CustomerLocationService } from '../../../../core/services/customer-location.service';
 import { ProfileService, Address } from '../../../profile/services/profile.service';
 import { NavbarComponent } from '../../../home/components/navbar/navbar.component';
 
@@ -18,6 +19,7 @@ export class CheckoutComponent implements OnInit {
   private cart = inject(CartService);
   private orders = inject(OrderService);
   private profile = inject(ProfileService);
+  private customerLocation = inject(CustomerLocationService);
   private router = inject(Router);
 
   addresses = signal<Address[]>([]);
@@ -52,11 +54,18 @@ export class CheckoutComponent implements OnInit {
     this.error.set('');
     this.placing.set(true);
 
+    const loc = this.customerLocation.location();
     const payload: PlaceOrderPayload = {
       restaurant_id: c.restaurantId,
       payment_method: this.paymentMethod,
       notes: this.notes || null,
-      items: c.items.map((i: CartItem) => ({ menu_item_id: i.id, quantity: i.quantity })),
+      items: c.items.map((i: CartItem) => ({
+        menu_item_id: i.id,
+        quantity: i.quantity,
+        variant_id: i.variant_id ?? null,
+      })),
+      delivery_latitude: loc?.lat ?? null,
+      delivery_longitude: loc?.lng ?? null,
     };
 
     if (this.selectedAddressId()) {
@@ -66,6 +75,12 @@ export class CheckoutComponent implements OnInit {
     } else {
       this.placing.set(false);
       this.error.set('Choose or add a delivery address.');
+      return;
+    }
+
+    if (payload.delivery_latitude == null || payload.delivery_longitude == null) {
+      this.placing.set(false);
+      this.error.set('Choose your exact location from the top bar first.');
       return;
     }
 

@@ -18,7 +18,7 @@
         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
         <circle cx="12" cy="10" r="3"/>
       </svg>
-      <span class="location-text">{{ currentLocation() }}</span>
+      <span class="location-text">{{ customerLocation.displayLabel() }}</span>
       <svg class="chevron" width="13" height="13" viewBox="0 0 24 24"
            fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="6 9 12 15 18 9"/>
@@ -241,7 +241,7 @@
       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
       <circle cx="12" cy="10" r="3"/>
     </svg>
-    <span>{{ currentLocation() }}</span>
+    <span>{{ customerLocation.displayLabel() }}</span>
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
          stroke="currentColor" stroke-width="2.5">
       <polyline points="6 9 12 15 18 9"/>
@@ -274,7 +274,7 @@
     <div class="location-modal" (click)="$event.stopPropagation()">
 
       <div class="location-modal__header">
-        <h3>Set Your Location</h3>
+        <h3>Choose your location</h3>
         <button class="close-btn" (click)="closeLocationModal()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                stroke="currentColor" stroke-width="2">
@@ -284,24 +284,36 @@
         </button>
       </div>
 
-      <button class="use-location-btn" (click)="useCurrentLocation()">
+      <p class="location-modal__hint">
+        We use your exact coordinates to show restaurants that deliver to you.
+      </p>
+
+      <button class="use-location-btn"
+              [disabled]="locationBusy()"
+              (click)="useCurrentLocation()">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="3"/>
           <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83
                    M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
         </svg>
-        Use Current Location
+        {{ locationBusy() ? 'Getting exact location…' : 'Use current location' }}
       </button>
 
-      <div class="location-divider"><span>or enter manually</span></div>
+      <div class="location-divider"><span>or place marker on map</span></div>
 
-      <div class="location-input-row">
-        <input #locationInput type="text"
-               placeholder="E.g. Lalganj Market, UP"/>
-        <button class="btn-primary"
-                (click)="setManualLocation(locationInput)">Go</button>
-      </div>
+      <div class="location-map" #locationMap aria-label="Location map"></div>
+      <p class="location-map-note">Tap the map, then drag the marker to your spot.</p>
+
+      @if (locationError()) {
+        <p class="location-error">{{ locationError() }}</p>
+      }
+
+      <button class="btn-primary location-confirm"
+              [disabled]="locationBusy()"
+              (click)="confirmMapLocation()">
+        {{ locationBusy() ? 'Saving…' : 'Confirm this location' }}
+      </button>
 
     </div>
   </div>

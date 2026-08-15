@@ -428,6 +428,36 @@
   border-radius: var(--radius-sm);
 }
 
+.variant-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 10px;
+}
+
+.variant-pill {
+  border: 1.5px solid var(--color-border);
+  background: #fff;
+  color: var(--color-text);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.15s ease;
+
+  &.active {
+    border-color: var(--color-primary);
+    background: rgba(240, 90, 55, 0.08);
+    color: var(--color-primary);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
 .add-btn {
   width: 90px;
   padding: 8px 0;
