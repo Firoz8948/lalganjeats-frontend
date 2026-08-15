@@ -17,6 +17,8 @@ export class AdminRestaurantsComponent implements OnInit {
   menuSubcategories=signal<CatalogSubcategory[]>([]);
   menuBusinessCategoryId=signal(0);
   displayPriceMarkup=signal(30);
+  menuImagePreview=signal<string|null>(null);
+  menuImageUploading=signal(false);
   hasVariants=signal(false);
   variantDrafts:{label:string;actual_price:number|null;original_price:number|null}[]=[];
   newMenuItem:AdminMenuItemCreate={name:'',description:'',price:0,actual_price:0,category_name:'Other',subcategory_id:null,is_veg:true,is_bestseller:false};
@@ -64,7 +66,19 @@ export class AdminRestaurantsComponent implements OnInit {
   }
   openMenu(r:AdminRestaurantRow){this.menuRestaurantId.set(r.id);this.menuName.set(r.name);this.menuBusinessCategoryId.set(r.business_category_id||0);this.menuOpen.set(true);this.menuError.set('');this.resetMenu();this.loadMenu();this.loadMenuSubcategories();}
   loadMenuSubcategories(){if(!this.menuBusinessCategoryId()){this.menuSubcategories.set([]);return}this.admin.getCatalogSubcategories(this.menuBusinessCategoryId()).subscribe(items=>this.menuSubcategories.set(items.filter(item=>item.is_active)));}
-  resetMenu(){this.newMenuItem={name:'',description:'',price:0,actual_price:0,category_name:'Other',subcategory_id:null,is_veg:true,is_bestseller:false};this.disableVariants();}
+  resetMenu(){this.newMenuItem={name:'',description:'',image_url:null,price:0,actual_price:0,category_name:'Other',subcategory_id:null,is_veg:true,is_bestseller:false};this.menuImagePreview.set(null);this.menuImageUploading.set(false);this.disableVariants();}
+  selectMenuImage(event:Event){
+    const input=event.target as HTMLInputElement,file=input.files?.[0];if(!file)return;
+    this.menuError.set('');
+    if(!['image/jpeg','image/png','image/webp'].includes(file.type)){this.menuError.set('Menu item image must be JPG, PNG, or WebP.');input.value='';return}
+    if(file.size>2*1024*1024){this.menuError.set('Menu item image must be 2 MB or smaller.');input.value='';return}
+    this.menuImagePreview.set(URL.createObjectURL(file));this.menuImageUploading.set(true);
+    this.admin.uploadBanner(file,'menu_item').subscribe({
+      next:r=>{this.newMenuItem.image_url=r.url;this.menuImagePreview.set(r.url);this.menuImageUploading.set(false);input.value='';},
+      error:e=>{this.menuImagePreview.set(null);this.newMenuItem.image_url=null;this.menuImageUploading.set(false);this.menuError.set(e.error?.detail||'Failed to upload menu item image.');input.value='';}
+    });
+  }
+  removeMenuImage(){this.menuImagePreview.set(null);this.newMenuItem.image_url=null;}
   loadMenu(){this.menuLoading.set(true);this.admin.getRestaurantMenu(this.menuRestaurantId()).subscribe({next:v=>{this.menuItems.set(v);this.menuLoading.set(false)},error:()=>this.menuLoading.set(false)});}
   addItem(){
     this.menuError.set('');

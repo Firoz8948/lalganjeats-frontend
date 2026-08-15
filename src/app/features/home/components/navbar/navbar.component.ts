@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 // frontend/src/app/features/home/components/navbar/navbar.component.ts
 import {
   Component,
@@ -13,16 +14,24 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
-import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, from, switchMap } from 'rxjs';
 import { AuthService } from '../../../../core/services/auth.service';
 import { CartService } from '../../../../core/services/cart.service';
 import { CustomerLocationService } from '../../../../core/services/customer-location.service';
-import { GeocodingService, GeocodeResult } from '../../../../core/services/geocoding.service';
 import { UserSidebarService } from '../../../../core/services/user-sidebar.service';
 import { UserSidebarComponent } from '../../../../shared/user-sidebar/user-sidebar.component';
 import { BottomNavComponent } from '../../../../shared/bottom-nav/bottom-nav.component';
+import { GoogleMapsLoaderService } from '../../../tracking/services/google-maps-loader.service';
+import { TrackingService } from '../../../tracking/services/tracking.service';
 
-const DEFAULT_CENTER: [number, number] = [25.9, 81.95];
+const DEFAULT_CENTER = { lat: 25.93, lng: 81.7 };
+
+export interface LocationSuggestion {
+  label: string;
+  placeId?: string;
+  lat?: number;
+  lng?: number;
+}
 
 @Component({
   selector: 'app-navbar',
@@ -43,7 +52,7 @@ export class NavbarComponent implements AfterViewInit, OnInit {
   mapReady = signal(false);
   searchTerm = '';
   searching = signal(false);
-  searchResults = signal<GeocodeResult[]>([]);
+  searchResults = signal<LocationSuggestion[]>([]);
   draftLabel = signal('');
   draftLat = signal<number | null>(null);
   draftLng = signal<number | null>(null);
@@ -51,14 +60,17 @@ export class NavbarComponent implements AfterViewInit, OnInit {
   auth = inject(AuthService);
   cartService = inject(CartService);
   customerLocation = inject(CustomerLocationService);
-  private geocoding = inject(GeocodingService);
   router = inject(Router);
   sidebar = inject(UserSidebarService);
+  private mapsLoader = inject(GoogleMapsLoaderService);
+  private tracking = inject(TrackingService);
   private ngZone = inject(NgZone);
 
-  private map?: any;
-  private marker?: any;
-  private leaflet?: any;
+  private map?: google.maps.Map;
+  private marker?: google.maps.Marker;
+  private geocoder?: google.maps.Geocoder;
+  private autocomplete?: google.maps.places.AutocompleteService;
+  private sessionToken?: google.maps.places.AutocompleteSessionToken;
   private searchInput$ = new Subject<string>();
   private draftSource: 'gps' | 'map' | 'manual' = 'map';
 
@@ -69,16 +81,19 @@ export class NavbarComponent implements AfterViewInit, OnInit {
 
     this.searchInput$
       .pipe(
-        debounceTime(400),
+        debounceTime(300),
         distinctUntilChanged(),
         switchMap((term) => {
-          this.searching.set(term.trim().length >= 3);
-          return this.geocoding.search(term);
+          const q = term.trim();
+          this.searching.set(q.length >= 3);
+          return from(this.suggestPlaces(q));
         }),
       )
       .subscribe((results) => {
-        this.searching.set(false);
-        this.searchResults.set(results);
+        this.ngZone.run(() => {
+          this.searching.set(false);
+          this.searchResults.set(results);
+        });
       });
   }
 
@@ -155,7 +170,6 @@ export class NavbarComponent implements AfterViewInit, OnInit {
   closeLocationModal() {
     this.isLocationModalOpen.set(false);
     this.mapReady.set(false);
-    this.map?.remove?.();
     this.map = undefined;
     this.marker = undefined;
   }
@@ -165,12 +179,33 @@ export class NavbarComponent implements AfterViewInit, OnInit {
     this.searchInput$.next(value);
   }
 
-  chooseSearchResult(result: GeocodeResult) {
+  async chooseSearchResult(suggestion: LocationSuggestion) {
     this.searchResults.set([]);
-    this.searchTerm = result.label;
+    this.searchTerm = suggestion.label;
     this.draftSource = 'manual';
-    this.setDraft(result.lat, result.lng, result.label);
-    this.placeDraftMarker(result.lat, result.lng, 15);
+
+    if (suggestion.lat != null && suggestion.lng != null) {
+      this.setDraft(suggestion.lat, suggestion.lng, suggestion.label);
+      this.placeDraftMarker(suggestion.lat, suggestion.lng, 16);
+      return;
+    }
+    if (!suggestion.placeId || !this.geocoder) return;
+
+    try {
+      const res = await this.geocoder.geocode({ placeId: suggestion.placeId });
+      const loc = res.results?.[0]?.geometry?.location;
+      if (!loc) return;
+      const lat = loc.lat();
+      const lng = loc.lng();
+      this.ngZone.run(() => {
+        this.setDraft(lat, lng, res.results[0].formatted_address || suggestion.label);
+      });
+      this.placeDraftMarker(lat, lng, 16);
+    } catch {
+      this.ngZone.run(() =>
+        this.locationError.set('Could not resolve that place. Pick it on the map instead.'),
+      );
+    }
   }
 
   useCurrentLocation() {
@@ -220,7 +255,7 @@ export class NavbarComponent implements AfterViewInit, OnInit {
     this.closeLocationModal();
   }
 
-  /** Nominatim returns full postal addresses; the navbar chip only needs the locality. */
+  /** Geocoders return full postal addresses; the navbar chip only needs the locality. */
   private shortLabel(full: string): string {
     const parts = full
       .split(',')
@@ -236,82 +271,153 @@ export class NavbarComponent implements AfterViewInit, OnInit {
     this.locationError.set('');
   }
 
-  private resolveLabel(lat: number, lng: number, fallback: string) {
-    this.geocoding.reverse(lat, lng).subscribe((label) => {
-      this.draftLabel.set(label || fallback);
-    });
+  private async suggestPlaces(query: string): Promise<LocationSuggestion[]> {
+    if (query.length < 3) return [];
+
+    if (this.autocomplete) {
+      try {
+        const res = await this.autocomplete.getPlacePredictions({
+          input: query,
+          componentRestrictions: { country: 'in' },
+          sessionToken: this.sessionToken,
+        });
+        if (res.predictions?.length) {
+          return res.predictions.slice(0, 6).map((p) => ({
+            label: p.description,
+            placeId: p.place_id,
+          }));
+        }
+      } catch {
+        /* Places API may not be enabled on the key; fall through to geocoding. */
+      }
+    }
+
+    if (!this.geocoder) return [];
+    try {
+      const res = await this.geocoder.geocode({
+        address: query,
+        componentRestrictions: { country: 'IN' },
+      });
+      return (res.results || []).slice(0, 6).map((r) => ({
+        label: r.formatted_address,
+        lat: r.geometry.location.lat(),
+        lng: r.geometry.location.lng(),
+      }));
+    } catch {
+      return [];
+    }
   }
 
-  private async initLocationMap() {
+  private resolveLabel(lat: number, lng: number, fallback: string) {
+    if (!this.geocoder) {
+      this.draftLabel.set(fallback);
+      return;
+    }
+    this.geocoder
+      .geocode({ location: { lat, lng } })
+      .then((res) => {
+        this.ngZone.run(() =>
+          this.draftLabel.set(res.results?.[0]?.formatted_address || fallback),
+        );
+      })
+      .catch(() => this.ngZone.run(() => this.draftLabel.set(fallback)));
+  }
+
+  private initLocationMap() {
     const el = this.locationMapRef?.nativeElement;
     if (!el) return;
 
-    try {
-      const mod: any = await import('leaflet');
-      const L = this.leaflet ?? mod.default ?? mod;
-      this.leaflet = L;
+    this.tracking.publicConfig().subscribe({
+      next: async (cfg) => {
+        const key = cfg.google_maps_api_key || '';
+        if (!key) {
+          this.ngZone.run(() =>
+            this.locationError.set(
+              'Map is unavailable right now. Use current location instead.',
+            ),
+          );
+          return;
+        }
+        try {
+          const googleApi = await this.mapsLoader.load(key);
+          this.geocoder = new googleApi.maps.Geocoder();
+          if (googleApi.maps.places) {
+            this.autocomplete = new googleApi.maps.places.AutocompleteService();
+            this.sessionToken = new googleApi.maps.places.AutocompleteSessionToken();
+          }
 
-      const existingLat = this.draftLat();
-      const existingLng = this.draftLng();
-      const center: [number, number] =
-        existingLat != null && existingLng != null ? [existingLat, existingLng] : DEFAULT_CENTER;
+          const lat = this.draftLat();
+          const lng = this.draftLng();
+          const center = lat != null && lng != null ? { lat, lng } : DEFAULT_CENTER;
 
-      this.map = L.map(el, { attributionControl: true }).setView(center, existingLat != null ? 15 : 12);
+          this.map = new googleApi.maps.Map(el, {
+            center,
+            zoom: lat != null ? 16 : 12,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+            clickableIcons: false,
+          });
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors',
-      }).addTo(this.map);
+          this.map.addListener('click', (e: google.maps.MapMouseEvent) => {
+            if (!e.latLng) return;
+            const clickLat = e.latLng.lat();
+            const clickLng = e.latLng.lng();
+            this.ngZone.run(() => {
+              this.draftSource = 'map';
+              this.setDraft(clickLat, clickLng, '');
+              this.resolveLabel(
+                clickLat,
+                clickLng,
+                `${clickLat.toFixed(4)}, ${clickLng.toFixed(4)}`,
+              );
+            });
+            this.placeDraftMarker(clickLat, clickLng);
+          });
 
-      this.map.on('click', (e: any) => {
-        const { lat, lng } = e.latlng;
-        this.ngZone.run(() => {
-          this.draftSource = 'map';
-          this.setDraft(lat, lng, '');
-          this.resolveLabel(lat, lng, `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
-        });
-        this.placeDraftMarker(lat, lng);
-      });
-
-      if (existingLat != null && existingLng != null) {
-        this.placeDraftMarker(existingLat, existingLng);
-      }
-
-      setTimeout(() => this.map?.invalidateSize(), 100);
-      this.mapReady.set(true);
-    } catch {
-      this.locationError.set('Map could not load. Search a place or use current location.');
-    }
+          if (lat != null && lng != null) {
+            this.placeDraftMarker(lat, lng);
+          }
+          this.ngZone.run(() => this.mapReady.set(true));
+        } catch {
+          this.ngZone.run(() =>
+            this.locationError.set('Could not load map. Use current location instead.'),
+          );
+        }
+      },
+      error: () => {
+        this.locationError.set('Could not load map config. Use current location instead.');
+      },
+    });
   }
 
   private placeDraftMarker(lat: number, lng: number, zoom?: number) {
-    const L = this.leaflet;
-    if (!this.map || !L) return;
+    if (!this.map || !window.google?.maps) return;
+    const position = { lat, lng };
 
     if (this.marker) {
-      this.marker.setLatLng([lat, lng]);
+      this.marker.setPosition(position);
     } else {
-      this.marker = L.marker([lat, lng], {
+      this.marker = new google.maps.Marker({
+        map: this.map,
+        position,
         draggable: true,
-        icon: L.divIcon({
-          className: 'le-pin',
-          html: '<span class="le-pin__dot"></span>',
-          iconSize: [22, 22],
-          iconAnchor: [11, 11],
-        }),
-      }).addTo(this.map);
-
-      this.marker.on('dragend', () => {
-        const p = this.marker.getLatLng();
+      });
+      this.marker.addListener('dragend', () => {
+        const p = this.marker?.getPosition();
+        if (!p) return;
+        const dragLat = p.lat();
+        const dragLng = p.lng();
         this.ngZone.run(() => {
           this.draftSource = 'map';
-          this.setDraft(p.lat, p.lng, '');
-          this.resolveLabel(p.lat, p.lng, `${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}`);
+          this.setDraft(dragLat, dragLng, '');
+          this.resolveLabel(dragLat, dragLng, `${dragLat.toFixed(4)}, ${dragLng.toFixed(4)}`);
         });
       });
     }
 
-    this.map.setView([lat, lng], zoom ?? this.map.getZoom());
+    this.map.panTo(position);
+    if (zoom) this.map.setZoom(zoom);
   }
 
   get user() {

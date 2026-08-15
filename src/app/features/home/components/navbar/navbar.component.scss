@@ -798,16 +798,6 @@
   span { font-size: 11px; color: var(--color-muted); }
 }
 
-:host ::ng-deep .le-pin__dot {
-  display: block;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--color-primary, #f05a37);
-  border: 3px solid #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
-}
-
 .location-map {
   width: 100%;
   height: 220px;

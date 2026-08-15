@@ -44,6 +44,24 @@
       <label class="menu-check"><input type="checkbox" [(ngModel)]="newMenuItem.is_veg"> Veg</label>
       <label class="menu-check"><input type="checkbox" [(ngModel)]="newMenuItem.is_bestseller"> Bestseller</label>
     </div>
+    <div class="menu-image-upload">
+      <div>
+        <strong>Menu item image</strong>
+        <small>JPG, PNG, or WebP · max 2 MB</small>
+      </div>
+      @if(menuImagePreview()){
+        <div class="menu-image-preview">
+          <img [src]="menuImagePreview()" alt="Menu item preview">
+          @if(menuImageUploading()){<span>Uploading…</span>}
+          @else{<button type="button" class="danger-link" (click)="removeMenuImage()">Remove</button>}
+        </div>
+      } @else {
+        <label class="menu-image-dropzone">
+          <input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectMenuImage($event)">
+          + Add item image
+        </label>
+      }
+    </div>
     @if(!hasVariants()){
       <div class="menu-grid regular-price-grid">
         <label class="menu-field"><span>Seller transfer (&#8377;) *</span><input type="number" min="0" step="0.01" [(ngModel)]="newMenuItem.actual_price"></label>
@@ -72,7 +90,7 @@
       }
     </div>
     }
-    <button class="approve-btn" [disabled]="menuSaving()" (click)="addItem()">{{menuSaving() ? 'Adding…' : '+ Add Item'}}</button>
+    <button class="approve-btn" [disabled]="menuSaving()||menuImageUploading()" (click)="addItem()">{{menuSaving() ? 'Adding…' : '+ Add Item'}}</button>
   </div>
-  <div class="items">@if(menuLoading()){<p>Loading items…</p>}@for(item of menuItems();track item.id){<div class="item" [class.unavailable]="!item.is_available"><div><strong>{{item.name}}</strong><small>{{item.category}}</small>@if(item.variants?.length){<div class="variant-chips">@for(v of item.variants!;track v.label){<span>{{v.label}}: Display ₹{{v.price}} · Transfer ₹{{v.actual_price}}</span>}</div>}</div><div class="prices"><span>From ₹{{item.price}}</span></div><button (click)="toggleItem(item)">{{item.is_available?'Available':'Unavailable'}}</button><button class="danger-link" [disabled]="deletingId()===item.id" (click)="deleteItem(item)">Delete</button></div>}@empty{<p>No items yet. Add the first one above.</p>}</div>
+  <div class="items">@if(menuLoading()){<p>Loading items…</p>}@for(item of menuItems();track item.id){<div class="item" [class.unavailable]="!item.is_available">@if(item.image_url){<img class="item__image" [src]="item.image_url" [alt]="item.name">}<div><strong>{{item.name}}</strong><small>{{item.category}}</small>@if(item.variants?.length){<div class="variant-chips">@for(v of item.variants!;track v.label){<span>{{v.label}}: Display ₹{{v.price}} · Transfer ₹{{v.actual_price}}</span>}</div>}</div><div class="prices"><span>From ₹{{item.price}}</span></div><button (click)="toggleItem(item)">{{item.is_available?'Available':'Unavailable'}}</button><button class="danger-link" [disabled]="deletingId()===item.id" (click)="deleteItem(item)">Delete</button></div>}@empty{<p>No items yet. Add the first one above.</p>}</div>
 </div></div>}

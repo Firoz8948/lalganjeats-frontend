@@ -40,6 +40,7 @@ export interface AdminMenuItem {
 export interface AdminMenuItemCreate {
   name:           string;
   description?:   string;
+  image_url?:     string | null;
   price:          number;
   actual_price:   number;
   original_price?: number | null;
@@ -144,7 +145,7 @@ export class AdminService {
   /** Upload banner image — local storage now, S3 later */
   uploadBanner(
     file: File,
-    purpose: 'list_banner' | 'menu_banner' | 'home_banner_desktop' | 'home_banner_mobile'
+    purpose: 'list_banner' | 'menu_banner' | 'menu_item' | 'home_banner_desktop' | 'home_banner_mobile'
   ): Observable<{ url: string; path: string; purpose: string }> {
     const form = new FormData();
     form.append('file', file);

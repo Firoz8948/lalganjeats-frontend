@@ -36,7 +36,7 @@ export class GoogleMapsLoaderService {
       script.defer = true;
       script.src =
         `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}` +
-        `&libraries=geometry&v=weekly`;
+        `&libraries=geometry,places&v=weekly`;
       script.onload = () => resolve(window.google as GoogleMapsApi);
       script.onerror = () => reject(new Error('Failed to load Google Maps'));
       document.head.appendChild(script);
