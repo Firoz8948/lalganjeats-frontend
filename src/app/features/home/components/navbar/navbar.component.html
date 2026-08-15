@@ -288,6 +288,39 @@
         We use your exact coordinates to show restaurants that deliver to you.
       </p>
 
+      <div class="location-search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text"
+               placeholder="Search area, street or landmark…"
+               [ngModel]="searchTerm"
+               (ngModelChange)="onSearchInput($event)"
+               autocomplete="off">
+        @if (searching()) {
+          <span class="location-search__status">Searching…</span>
+        }
+      </div>
+
+      @if (searchResults().length) {
+        <ul class="location-results">
+          @for (r of searchResults(); track r.lat + '-' + r.lng) {
+            <li>
+              <button type="button" (click)="chooseSearchResult(r)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span>{{ r.label }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+
       <button class="use-location-btn"
               [disabled]="locationBusy()"
               (click)="useCurrentLocation()">
@@ -300,18 +333,25 @@
         {{ locationBusy() ? 'Getting exact location…' : 'Use current location' }}
       </button>
 
-      <div class="location-divider"><span>or place marker on map</span></div>
+      <div class="location-divider"><span>then fine-tune on map</span></div>
 
       <div class="location-map" #locationMap aria-label="Location map"></div>
-      <p class="location-map-note">Tap the map, then drag the marker to your spot.</p>
+      <p class="location-map-note">Tap the map or drag the marker to your exact spot.</p>
+
+      @if (draftLat() !== null) {
+        <div class="location-selected">
+          <strong>{{ draftLabel() || 'Selected point' }}</strong>
+          <span>{{ draftLat() | number:'1.5-5' }}, {{ draftLng() | number:'1.5-5' }}</span>
+        </div>
+      }
 
       @if (locationError()) {
         <p class="location-error">{{ locationError() }}</p>
       }
 
       <button class="btn-primary location-confirm"
-              [disabled]="locationBusy()"
-              (click)="confirmMapLocation()">
+              [disabled]="locationBusy() || draftLat() === null"
+              (click)="confirmLocation()">
         {{ locationBusy() ? 'Saving…' : 'Confirm this location' }}
       </button>
 

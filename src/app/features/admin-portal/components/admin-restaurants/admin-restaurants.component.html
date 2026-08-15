@@ -44,12 +44,23 @@
       <label class="menu-check"><input type="checkbox" [(ngModel)]="newMenuItem.is_veg"> Veg</label>
       <label class="menu-check"><input type="checkbox" [(ngModel)]="newMenuItem.is_bestseller"> Bestseller</label>
     </div>
+    @if(!hasVariants()){
+      <div class="menu-grid regular-price-grid">
+        <label class="menu-field"><span>Seller transfer (&#8377;) *</span><input type="number" min="0" step="0.01" [(ngModel)]="newMenuItem.actual_price"></label>
+        <label class="menu-field menu-field--calculated"><span>Display (&#8377;)</span><input type="number" [value]="calculatedDisplayPrice(newMenuItem.actual_price)" readonly></label>
+        <label class="menu-field"><span>MRP (&#8377;)</span><input type="number" min="0" step="0.01" [(ngModel)]="newMenuItem.original_price"></label>
+      </div>
+      <button type="button" class="add-variant-btn" (click)="enableVariants()">+ Add variant</button>
+    } @else {
     <div class="variant-block">
       <div class="variant-block__head">
-        <h4>Variants (Half / Full)</h4>
-        <button type="button" class="linkish" (click)="addVariantRow()">+ Add size</button>
+        <h4>Variant pricing</h4>
+        <div class="variant-actions">
+          <button type="button" class="linkish" (click)="addVariantRow()">+ Add size</button>
+          <button type="button" class="linkish linkish--muted" (click)="disableVariants()">Remove variants</button>
+        </div>
       </div>
-      <p class="price-note">Enter seller transfer price per size. Display price auto-calculates with {{displayPriceMarkup()}}% markup.</p>
+      <p class="price-note">Variant prices now replace the regular item price. Enter transfer and MRP separately for each size.</p>
       @for(v of variantDrafts;track $index;let i=$index){
         <div class="variant-row">
           <label class="menu-field"><span>Size label *</span><input placeholder="Half / Full" [(ngModel)]="v.label"></label>
@@ -60,6 +71,7 @@
         </div>
       }
     </div>
+    }
     <button class="approve-btn" [disabled]="menuSaving()" (click)="addItem()">{{menuSaving() ? 'Adding…' : '+ Add Item'}}</button>
   </div>
   <div class="items">@if(menuLoading()){<p>Loading items…</p>}@for(item of menuItems();track item.id){<div class="item" [class.unavailable]="!item.is_available"><div><strong>{{item.name}}</strong><small>{{item.category}}</small>@if(item.variants?.length){<div class="variant-chips">@for(v of item.variants!;track v.label){<span>{{v.label}}: Display ₹{{v.price}} · Transfer ₹{{v.actual_price}}</span>}</div>}</div><div class="prices"><span>From ₹{{item.price}}</span></div><button (click)="toggleItem(item)">{{item.is_available?'Available':'Unavailable'}}</button><button class="danger-link" [disabled]="deletingId()===item.id" (click)="deleteItem(item)">Delete</button></div>}@empty{<p>No items yet. Add the first one above.</p>}</div>

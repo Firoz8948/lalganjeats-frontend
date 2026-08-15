@@ -1,4 +1,3 @@
-/// <reference types="google.maps" />
 // frontend/src/app/features/home/components/navbar/navbar.component.ts
 import {
   Component,
@@ -12,20 +11,23 @@ import {
   OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { AuthService } from '../../../../core/services/auth.service';
 import { CartService } from '../../../../core/services/cart.service';
 import { CustomerLocationService } from '../../../../core/services/customer-location.service';
+import { GeocodingService, GeocodeResult } from '../../../../core/services/geocoding.service';
 import { UserSidebarService } from '../../../../core/services/user-sidebar.service';
 import { UserSidebarComponent } from '../../../../shared/user-sidebar/user-sidebar.component';
 import { BottomNavComponent } from '../../../../shared/bottom-nav/bottom-nav.component';
-import { GoogleMapsLoaderService } from '../../../tracking/services/google-maps-loader.service';
-import { TrackingService } from '../../../tracking/services/tracking.service';
+
+const DEFAULT_CENTER: [number, number] = [25.9, 81.95];
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule, UserSidebarComponent, BottomNavComponent],
+  imports: [CommonModule, FormsModule, RouterModule, UserSidebarComponent, BottomNavComponent],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
 })
@@ -39,25 +41,45 @@ export class NavbarComponent implements AfterViewInit, OnInit {
   locationBusy = signal(false);
   locationError = signal('');
   mapReady = signal(false);
+  searchTerm = '';
+  searching = signal(false);
+  searchResults = signal<GeocodeResult[]>([]);
+  draftLabel = signal('');
+  draftLat = signal<number | null>(null);
+  draftLng = signal<number | null>(null);
 
   auth = inject(AuthService);
   cartService = inject(CartService);
   customerLocation = inject(CustomerLocationService);
+  private geocoding = inject(GeocodingService);
   router = inject(Router);
   sidebar = inject(UserSidebarService);
-  private mapsLoader = inject(GoogleMapsLoaderService);
-  private tracking = inject(TrackingService);
   private ngZone = inject(NgZone);
 
-  private map?: google.maps.Map;
-  private marker?: google.maps.Marker;
-  private draftLat: number | null = null;
-  private draftLng: number | null = null;
+  private map?: any;
+  private marker?: any;
+  private leaflet?: any;
+  private searchInput$ = new Subject<string>();
+  private draftSource: 'gps' | 'map' | 'manual' = 'map';
 
   ngOnInit() {
     if (this.auth.isLoggedIn() && this.auth.isCustomer()) {
       this.auth.loadCustomerDisplayInfo();
     }
+
+    this.searchInput$
+      .pipe(
+        debounceTime(400),
+        distinctUntilChanged(),
+        switchMap((term) => {
+          this.searching.set(term.trim().length >= 3);
+          return this.geocoding.search(term);
+        }),
+      )
+      .subscribe((results) => {
+        this.searching.set(false);
+        this.searchResults.set(results);
+      });
   }
 
   ngAfterViewInit() {
@@ -118,13 +140,37 @@ export class NavbarComponent implements AfterViewInit, OnInit {
 
   openLocationModal() {
     this.locationError.set('');
+    this.searchTerm = '';
+    this.searchResults.set([]);
+
+    const existing = this.customerLocation.location();
+    this.draftLat.set(existing?.lat ?? null);
+    this.draftLng.set(existing?.lng ?? null);
+    this.draftLabel.set(existing?.label ?? '');
+
     this.isLocationModalOpen.set(true);
-    setTimeout(() => this.initLocationMap(), 50);
+    setTimeout(() => this.initLocationMap(), 60);
   }
 
   closeLocationModal() {
     this.isLocationModalOpen.set(false);
     this.mapReady.set(false);
+    this.map?.remove?.();
+    this.map = undefined;
+    this.marker = undefined;
+  }
+
+  onSearchInput(value: string) {
+    this.searchTerm = value;
+    this.searchInput$.next(value);
+  }
+
+  chooseSearchResult(result: GeocodeResult) {
+    this.searchResults.set([]);
+    this.searchTerm = result.label;
+    this.draftSource = 'manual';
+    this.setDraft(result.lat, result.lng, result.label);
+    this.placeDraftMarker(result.lat, result.lng, 15);
   }
 
   useCurrentLocation() {
@@ -136,135 +182,136 @@ export class NavbarComponent implements AfterViewInit, OnInit {
     this.locationError.set('');
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        this.draftLat = lat;
-        this.draftLng = lng;
-        this.placeDraftMarker(lat, lng);
-        this.reverseGeocodeAndSave(lat, lng, 'gps');
+        this.ngZone.run(() => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          this.draftSource = 'gps';
+          this.setDraft(lat, lng, '');
+          this.placeDraftMarker(lat, lng, 16);
+          this.resolveLabel(lat, lng, 'Current location');
+          this.locationBusy.set(false);
+        });
       },
       () => {
-        this.locationBusy.set(false);
-        this.locationError.set('Could not get your exact location. Allow location access or pick on the map.');
+        this.ngZone.run(() => {
+          this.locationBusy.set(false);
+          this.locationError.set(
+            'Could not get your exact location. Allow location access, search, or pick on the map.',
+          );
+        });
       },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     );
   }
 
-  confirmMapLocation() {
-    if (this.draftLat == null || this.draftLng == null) {
-      this.locationError.set('Tap the map to place your marker first.');
+  confirmLocation() {
+    const lat = this.draftLat();
+    const lng = this.draftLng();
+    if (lat == null || lng == null) {
+      this.locationError.set('Search a place, use current location, or tap the map first.');
       return;
     }
-    this.reverseGeocodeAndSave(this.draftLat, this.draftLng, 'map');
+    this.customerLocation.setLocation({
+      lat,
+      lng,
+      label: this.shortLabel(this.draftLabel()) || `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+      source: this.draftSource,
+    });
+    this.closeLocationModal();
   }
 
-  private initLocationMap() {
+  /** Nominatim returns full postal addresses; the navbar chip only needs the locality. */
+  private shortLabel(full: string): string {
+    const parts = full
+      .split(',')
+      .map((p) => p.trim())
+      .filter((p) => p && !/^\d{6}$/.test(p) && p.toLowerCase() !== 'india');
+    return parts.slice(0, 2).join(', ');
+  }
+
+  private setDraft(lat: number, lng: number, label: string) {
+    this.draftLat.set(lat);
+    this.draftLng.set(lng);
+    this.draftLabel.set(label);
+    this.locationError.set('');
+  }
+
+  private resolveLabel(lat: number, lng: number, fallback: string) {
+    this.geocoding.reverse(lat, lng).subscribe((label) => {
+      this.draftLabel.set(label || fallback);
+    });
+  }
+
+  private async initLocationMap() {
     const el = this.locationMapRef?.nativeElement;
     if (!el) return;
 
-    this.tracking.publicConfig().subscribe({
-      next: async (cfg) => {
-        const key = cfg.google_maps_api_key || '';
-        if (!key) {
-          this.locationError.set('Map is unavailable. Use current location instead.');
-          return;
-        }
-        try {
-          const googleApi = await this.mapsLoader.load(key);
-          const existing = this.customerLocation.location();
-          const center = {
-            lat: existing?.lat ?? 26.14,
-            lng: existing?.lng ?? 80.9,
-          };
-          this.draftLat = existing?.lat ?? null;
-          this.draftLng = existing?.lng ?? null;
+    try {
+      const mod: any = await import('leaflet');
+      const L = this.leaflet ?? mod.default ?? mod;
+      this.leaflet = L;
 
-          this.map = new googleApi.maps.Map(el, {
-            center,
-            zoom: existing ? 15 : 12,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: false,
-          });
+      const existingLat = this.draftLat();
+      const existingLng = this.draftLng();
+      const center: [number, number] =
+        existingLat != null && existingLng != null ? [existingLat, existingLng] : DEFAULT_CENTER;
 
-          this.map.addListener('click', (e: google.maps.MapMouseEvent) => {
-            if (!e.latLng) return;
-            const lat = e.latLng.lat();
-            const lng = e.latLng.lng();
-            this.ngZone.run(() => {
-              this.draftLat = lat;
-              this.draftLng = lng;
-              this.locationError.set('');
-            });
-            this.placeDraftMarker(lat, lng);
-          });
+      this.map = L.map(el, { attributionControl: true }).setView(center, existingLat != null ? 15 : 12);
 
-          if (existing) {
-            this.placeDraftMarker(existing.lat, existing.lng);
-          }
-          this.mapReady.set(true);
-        } catch {
-          this.locationError.set('Could not load map. Use current location instead.');
-        }
-      },
-      error: () => {
-        this.locationError.set('Could not load map config. Use current location instead.');
-      },
-    });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors',
+      }).addTo(this.map);
+
+      this.map.on('click', (e: any) => {
+        const { lat, lng } = e.latlng;
+        this.ngZone.run(() => {
+          this.draftSource = 'map';
+          this.setDraft(lat, lng, '');
+          this.resolveLabel(lat, lng, `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+        });
+        this.placeDraftMarker(lat, lng);
+      });
+
+      if (existingLat != null && existingLng != null) {
+        this.placeDraftMarker(existingLat, existingLng);
+      }
+
+      setTimeout(() => this.map?.invalidateSize(), 100);
+      this.mapReady.set(true);
+    } catch {
+      this.locationError.set('Map could not load. Search a place or use current location.');
+    }
   }
 
-  private placeDraftMarker(lat: number, lng: number) {
-    if (!this.map || !window.google?.maps) return;
-    const position = { lat, lng };
+  private placeDraftMarker(lat: number, lng: number, zoom?: number) {
+    const L = this.leaflet;
+    if (!this.map || !L) return;
+
     if (this.marker) {
-      this.marker.setPosition(position);
+      this.marker.setLatLng([lat, lng]);
     } else {
-      this.marker = new google.maps.Marker({
-        map: this.map,
-        position,
+      this.marker = L.marker([lat, lng], {
         draggable: true,
-      });
-      this.marker.addListener('dragend', () => {
-        const p = this.marker?.getPosition();
-        if (!p) return;
+        icon: L.divIcon({
+          className: 'le-pin',
+          html: '<span class="le-pin__dot"></span>',
+          iconSize: [22, 22],
+          iconAnchor: [11, 11],
+        }),
+      }).addTo(this.map);
+
+      this.marker.on('dragend', () => {
+        const p = this.marker.getLatLng();
         this.ngZone.run(() => {
-          this.draftLat = p.lat();
-          this.draftLng = p.lng();
+          this.draftSource = 'map';
+          this.setDraft(p.lat, p.lng, '');
+          this.resolveLabel(p.lat, p.lng, `${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}`);
         });
       });
     }
-    this.map.panTo(position);
-  }
 
-  private reverseGeocodeAndSave(
-    lat: number,
-    lng: number,
-    source: 'gps' | 'map' | 'manual'
-  ) {
-    this.locationBusy.set(true);
-    const fallback = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-    const finish = (label: string) => {
-      this.customerLocation.setLocation({ lat, lng, label, source });
-      this.locationBusy.set(false);
-      this.closeLocationModal();
-    };
-
-    if (!window.google?.maps) {
-      finish(source === 'gps' ? 'Current Location' : fallback);
-      return;
-    }
-
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-      this.ngZone.run(() => {
-        if (status === 'OK' && results?.[0]?.formatted_address) {
-          finish(results[0].formatted_address);
-        } else {
-          finish(source === 'gps' ? 'Current Location' : fallback);
-        }
-      });
-    });
+    this.map.setView([lat, lng], zoom ?? this.map.getZoom());
   }
 
   get user() {
