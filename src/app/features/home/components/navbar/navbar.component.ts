@@ -14,20 +14,35 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
-import { Subject, debounceTime, distinctUntilChanged, from, switchMap } from 'rxjs';
+import {
+  Subject,
+  debounceTime,
+  distinctUntilChanged,
+  firstValueFrom,
+  from,
+  switchMap,
+} from 'rxjs';
 import { AuthService } from '../../../../core/services/auth.service';
 import { CartService } from '../../../../core/services/cart.service';
 import { CustomerLocationService } from '../../../../core/services/customer-location.service';
 import { UserSidebarService } from '../../../../core/services/user-sidebar.service';
 import { UserSidebarComponent } from '../../../../shared/user-sidebar/user-sidebar.component';
 import { BottomNavComponent } from '../../../../shared/bottom-nav/bottom-nav.component';
-import { GoogleMapsLoaderService } from '../../../tracking/services/google-maps-loader.service';
+import {
+  GoogleMapsApi,
+  GoogleMapsLoaderService,
+} from '../../../tracking/services/google-maps-loader.service';
 import { TrackingService } from '../../../tracking/services/tracking.service';
 
-const DEFAULT_CENTER = { lat: 25.93, lng: 81.7 };
+const DEFAULT_CENTER = { lat: 26.1635, lng: 80.9345 };
+const MIN_SEARCH_CHARS = 2;
+/** Ranks nearby matches first without hiding far-away ones. */
+const SEARCH_BIAS_RADIUS_M = 60000;
 
 export interface LocationSuggestion {
   label: string;
+  primary?: string;
+  secondary?: string;
   placeId?: string;
   lat?: number;
   lng?: number;
@@ -72,6 +87,7 @@ export class NavbarComponent implements AfterViewInit, OnInit {
   private autocomplete?: google.maps.places.AutocompleteService;
   private sessionToken?: google.maps.places.AutocompleteSessionToken;
   private searchInput$ = new Subject<string>();
+  private googleReady?: Promise<GoogleMapsApi>;
   private draftSource: 'gps' | 'map' | 'manual' = 'map';
 
   ngOnInit() {
@@ -81,11 +97,11 @@ export class NavbarComponent implements AfterViewInit, OnInit {
 
     this.searchInput$
       .pipe(
-        debounceTime(300),
+        debounceTime(150),
         distinctUntilChanged(),
         switchMap((term) => {
           const q = term.trim();
-          this.searching.set(q.length >= 3);
+          this.searching.set(q.length >= MIN_SEARCH_CHARS);
           return from(this.suggestPlaces(q));
         }),
       )
@@ -164,6 +180,7 @@ export class NavbarComponent implements AfterViewInit, OnInit {
     this.draftLabel.set(existing?.label ?? '');
 
     this.isLocationModalOpen.set(true);
+    this.ensureGoogle().catch(() => undefined);
     setTimeout(() => this.initLocationMap(), 60);
   }
 
@@ -272,19 +289,33 @@ export class NavbarComponent implements AfterViewInit, OnInit {
   }
 
   private async suggestPlaces(query: string): Promise<LocationSuggestion[]> {
-    if (query.length < 3) return [];
+    if (query.length < MIN_SEARCH_CHARS) return [];
+    try {
+      await this.ensureGoogle();
+    } catch {
+      return [];
+    }
 
     if (this.autocomplete) {
       try {
-        const res = await this.autocomplete.getPlacePredictions({
+        const request: google.maps.places.AutocompletionRequest = {
           input: query,
           componentRestrictions: { country: 'in' },
           sessionToken: this.sessionToken,
-        });
+        };
+        const bias = this.searchBiasCenter();
+        if (bias && window.google?.maps) {
+          request.location = new google.maps.LatLng(bias.lat, bias.lng);
+          request.radius = SEARCH_BIAS_RADIUS_M;
+        }
+
+        const res = await this.autocomplete.getPlacePredictions(request);
         if (res.predictions?.length) {
           return res.predictions.slice(0, 6).map((p) => ({
             label: p.description,
             placeId: p.place_id,
+            primary: p.structured_formatting?.main_text || p.description,
+            secondary: p.structured_formatting?.secondary_text || '',
           }));
         }
       } catch {
@@ -300,12 +331,22 @@ export class NavbarComponent implements AfterViewInit, OnInit {
       });
       return (res.results || []).slice(0, 6).map((r) => ({
         label: r.formatted_address,
+        primary: r.address_components?.[0]?.long_name || r.formatted_address,
+        secondary: r.formatted_address,
         lat: r.geometry.location.lat(),
         lng: r.geometry.location.lng(),
       }));
     } catch {
       return [];
     }
+  }
+
+  /** Bias suggestions towards the pin being edited, else the serviced town. */
+  private searchBiasCenter(): { lat: number; lng: number } | null {
+    const lat = this.draftLat();
+    const lng = this.draftLng();
+    if (lat != null && lng != null) return { lat, lng };
+    return DEFAULT_CENTER;
   }
 
   private resolveLabel(lat: number, lng: number, fallback: string) {
@@ -323,29 +364,38 @@ export class NavbarComponent implements AfterViewInit, OnInit {
       .catch(() => this.ngZone.run(() => this.draftLabel.set(fallback)));
   }
 
-  private initLocationMap() {
-    const el = this.locationMapRef?.nativeElement;
-    if (!el) return;
-
-    this.tracking.publicConfig().subscribe({
-      next: async (cfg) => {
-        const key = cfg.google_maps_api_key || '';
-        if (!key) {
-          this.ngZone.run(() =>
-            this.locationError.set(
-              'Map is unavailable right now. Use current location instead.',
-            ),
-          );
-          return;
-        }
-        try {
-          const googleApi = await this.mapsLoader.load(key);
+  /**
+   * Loads Maps once per modal session so search can run before (and
+   * independently of) the map canvas being ready.
+   */
+  private ensureGoogle(): Promise<GoogleMapsApi> {
+    if (!this.googleReady) {
+      this.googleReady = firstValueFrom(this.tracking.publicConfig())
+        .then((cfg) => {
+          const key = cfg.google_maps_api_key || '';
+          if (!key) throw new Error('missing-key');
+          return this.mapsLoader.load(key);
+        })
+        .then((googleApi) => {
           this.geocoder = new googleApi.maps.Geocoder();
           if (googleApi.maps.places) {
             this.autocomplete = new googleApi.maps.places.AutocompleteService();
             this.sessionToken = new googleApi.maps.places.AutocompleteSessionToken();
           }
+          return googleApi;
+        });
+    }
+    return this.googleReady;
+  }
 
+  private async initLocationMap() {
+    const el = this.locationMapRef?.nativeElement;
+    if (!el) return;
+
+    try {
+      const googleApi = await this.ensureGoogle();
+      {
+        {
           const lat = this.draftLat();
           const lng = this.draftLng();
           const center = lat != null && lng != null ? { lat, lng } : DEFAULT_CENTER;
@@ -379,16 +429,18 @@ export class NavbarComponent implements AfterViewInit, OnInit {
             this.placeDraftMarker(lat, lng);
           }
           this.ngZone.run(() => this.mapReady.set(true));
-        } catch {
-          this.ngZone.run(() =>
-            this.locationError.set('Could not load map. Use current location instead.'),
-          );
         }
-      },
-      error: () => {
-        this.locationError.set('Could not load map config. Use current location instead.');
-      },
-    });
+      }
+    } catch (err) {
+      const missingKey = (err as Error)?.message === 'missing-key';
+      this.ngZone.run(() =>
+        this.locationError.set(
+          missingKey
+            ? 'Map is not configured yet. Search your area or use current location.'
+            : 'Could not load map. Search your area or use current location.',
+        ),
+      );
+    }
   }
 
   private placeDraftMarker(lat: number, lng: number, zoom?: number) {

@@ -69,6 +69,21 @@ img { max-width: 100%; display: block; }
 button { cursor: pointer; border: none; outline: none; font-family: var(--font-family); }
 input  { font-family: var(--font-family); outline: none; border: none; }
 
+// Suppress the browser's double-tap-to-zoom gesture on tappable elements.
+a, button, input, select, textarea, label, [role='button'] {
+  touch-action: manipulation;
+}
+
+// iOS zooms the whole page when a focused field is under 16px. Enforcing 16px
+// on touch layouts keeps the viewport stable while the keyboard is open.
+@media (max-width: 900px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 .container {
   width: 100%;
   max-width: 1280px;

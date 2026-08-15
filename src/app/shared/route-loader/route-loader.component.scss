@@ -1,0 +1,57 @@
+.route-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 9999;
+  background: rgba(240, 90, 55, 0.15);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.route-loader__bar {
+  width: 40%;
+  height: 100%;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary, #f05a37),
+    #ffb199
+  );
+  animation: route-loader-slide 0.9s ease-in-out infinite;
+}
+
+/* Blocks stray taps while the next screen resolves, without hiding content. */
+.route-loader__veil {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(1px);
+}
+
+.route-loader__spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid rgba(240, 90, 55, 0.25);
+  border-top-color: var(--color-primary, #f05a37);
+  animation: route-loader-spin 0.7s linear infinite;
+}
+
+@keyframes route-loader-slide {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(280%); }
+}
+
+@keyframes route-loader-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-loader__bar { animation-duration: 2s; }
+  .route-loader__spinner { animation-duration: 1.6s; }
+}
