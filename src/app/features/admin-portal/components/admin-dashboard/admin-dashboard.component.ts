@@ -2,18 +2,22 @@ import { Component, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { AdminBannersComponent } from '../admin-banners/admin-banners.component';
+import { AdminCategoriesComponent } from '../admin-categories/admin-categories.component';
 import { AdminCustomersComponent } from '../admin-customers/admin-customers.component';
 import { AdminOrdersComponent } from '../admin-orders/admin-orders.component';
 import { AdminOverviewComponent } from '../admin-overview/admin-overview.component';
 import { AdminPromosComponent } from '../admin-promos/admin-promos.component';
 import { AdminRestaurantsComponent } from '../admin-restaurants/admin-restaurants.component';
 import { AdminSettlementsComponent } from '../admin-settlements/admin-settlements.component';
+import { AdminSubcategoriesComponent } from '../admin-subcategories/admin-subcategories.component';
 import { AdminZonesComponent } from '../admin-zones/admin-zones.component';
 import { PaymentSettingsComponent } from '../payment-settings/payment-settings.component';
 
 type AdminTab =
   | 'overview'
   | 'restaurants'
+  | 'categories'
+  | 'subcategories'
   | 'customers'
   | 'orders'
   | 'banners'
@@ -28,6 +32,8 @@ type AdminTab =
   imports: [
     AdminOverviewComponent,
     AdminRestaurantsComponent,
+    AdminCategoriesComponent,
+    AdminSubcategoriesComponent,
     AdminCustomersComponent,
     AdminOrdersComponent,
     AdminBannersComponent,

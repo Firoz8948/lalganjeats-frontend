@@ -1,0 +1,48 @@
+<div class="content-area catalog-page">
+  <header>
+    <div>
+      <h1 class="page-title">Categories</h1>
+      <p>Top-level business types available in LalganjEats.</p>
+    </div>
+  </header>
+
+  <section class="catalog-card">
+    <h2>Add category</h2>
+    <div class="add-row">
+      <input
+        placeholder="e.g. Pharmacy"
+        [(ngModel)]="newName"
+        (keyup.enter)="add()"
+      />
+      <button class="approve-btn" [disabled]="saving()" (click)="add()">
+        {{ saving() ? 'Adding…' : '+ Add Category' }}
+      </button>
+    </div>
+    @if (error()) { <p class="form-msg form-msg--error">{{ error() }}</p> }
+  </section>
+
+  <section class="catalog-grid">
+    @if (loading()) {
+      <p>Loading categories…</p>
+    } @else {
+      @for (item of categories(); track item.id) {
+        <article class="category-tile" [class.inactive]="!item.is_active">
+          <span class="category-icon" aria-hidden="true">
+            @if (item.slug === 'restaurant') {
+              <svg viewBox="0 0 24 24"><path d="M3 11h18M5 11v9h14v-9M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            } @else {
+              <svg viewBox="0 0 24 24"><path d="M4 7h16l-1 14H5L4 7Zm3 0a5 5 0 0 1 10 0"/></svg>
+            }
+          </span>
+          <div>
+            <strong>{{ item.name }}</strong>
+            <small>{{ item.slug }}</small>
+          </div>
+          <button (click)="toggle(item)">
+            {{ item.is_active ? 'Active' : 'Inactive' }}
+          </button>
+        </article>
+      }
+    }
+  </section>
+</div>

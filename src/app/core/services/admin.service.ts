@@ -19,6 +19,8 @@ export interface AdminMenuItem {
   original_price: number | null;
   category:       string;
   category_id:    number | null;
+  subcategory_id?: number | null;
+  subcategory?:   string | null;
   is_veg:         boolean;
   is_bestseller:  boolean;
   is_available:   boolean;
@@ -32,8 +34,24 @@ export interface AdminMenuItemCreate {
   actual_price:   number;
   original_price?: number | null;
   category_name:  string;
+  subcategory_id?: number | null;
   is_veg:         boolean;
   is_bestseller:  boolean;
+}
+
+export interface CatalogCategory {
+  id: number;
+  name: string;
+  slug: string;
+  is_active: boolean;
+}
+
+export interface CatalogSubcategory {
+  id: number;
+  category_id: number;
+  name: string;
+  slug: string;
+  is_active: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -41,6 +59,47 @@ export class AdminService {
   private readonly baseUrl = `${environment.apiBaseUrl}/admin`;
 
   constructor(private http: HttpClient) {}
+
+  getCatalogCategories(): Observable<CatalogCategory[]> {
+    return this.http.get<CatalogCategory[]>(`${this.baseUrl}/catalog/categories`);
+  }
+
+  createCatalogCategory(name: string): Observable<CatalogCategory> {
+    return this.http.post<CatalogCategory>(
+      `${this.baseUrl}/catalog/categories`,
+      { name },
+    );
+  }
+
+  toggleCatalogCategory(id: number): Observable<CatalogCategory> {
+    return this.http.patch<CatalogCategory>(
+      `${this.baseUrl}/catalog/categories/${id}/toggle`,
+      {},
+    );
+  }
+
+  getCatalogSubcategories(categoryId: number): Observable<CatalogSubcategory[]> {
+    return this.http.get<CatalogSubcategory[]>(
+      `${this.baseUrl}/catalog/subcategories?category_id=${categoryId}`,
+    );
+  }
+
+  createCatalogSubcategory(
+    categoryId: number,
+    name: string,
+  ): Observable<CatalogSubcategory> {
+    return this.http.post<CatalogSubcategory>(
+      `${this.baseUrl}/catalog/subcategories?category_id=${categoryId}`,
+      { name },
+    );
+  }
+
+  toggleCatalogSubcategory(id: number): Observable<CatalogSubcategory> {
+    return this.http.patch<CatalogSubcategory>(
+      `${this.baseUrl}/catalog/subcategories/${id}/toggle`,
+      {},
+    );
+  }
 
   getDashboard(): Observable<any> {
     return this.http.get(`${this.baseUrl}/dashboard`);

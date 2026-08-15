@@ -90,6 +90,48 @@
     }
   }
 
+  .markup-presets {
+    display: flex;
+    align-items: center;
+    align-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-top: 1.7rem;
+
+    button {
+      padding: 0.55rem 0.8rem;
+      border: 1px solid #ffc0c0;
+      border-radius: 999px;
+      background: #fff;
+      color: #ae0000;
+      font-weight: 700;
+      transition: transform 0.12s ease, background 0.12s ease;
+
+      &:hover {
+        transform: translateY(-1px);
+        background: #fff0f0;
+      }
+
+      &.active {
+        border-color: #ff0000;
+        background: #ff0000;
+        color: #fff;
+      }
+    }
+
+    span {
+      flex-basis: 100%;
+      color: #888;
+      font-size: 0.75rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .markup-presets button {
+      transition: none;
+    }
+  }
+
   .split-preview {
     margin-top: 1.5rem;
     background: #faf5ef;

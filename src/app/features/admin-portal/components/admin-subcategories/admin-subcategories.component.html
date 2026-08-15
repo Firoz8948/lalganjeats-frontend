@@ -1,0 +1,61 @@
+<div class="content-area subcategory-page">
+  <header>
+    <div>
+      <h1 class="page-title">Subcategories</h1>
+      <p>Manage item types available under each business category.</p>
+    </div>
+    <label>
+      <span>Category</span>
+      <select
+        [ngModel]="selectedCategoryId()"
+        (ngModelChange)="selectCategory($event)">
+        @for (category of categories(); track category.id) {
+          <option [value]="category.id">{{ category.name }}</option>
+        }
+      </select>
+    </label>
+  </header>
+
+  <section class="subcategory-tools">
+    <div class="add-row">
+      <input
+        placeholder="Add a new subcategory"
+        [(ngModel)]="newName"
+        (keyup.enter)="add()"
+      />
+      <button class="approve-btn" [disabled]="saving()" (click)="add()">
+        {{ saving() ? 'Adding…' : '+ Add Subcategory' }}
+      </button>
+    </div>
+    <input
+      class="search"
+      placeholder="Search subcategories"
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+    />
+    @if (error()) { <p class="form-msg form-msg--error">{{ error() }}</p> }
+  </section>
+
+  <section class="subcategory-list">
+    @if (loading()) {
+      <p class="empty">Loading subcategories…</p>
+    } @else if (!filtered().length) {
+      <div class="empty">
+        <strong>No subcategories yet</strong>
+        <span>Add the first one for this category.</span>
+      </div>
+    } @else {
+      @for (item of filtered(); track item.id) {
+        <article [class.inactive]="!item.is_active">
+          <span class="item-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="8" cy="8" r="1"/></svg>
+          </span>
+          <div><strong>{{ item.name }}</strong><small>{{ item.slug }}</small></div>
+          <button (click)="toggle(item)">
+            {{ item.is_active ? 'Active' : 'Inactive' }}
+          </button>
+        </article>
+      }
+    }
+  </section>
+</div>

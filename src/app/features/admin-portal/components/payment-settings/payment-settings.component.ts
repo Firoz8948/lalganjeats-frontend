@@ -14,8 +14,8 @@ import {
   styleUrl: './payment-settings.component.scss',
 })
 export class PaymentSettingsComponent implements OnInit {
-  readonly previewDisplayPrice = 100;
-  readonly previewTransferPrice = 70;
+  readonly previewTransferPrice = 100;
+  readonly markupPresets = [10, 20, 30];
 
   form!: FormGroup;
   loading = false;
@@ -34,6 +34,7 @@ export class PaymentSettingsComponent implements OnInit {
       free_delivery_above: [0, [Validators.required, Validators.min(0)]],
       delivery_boy_per_order_earning: [0, [Validators.required, Validators.min(0)]],
       platform_fee_percent: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
+      display_price_markup_percent: [30, [Validators.required, Validators.min(0), Validators.max(500)]],
     });
     this.loadSettings();
   }
@@ -50,6 +51,15 @@ export class PaymentSettingsComponent implements OnInit {
         this.loading = false;
       },
     });
+  }
+
+  setMarkup(percent: number): void {
+    this.form.get('display_price_markup_percent')?.setValue(percent);
+  }
+
+  get previewDisplayPrice(): number {
+    const markup = Number(this.form.get('display_price_markup_percent')?.value) || 0;
+    return Math.round(this.previewTransferPrice * (1 + markup / 100) * 100) / 100;
   }
 
   get adminProfitPreview(): number {
