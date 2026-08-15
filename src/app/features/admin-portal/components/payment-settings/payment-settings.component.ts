@@ -30,8 +30,6 @@ export class PaymentSettingsComponent implements OnInit {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      delivery_charge: [0, [Validators.required, Validators.min(0)]],
-      free_delivery_above: [0, [Validators.required, Validators.min(0)]],
       delivery_boy_per_order_earning: [0, [Validators.required, Validators.min(0)]],
       platform_fee_percent: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
       display_price_markup_percent: [30, [Validators.required, Validators.min(0), Validators.max(500)]],

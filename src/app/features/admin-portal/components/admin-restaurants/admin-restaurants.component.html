@@ -1,7 +1,18 @@
 <div class="content-area">
-  <h1 class="page-title">Restaurants</h1>
+  <div class="page-heading">
+    <h1 class="page-title">Restaurants</h1>
+    <button class="approve-btn" (click)="addRestaurantOpen.set(!addRestaurantOpen())">
+      {{addRestaurantOpen() ? 'Close form' : '+ Add new restaurant'}}
+    </button>
+  </div>
+  @if(success()){<p class="form-msg form-msg--success">{{success()}}</p>}
+  <div class="table-wrap"><table class="data-table"><thead><tr><th>Name</th><th>Owner</th><th>Phone</th><th>Status</th><th>Approved</th><th>Actions</th></tr></thead><tbody>
+    @for(r of restaurants();track r.id){<tr><td><strong>{{r.name}}</strong></td><td>{{r.owner}}</td><td>{{r.phone}}</td><td><span [class]="r.is_open?'badge-open':'badge-closed'">{{r.is_open?'Open':'Closed'}}</span></td><td><span [class]="r.is_approved?'badge-yes':'badge-no'">{{r.is_approved?'Yes':'No'}}</span></td><td class="actions"><button class="approve-btn small" (click)="openEdit(r)">Edit</button>@if(!r.is_approved){<button class="approve-btn small" (click)="approve(r.id)">Approve</button>}<button class="menu-btn" (click)="openMenu(r)">Menu</button></td></tr>}
+  </tbody></table></div>
+
+  @if(addRestaurantOpen()){
   <div class="add-form">
-    <h2 class="section-title">Add Restaurant</h2>
+    <h2 class="section-title">Add New Restaurant</h2>
     @if(error()){<p class="form-msg form-msg--error">{{error()}}</p>} @if(success()){<p class="form-msg form-msg--success">{{success()}}</p>}
     <div class="form-grid">
       <input placeholder="Restaurant name *" [(ngModel)]="newRestaurant.name"><input placeholder="Cuisine / description" [(ngModel)]="newRestaurant.description">
@@ -20,9 +31,7 @@
     </div>
     <button class="approve-btn" [disabled]="saving()||bannerUploading()" (click)="create()">{{saving()?'Saving…':'Add Restaurant'}}</button>
   </div>
-  <div class="table-wrap"><table class="data-table"><thead><tr><th>Name</th><th>Owner</th><th>Phone</th><th>Status</th><th>Approved</th><th>Actions</th></tr></thead><tbody>
-    @for(r of restaurants();track r.id){<tr><td><strong>{{r.name}}</strong></td><td>{{r.owner}}</td><td>{{r.phone}}</td><td><span [class]="r.is_open?'badge-open':'badge-closed'">{{r.is_open?'Open':'Closed'}}</span></td><td><span [class]="r.is_approved?'badge-yes':'badge-no'">{{r.is_approved?'Yes':'No'}}</span></td><td class="actions"><button class="approve-btn small" (click)="openEdit(r)">Edit</button>@if(!r.is_approved){<button class="approve-btn small" (click)="approve(r.id)">Approve</button>}<button class="menu-btn" (click)="openMenu(r)">Menu</button></td></tr>}
-  </tbody></table></div>
+  }
 </div>
 
 @if(editOpen()){<div class="modal-backdrop" (click)="closeEdit()"><div class="modal edit-modal" (click)="$event.stopPropagation()"><div class="modal__header"><div><h2 class="modal__title">Edit Restaurant</h2><p class="modal__sub">Update details, location, and listing banner</p></div><button class="modal__close" (click)="closeEdit()">×</button></div><div class="edit-body">
@@ -35,7 +44,10 @@
 
 @if(menuOpen()){<div class="modal-backdrop" (click)="menuOpen.set(false)"><div class="modal" (click)="$event.stopPropagation()"><div class="modal__header"><div><h2 class="modal__title">Menu — {{menuName()}}</h2><p class="modal__sub">Add, toggle or delete menu items</p></div><button class="modal__close" (click)="menuOpen.set(false)">×</button></div>
   <div class="menu-form">
-    <h3>Add Item</h3>
+    <div class="menu-form__heading">
+      <h3>{{editingMenuItemId() ? 'Edit Item' : 'Add Item'}}</h3>
+      @if(editingMenuItemId()){<button type="button" class="linkish linkish--muted" (click)="resetMenu()">Cancel edit</button>}
+    </div>
     @if(menuError()){<p class="form-msg form-msg--error">{{menuError()}}</p>}
     <div class="menu-grid">
       <label class="menu-field"><span>Item name *</span><input placeholder="e.g. Paneer Butter Masala" [(ngModel)]="newMenuItem.name"></label>
@@ -90,7 +102,7 @@
       }
     </div>
     }
-    <button class="approve-btn" [disabled]="menuSaving()||menuImageUploading()" (click)="addItem()">{{menuSaving() ? 'Adding…' : '+ Add Item'}}</button>
+    <button class="approve-btn" [disabled]="menuSaving()||menuImageUploading()" (click)="addItem()">{{menuSaving() ? 'Saving…' : (editingMenuItemId() ? 'Save changes' : '+ Add Item')}}</button>
   </div>
-  <div class="items">@if(menuLoading()){<p>Loading items…</p>}@for(item of menuItems();track item.id){<div class="item" [class.unavailable]="!item.is_available">@if(item.image_url){<img class="item__image" [src]="item.image_url" [alt]="item.name">}<div><strong>{{item.name}}</strong><small>{{item.category}}</small>@if(item.variants?.length){<div class="variant-chips">@for(v of item.variants!;track v.label){<span>{{v.label}}: Display ₹{{v.price}} · Transfer ₹{{v.actual_price}}</span>}</div>}</div><div class="prices"><span>From ₹{{item.price}}</span></div><button (click)="toggleItem(item)">{{item.is_available?'Available':'Unavailable'}}</button><button class="danger-link" [disabled]="deletingId()===item.id" (click)="deleteItem(item)">Delete</button></div>}@empty{<p>No items yet. Add the first one above.</p>}</div>
+  <div class="items">@if(menuLoading()){<p>Loading items…</p>}@for(item of menuItems();track item.id){<div class="item" [class.unavailable]="!item.is_available">@if(item.image_url){<img class="item__image" [src]="item.image_url" [alt]="item.name">}<div><strong>{{item.name}}</strong><small>{{item.category}}</small>@if(item.variants?.length){<div class="variant-chips">@for(v of item.variants!;track v.label){<span>{{v.label}}: Display ₹{{v.price}} · Transfer ₹{{v.actual_price}}</span>}</div>}</div><div class="prices"><span>From ₹{{item.price}}</span></div><button class="menu-btn" (click)="editMenuItem(item)">Edit</button><button (click)="toggleItem(item)">{{item.is_available?'Available':'Unavailable'}}</button><button class="danger-link" [disabled]="deletingId()===item.id" (click)="deleteItem(item)">Delete</button></div>}@empty{<p>No items yet. Add the first one above.</p>}</div>
 </div></div>}

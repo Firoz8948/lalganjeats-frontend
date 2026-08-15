@@ -175,6 +175,17 @@ export class AdminService {
     );
   }
 
+  updateMenuItem(
+    restaurantId: number,
+    itemId: number,
+    payload: AdminMenuItemCreate,
+  ): Observable<AdminMenuItem> {
+    return this.http.put<AdminMenuItem>(
+      `${this.baseUrl}/restaurants/${restaurantId}/menu/${itemId}`,
+      payload,
+    );
+  }
+
   deleteMenuItem(restaurantId: number, itemId: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(
       `${this.baseUrl}/restaurants/${restaurantId}/menu/${itemId}`

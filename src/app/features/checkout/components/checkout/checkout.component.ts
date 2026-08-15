@@ -1,10 +1,11 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CartService, CartItem } from '../../../../core/services/cart.service';
 import { OrderService, PlaceOrderPayload, PlaceOrderResult } from '../../../../core/services/order.service';
 import { CustomerLocationService } from '../../../../core/services/customer-location.service';
+import { RestaurantService } from '../../../../core/services/restaurant.service';
 import { ProfileService, Address } from '../../../profile/services/profile.service';
 import { NavbarComponent } from '../../../home/components/navbar/navbar.component';
 
@@ -20,6 +21,7 @@ export class CheckoutComponent implements OnInit {
   private orders = inject(OrderService);
   private profile = inject(ProfileService);
   private customerLocation = inject(CustomerLocationService);
+  private restaurants = inject(RestaurantService);
   private router = inject(Router);
 
   addresses = signal<Address[]>([]);
@@ -30,14 +32,26 @@ export class CheckoutComponent implements OnInit {
   placing = signal(false);
   error = signal('');
   success = signal<{ order_number: string; eta_minutes: number | null; distance_km: number | null } | null>(null);
+  deliveryCharge = signal(0);
 
   cartData = this.cart.cart;
   totalAmount = this.cart.totalAmount;
+  grandTotal = computed(() => this.totalAmount() + this.deliveryCharge());
 
   ngOnInit() {
     if (!this.cartData()) {
       this.router.navigateByUrl('/home');
       return;
+    }
+    const cart = this.cartData();
+    const location = this.customerLocation.location();
+    if (cart && location) {
+      this.restaurants
+        .getRestaurant(cart.restaurantId, location.lat, location.lng)
+        .subscribe({
+          next: restaurant =>
+            this.deliveryCharge.set(restaurant.delivery_charge || 0),
+        });
     }
     this.profile.getAddresses().subscribe({
       next: (list: Address[]) => {

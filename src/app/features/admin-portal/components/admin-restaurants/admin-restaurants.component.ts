@@ -7,6 +7,7 @@ import { PaymentSettingsService } from '../../../../core/services/payment-settin
 @Component({ selector:'app-admin-restaurants', standalone:true, imports:[FormsModule], templateUrl:'./admin-restaurants.component.html', styleUrl:'./admin-restaurants.component.scss' })
 export class AdminRestaurantsComponent implements OnInit {
   restaurants=signal<AdminRestaurantRow[]>([]); saving=signal(false); error=signal(''); success=signal('');
+  addRestaurantOpen=signal(false);
   catalogCategories=signal<CatalogCategory[]>([]);
   bannerPreview=signal<string|null>(null); bannerUploading=signal(false); uploadError=signal('');
   restaurantPhone=''; ownerPhone='';
@@ -17,6 +18,7 @@ export class AdminRestaurantsComponent implements OnInit {
   menuSubcategories=signal<CatalogSubcategory[]>([]);
   menuBusinessCategoryId=signal(0);
   displayPriceMarkup=signal(30);
+  editingMenuItemId=signal<number|null>(null);
   menuImagePreview=signal<string|null>(null);
   menuImageUploading=signal(false);
   hasVariants=signal(false);
@@ -41,7 +43,7 @@ export class AdminRestaurantsComponent implements OnInit {
     if(this.restaurantPhone&&this.restaurantPhone.length!==10){this.error.set('Restaurant phone must be exactly 10 digits.');return}
     this.saving.set(true);
     this.admin.createRestaurant({...this.newRestaurant,owner_phone:this.ownerPhone,phone:this.restaurantPhone||undefined,latitude:this.newRestaurant.latitude??null,longitude:this.newRestaurant.longitude??null}).subscribe({
-      next:()=>{this.saving.set(false);this.success.set('Restaurant added successfully.');const categoryId=this.newRestaurant.business_category_id;this.newRestaurant={name:'',description:'',phone:'',address:'',city:'Lalganj',pincode:'',owner_phone:'',owner_name:'',latitude:null,longitude:null,logo_url:'',list_banner_url:'',business_category_id:categoryId,is_approved:true};this.restaurantPhone='';this.ownerPhone='';this.bannerPreview.set(null);this.load();},
+      next:()=>{this.saving.set(false);this.success.set('Restaurant added successfully.');this.addRestaurantOpen.set(false);const categoryId=this.newRestaurant.business_category_id;this.newRestaurant={name:'',description:'',phone:'',address:'',city:'Lalganj',pincode:'',owner_phone:'',owner_name:'',latitude:null,longitude:null,logo_url:'',list_banner_url:'',business_category_id:categoryId,is_approved:true};this.restaurantPhone='';this.ownerPhone='';this.bannerPreview.set(null);this.load();},
       error:e=>{this.saving.set(false);this.error.set(e.error?.detail||'Failed to add restaurant.')}
     });
   }
@@ -66,7 +68,15 @@ export class AdminRestaurantsComponent implements OnInit {
   }
   openMenu(r:AdminRestaurantRow){this.menuRestaurantId.set(r.id);this.menuName.set(r.name);this.menuBusinessCategoryId.set(r.business_category_id||0);this.menuOpen.set(true);this.menuError.set('');this.resetMenu();this.loadMenu();this.loadMenuSubcategories();}
   loadMenuSubcategories(){if(!this.menuBusinessCategoryId()){this.menuSubcategories.set([]);return}this.admin.getCatalogSubcategories(this.menuBusinessCategoryId()).subscribe(items=>this.menuSubcategories.set(items.filter(item=>item.is_active)));}
-  resetMenu(){this.newMenuItem={name:'',description:'',image_url:null,price:0,actual_price:0,category_name:'Other',subcategory_id:null,is_veg:true,is_bestseller:false};this.menuImagePreview.set(null);this.menuImageUploading.set(false);this.disableVariants();}
+  resetMenu(){this.editingMenuItemId.set(null);this.newMenuItem={name:'',description:'',image_url:null,price:0,actual_price:0,category_name:'Other',subcategory_id:null,is_veg:true,is_bestseller:false};this.menuImagePreview.set(null);this.menuImageUploading.set(false);this.disableVariants();}
+  editMenuItem(item:AdminMenuItem){
+    this.editingMenuItemId.set(item.id);this.menuError.set('');
+    this.newMenuItem={name:item.name,description:item.description||'',image_url:item.image_url||null,price:item.price,actual_price:item.actual_price,original_price:item.original_price,category_name:item.category,subcategory_id:item.subcategory_id??null,is_veg:item.is_veg,is_bestseller:item.is_bestseller};
+    this.menuImagePreview.set(item.image_url||null);
+    if(item.variants?.length){this.hasVariants.set(true);this.variantDrafts=item.variants.map(v=>({label:v.label,actual_price:v.actual_price,original_price:v.original_price??null}));}
+    else{this.disableVariants();}
+    setTimeout(()=>document.querySelector('.menu-form')?.scrollIntoView({behavior:'smooth',block:'start'}));
+  }
   selectMenuImage(event:Event){
     const input=event.target as HTMLInputElement,file=input.files?.[0];if(!file)return;
     this.menuError.set('');
@@ -111,8 +121,12 @@ export class AdminRestaurantsComponent implements OnInit {
       variants:this.hasVariants()?variants.map(v=>({label:v.label,actual_price:v.actual_price,original_price:v.original_price})):undefined,
     };
     this.menuSaving.set(true);
-    this.admin.addMenuItem(this.menuRestaurantId(),payload).subscribe({
-      next:i=>{this.menuItems.update(v=>[...v,i]);this.resetMenu();this.menuSaving.set(false)},
+    const editingId=this.editingMenuItemId();
+    const request=editingId
+      ? this.admin.updateMenuItem(this.menuRestaurantId(),editingId,payload)
+      : this.admin.addMenuItem(this.menuRestaurantId(),payload);
+    request.subscribe({
+      next:i=>{this.menuItems.update(v=>editingId?v.map(x=>x.id===editingId?i:x):[...v,i]);this.resetMenu();this.menuSaving.set(false)},
       error:e=>{this.menuError.set(e.error?.detail||'Failed to add item.');this.menuSaving.set(false)}
     });
   }

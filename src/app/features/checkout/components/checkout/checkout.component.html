@@ -34,6 +34,14 @@
             <span>Subtotal</span>
             <strong>₹{{ totalAmount() }}</strong>
           </div>
+          <div class="line">
+            <span>Delivery (distance zone)</span>
+            <strong>₹{{ deliveryCharge() }}</strong>
+          </div>
+          <div class="line total">
+            <span>Total</span>
+            <strong>₹{{ grandTotal() }}</strong>
+          </div>
         </section>
 
         <section class="panel">

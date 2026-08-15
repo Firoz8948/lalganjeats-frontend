@@ -1,7 +1,7 @@
 <div class="payment-settings">
   <div class="section-header">
     <h2>Payment Settings</h2>
-    <p>Configure delivery charges and partner earnings</p>
+    <p>Configure menu pricing and partner earnings</p>
   </div>
 
   @if (loading) {
@@ -10,28 +10,6 @@
 
   @if (!loading) {
     <form [formGroup]="form" (ngSubmit)="save()">
-
-      <div class="settings-card">
-        <h3>Delivery Charges</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Delivery Charge (₹)</label>
-            <div class="input-prefix">
-              <span>₹</span>
-              <input type="number" formControlName="delivery_charge" min="0" step="1" />
-            </div>
-            <small>Charged to customer per order</small>
-          </div>
-          <div class="form-group">
-            <label>Free Delivery Above (₹)</label>
-            <div class="input-prefix">
-              <span>₹</span>
-              <input type="number" formControlName="free_delivery_above" min="0" step="1" />
-            </div>
-            <small>Orders above this amount get free delivery</small>
-          </div>
-        </div>
-      </div>
 
       <div class="settings-card">
         <h3>Menu Display Price</h3>

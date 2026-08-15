@@ -6,6 +6,7 @@ export interface Restaurant {
   review_count: number;
   delivery_time: string;
   delivery_fee: string;
+  delivery_charge: number;
   min_order: string;
   is_open: boolean;
   offer_text?: string | null;

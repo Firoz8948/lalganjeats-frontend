@@ -115,6 +115,10 @@ export class NavbarComponent implements AfterViewInit, OnInit {
 
   ngAfterViewInit() {
     this.updateMobileHeaderHeight();
+    if (this.customerLocation.shouldPromptAutomatically()) {
+      this.customerLocation.markAutoPrompted();
+      setTimeout(() => this.openLocationModal());
+    }
     this.ngZone.runOutsideAngular(() => {
       const ro = new ResizeObserver(() => {
         this.ngZone.run(() => this.updateMobileHeaderHeight());
