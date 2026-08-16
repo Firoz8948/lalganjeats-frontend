@@ -219,6 +219,22 @@
           @if (expandedId() === order.id) {
             <div class="order-card__body">
 
+              @if (order.delivery_partner; as rider) {
+                <div class="rider-identity">
+                  @if (rider.selfie_url) {
+                    <img [src]="rider.selfie_url" [alt]="rider.name + ' delivery partner'">
+                  }
+                  <div>
+                    <span>YOUR DELIVERY PARTNER</span>
+                    <strong>{{ rider.name }} is coming to pick up / deliver your order</strong>
+                    <p>
+                      {{ rider.registered_vehicle_number || 'Registered vehicle' }}
+                      @if (rider.bike_info) { · {{ rider.bike_info }} }
+                    </p>
+                  </div>
+                </div>
+              }
+
               <!-- Items List -->
               <div class="order-items-section">
                 <p class="section-label">Items Ordered</p>

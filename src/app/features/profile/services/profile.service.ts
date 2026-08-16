@@ -44,8 +44,16 @@ export interface CustomerOrder {
   subtotal:        number;
   delivery_fee:    number;
   total_amount:    number;
+  delivery_partner: DeliveryPartnerIdentity | null;
   items:           OrderItem[];
   created_at:      string;
+}
+
+export interface DeliveryPartnerIdentity {
+  name: string;
+  selfie_url: string | null;
+  registered_vehicle_number: string | null;
+  bike_info: string | null;
 }
 
 export interface OrderItem {

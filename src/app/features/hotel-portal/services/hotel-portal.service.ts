@@ -33,6 +33,12 @@ export interface Order {
   customer:       string;
   items:          OrderItem[];
   delivery_address?: string;
+  delivery_partner?: {
+    name: string;
+    selfie_url: string | null;
+    registered_vehicle_number: string | null;
+    bike_info: string | null;
+  } | null;
   created_at:     string;
 }
 

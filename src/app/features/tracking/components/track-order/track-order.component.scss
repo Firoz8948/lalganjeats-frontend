@@ -77,6 +77,23 @@
   }
 }
 
+.rider-card {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: 10px 16px 0;
+  padding: 11px;
+  border: 1px solid #315a3e;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #17291d, #1c3324);
+  animation: riderCardIn 220ms ease-out both;
+
+  img { width: 50px; height: 50px; flex: 0 0 50px; border-radius: 13px; object-fit: cover; }
+  span { display: block; color: #75d494; font-size: 8px; font-weight: 900; letter-spacing: .12em; }
+  strong { display: block; margin-top: 2px; font-size: 13px; }
+  p { margin: 2px 0 0; color: #b5c8bb; font-size: 10px; line-height: 1.35; }
+}
+
 .map-wrap {
   position: relative;
   flex: 1;
@@ -134,4 +151,13 @@
 @keyframes pulseSoft {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-2px); }
+}
+
+@keyframes riderCardIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eta-bubble, .rider-card { animation: none; }
 }

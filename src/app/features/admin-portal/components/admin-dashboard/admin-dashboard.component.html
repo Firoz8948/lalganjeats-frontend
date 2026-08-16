@@ -22,6 +22,17 @@
         </svg>
         Restaurants
       </button>
+      <button class="nav-item" [class.active]="activeTab()==='delivery-partners'" (click)="setTab('delivery-partners')">
+        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="6" cy="17" r="3"/>
+          <circle cx="18" cy="17" r="3"/>
+          <path d="M6 17h7l2-5h3l2 5"/>
+          <path d="M9 8h4l2 4"/>
+          <path d="M7 12h6"/>
+        </svg>
+        Delivery Partners
+      </button>
       <button class="nav-item" [class.active]="activeTab()==='categories'" (click)="setTab('categories')">
         <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -142,6 +153,7 @@
 
     @if (activeTab() === 'overview') { <app-admin-overview /> }
     @if (activeTab() === 'restaurants') { <app-admin-restaurants /> }
+    @if (activeTab() === 'delivery-partners') { <app-delivery-partners /> }
     @if (activeTab() === 'categories') { <app-admin-categories /> }
     @if (activeTab() === 'subcategories') { <app-admin-subcategories /> }
     @if (activeTab() === 'zones') { <app-admin-zones /> }

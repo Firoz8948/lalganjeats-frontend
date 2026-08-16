@@ -60,6 +60,32 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+.pickup-rider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #bbf7d0;
+  border-radius: 11px;
+  background: #f0fdf4;
+  animation: pickup-rider-in 220ms ease-out both;
+
+  img { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 12px; object-fit: cover; }
+  span { display: block; color: #16803c; font-size: 8px; font-weight: 900; letter-spacing: .11em; }
+  strong { display: block; margin-top: 2px; color: #174527; font-size: 11px; line-height: 1.35; }
+  p { margin: 2px 0 0; color: #587361; font-size: 9px; }
+}
+
+@keyframes pickup-rider-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pickup-rider { animation: none; }
+}
+
 .empty-full {
   height: 50vh;
   display: flex;

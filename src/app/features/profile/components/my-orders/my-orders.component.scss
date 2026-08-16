@@ -552,3 +552,37 @@
 
   svg { flex-shrink: 0; margin-top: 1px; }
 }
+
+.rider-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 13px;
+  border: 1px solid #bbf7d0;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #f0fdf4, #fff);
+  animation: rider-in 220ms ease-out both;
+
+  img {
+    width: 54px;
+    height: 54px;
+    flex: 0 0 54px;
+    border-radius: 14px;
+    object-fit: cover;
+    box-shadow: 0 5px 14px rgba(22, 101, 52, .16);
+  }
+  div { min-width: 0; }
+  span { display: block; color: #16803c; font-size: 8px; font-weight: 900; letter-spacing: .12em; }
+  strong { display: block; margin-top: 3px; color: #173c25; font-size: 12px; line-height: 1.35; }
+  p { margin: 3px 0 0; color: #557060; font-size: 10px; line-height: 1.35; }
+}
+
+@keyframes rider-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rider-identity { animation: none; }
+}

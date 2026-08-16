@@ -1,0 +1,194 @@
+<div class="partners-page">
+  <header class="partners-hero">
+    <div>
+      <span class="partners-hero__eyebrow">FLEET DIRECTORY</span>
+      <h1>Delivery Partners</h1>
+      <p>Manage verified riders, registered vehicles, private documents and bank details.</p>
+    </div>
+    <button type="button" class="add-partner-btn" (click)="openForm()">
+      <span aria-hidden="true">＋</span> Add new partner
+    </button>
+  </header>
+
+  @if (success()) { <div class="notice notice--success">{{ success() }}</div> }
+  @if (error() && !showForm()) { <div class="notice notice--error">{{ error() }}</div> }
+
+  <section class="fleet-summary">
+    <article>
+      <span>Total fleet</span>
+      <strong>{{ partners().length }}</strong>
+    </article>
+    <article>
+      <span>Active</span>
+      <strong>{{ activeCount() }}</strong>
+    </article>
+    <article>
+      <span>Documents</span>
+      <strong>Private</strong>
+    </article>
+  </section>
+
+  @if (loading()) {
+    <div class="loading-state">Loading delivery partners…</div>
+  } @else {
+    <div class="partner-grid">
+      @for (partner of partners(); track partner.id) {
+        <article class="partner-card">
+          <div class="partner-card__top">
+            @if (partner.selfie_url) {
+              <img [src]="partner.selfie_url" [alt]="partner.full_name + ' selfie'">
+            } @else {
+              <span class="legacy-avatar">{{ partner.full_name.charAt(0) }}</span>
+            }
+            <div>
+              <span [class]="partner.profile_complete && partner.is_active ? 'status status--active' : 'status status--inactive'">
+                {{ !partner.profile_complete ? 'Profile incomplete' : (partner.is_active ? 'Active rider' : 'Suspended') }}
+              </span>
+              <h2>{{ partner.full_name }}</h2>
+              <p>{{ partner.phone }} @if (partner.age !== null) { · {{ partner.age }} years }</p>
+            </div>
+          </div>
+
+          <div class="vehicle-plate">{{ partner.registered_vehicle_number || 'VEHICLE PENDING' }}</div>
+          <p class="bike-info">{{ partner.bike_info || 'Complete this legacy partner profile to add bike details.' }}</p>
+
+          <dl class="partner-facts">
+            <div><dt>DOB</dt><dd>{{ partner.date_of_birth ? (partner.date_of_birth | date:'d MMM yyyy') : 'Pending' }}</dd></div>
+            <div><dt>Joined</dt><dd>{{ partner.joining_date ? (partner.joining_date | date:'d MMM yyyy') : 'Pending' }}</dd></div>
+            <div><dt>Email</dt><dd>{{ partner.email || 'Not provided' }}</dd></div>
+            <div><dt>Emergency</dt><dd>{{ partner.emergency_contact_phone || 'Not provided' }}</dd></div>
+          </dl>
+
+          <div class="bank-panel">
+            <span>BANK SETTLEMENT</span>
+            <strong>{{ partner.account_holder_name || 'Bank details pending' }}</strong>
+            <p>{{ partner.bank_name || 'Bank' }} · {{ partner.account_number || '—' }}</p>
+            <small>{{ partner.ifsc_code || '—' }}</small>
+          </div>
+
+          <div class="document-row">
+            @for (document of documents; track document.purpose) {
+              <button
+                type="button"
+                [disabled]="!partner.documents[document.purpose]"
+                (click)="openDocument(partner, document.purpose)">
+                {{ document.label }}
+                <span>{{ partner.documents[document.purpose] ? 'View' : 'Missing' }}</span>
+              </button>
+            }
+          </div>
+
+          <footer>
+            <p>{{ partner.address || 'Address pending' }}</p>
+            @if (!partner.profile_complete) {
+              <button type="button" class="reactivate-btn" (click)="completeProfile(partner)">
+                Complete profile
+              </button>
+            } @else {
+              <button
+                type="button"
+                [class]="partner.is_active ? 'suspend-btn' : 'reactivate-btn'"
+                (click)="toggleStatus(partner)">
+                {{ partner.is_active ? 'Suspend partner' : 'Reactivate partner' }}
+              </button>
+            }
+          </footer>
+        </article>
+      } @empty {
+        <div class="empty-fleet">
+          <span aria-hidden="true">🛵</span>
+          <h2>No delivery partners yet</h2>
+          <p>Add the first admin-approved rider to begin building your tenant fleet.</p>
+          <button type="button" (click)="openForm()">Add first partner</button>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@if (showForm()) {
+  <div class="partner-modal" role="dialog" aria-modal="true" aria-labelledby="partner-form-title">
+    <button class="partner-modal__backdrop" type="button" aria-label="Close" (click)="closeForm()"></button>
+    <section class="partner-modal__panel">
+      <header>
+        <div>
+          <span>ADMIN ONBOARDING</span>
+          <h2 id="partner-form-title">Add delivery partner</h2>
+        </div>
+        <button type="button" class="modal-close" (click)="closeForm()" aria-label="Close">×</button>
+      </header>
+
+      @if (error()) { <div class="notice notice--error">{{ error() }}</div> }
+
+      <form #partnerForm="ngForm" (ngSubmit)="create(partnerForm)">
+        <fieldset>
+          <legend>Identity</legend>
+          <div class="form-grid">
+            <label>Full name *<input name="full_name" required minlength="2" [(ngModel)]="formData.full_name"></label>
+            <label>Phone *<input name="phone" required minlength="10" maxlength="15" inputmode="tel" [(ngModel)]="formData.phone"></label>
+            <label>Email<input name="email" type="email" [(ngModel)]="formData.email"></label>
+            <label>Date of birth *<input name="date_of_birth" required type="date" [max]="maxDob" [(ngModel)]="formData.date_of_birth"></label>
+            <label>Joining date *<input name="joining_date" required type="date" [(ngModel)]="formData.joining_date"></label>
+            <label>Emergency contact name<input name="emergency_contact_name" [(ngModel)]="formData.emergency_contact_name"></label>
+            <label>Emergency contact phone<input name="emergency_contact_phone" maxlength="15" inputmode="tel" [(ngModel)]="formData.emergency_contact_phone"></label>
+            <label class="span-2">Address *<textarea name="address" required minlength="5" rows="2" [(ngModel)]="formData.address"></textarea></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Vehicle and public pickup identity</legend>
+          <div class="form-grid">
+            <label>Registered vehicle number *<input name="registered_vehicle_number" required [(ngModel)]="formData.registered_vehicle_number" placeholder="UP72 AB 1234"></label>
+            <label class="span-2">Bike information *<textarea name="bike_info" required rows="2" [(ngModel)]="formData.bike_info" placeholder="Black Hero Splendor, distinguishing details"></textarea></label>
+            <label class="upload-card upload-card--selfie">
+              <span>Partner selfie *</span>
+              <input type="file" accept="image/jpeg,image/png,image/webp" (change)="uploadFile($event, 'selfie')">
+              @if (formData.selfie_url) {
+                <img [src]="formData.selfie_url" alt="Uploaded delivery partner selfie">
+                <strong>Selfie ready</strong>
+              } @else {
+                <strong>{{ uploading().selfie ? 'Uploading…' : 'Choose image' }}</strong>
+              }
+              <small>Visible to the restaurant and customer during pickup and delivery.</small>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Bank details</legend>
+          <div class="form-grid">
+            <label>Account holder *<input name="account_holder_name" required [(ngModel)]="formData.account_holder_name"></label>
+            <label>Account number *<input name="account_number" required minlength="5" [(ngModel)]="formData.account_number"></label>
+            <label>IFSC code *<input name="ifsc_code" required minlength="4" [(ngModel)]="formData.ifsc_code"></label>
+            <label>Bank name<input name="bank_name" [(ngModel)]="formData.bank_name"></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Optional private documents</legend>
+          <p class="fieldset-note">These files are private and available only to authenticated tenant admins.</p>
+          <div class="document-upload-grid">
+            @for (document of documents; track document.purpose) {
+              <label class="upload-card">
+                <span>{{ document.label }}</span>
+                <input type="file" accept="image/jpeg,image/png,image/webp" (change)="uploadFile($event, document.purpose)">
+                <strong>
+                  {{ formData[document.field]
+                    ? 'Uploaded'
+                    : (uploading()[document.purpose] ? 'Uploading…' : 'Optional upload') }}
+                </strong>
+              </label>
+            }
+          </div>
+        </fieldset>
+
+        <footer class="modal-actions">
+          <button type="button" class="cancel-btn" (click)="closeForm()">Cancel</button>
+          <button type="submit" class="save-btn" [disabled]="saving()">
+            {{ saving() ? 'Creating partner…' : 'Create delivery partner' }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}

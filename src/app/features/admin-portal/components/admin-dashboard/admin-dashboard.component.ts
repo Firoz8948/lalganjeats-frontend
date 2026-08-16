@@ -13,10 +13,12 @@ import { AdminSubcategoriesComponent } from '../admin-subcategories/admin-subcat
 import { AdminZonesComponent } from '../admin-zones/admin-zones.component';
 import { PaymentSettingsComponent } from '../payment-settings/payment-settings.component';
 import { AdminReportsComponent } from '../reports/admin-reports.component';
+import { DeliveryPartnersComponent } from '../delivery-partners/delivery-partners.component';
 
 type AdminTab =
   | 'overview'
   | 'restaurants'
+  | 'delivery-partners'
   | 'categories'
   | 'subcategories'
   | 'customers'
@@ -34,6 +36,7 @@ type AdminTab =
   imports: [
     AdminOverviewComponent,
     AdminRestaurantsComponent,
+    DeliveryPartnersComponent,
     AdminCategoriesComponent,
     AdminSubcategoriesComponent,
     AdminCustomersComponent,

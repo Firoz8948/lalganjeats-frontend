@@ -24,6 +24,12 @@ export interface TrackSnapshot {
   eta_label: string | null;
   updated_at: string | null;
   delivery_partner_id: number | null;
+  delivery_partner: {
+    name: string;
+    selfie_url: string | null;
+    registered_vehicle_number: string | null;
+    bike_info: string | null;
+  } | null;
   google_maps_api_key: string | null;
 }
 
