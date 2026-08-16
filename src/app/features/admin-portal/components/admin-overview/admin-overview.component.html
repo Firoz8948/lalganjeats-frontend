@@ -1,58 +1,115 @@
 @if (loading()) {
-  <div class="loading-state">Loading dashboard…</div>
+  <div class="overview-shell">
+    <div class="overview-skeleton skeleton-hero"></div>
+    <div class="skeleton-grid">
+      @for (item of [1,2,3,4,5,6]; track item) {
+        <div class="overview-skeleton skeleton-card"></div>
+      }
+    </div>
+  </div>
 } @else {
 @if (stats(); as dashboardStats) {
-  <div class="content-area">
-    <h1 class="page-title">Dashboard Overview</h1>
+  <div class="overview-shell">
+    <header class="overview-hero">
+      <div>
+        <p class="overview-kicker">LIVE BUSINESS SNAPSHOT</p>
+        <h1>Dashboard Overview</h1>
+        <p>Restaurants, deliveries and revenue—at a glance.</p>
+      </div>
+      <time [attr.datetime]="today.toISOString()">
+        <span>Today</span>
+        {{ today | date:'EEEE, d MMMM' }}
+      </time>
+    </header>
+
     <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-card__icon">♙</div>
-        <div class="stat-card__value">{{ dashboardStats.total_customers }}</div>
-        <div class="stat-card__label">Total Customers</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card__icon">⌂</div>
-        <div class="stat-card__value">{{ dashboardStats.total_restaurants }}</div>
-        <div class="stat-card__label">Restaurants</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card__icon">□</div>
-        <div class="stat-card__value">{{ dashboardStats.total_orders }}</div>
-        <div class="stat-card__label">Total Orders</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card__icon">♧</div>
-        <div class="stat-card__value">{{ dashboardStats.total_delivery }}</div>
-        <div class="stat-card__label">Delivery Partners</div>
-      </div>
-      <div class="stat-card highlight">
-        <div class="stat-card__icon">₹</div>
-        <div class="stat-card__value">₹{{ dashboardStats.total_revenue | number }}</div>
-        <div class="stat-card__label">Total Revenue</div>
-      </div>
-      <div class="stat-card warning">
-        <div class="stat-card__icon">◷</div>
-        <div class="stat-card__value">{{ dashboardStats.pending_approvals }}</div>
-        <div class="stat-card__label">Pending Approvals</div>
-      </div>
+      <article class="stat-card stat-card--customers">
+        <div class="stat-card__copy">
+          <span class="stat-card__label">Total Customers</span>
+          <strong class="stat-card__value">{{ dashboardStats.total_customers | number }}</strong>
+          <small>Customers served by your restaurants</small>
+        </div>
+        <img src="https://lalganjeats-cdn.b-cdn.net/icons/ChatGPT%20(11).webp"
+             alt="" loading="eager">
+      </article>
+
+      <article class="stat-card stat-card--restaurants">
+        <div class="stat-card__copy">
+          <span class="stat-card__label">Restaurants</span>
+          <strong class="stat-card__value">{{ dashboardStats.total_restaurants | number }}</strong>
+          <small>Partner restaurants in your network</small>
+        </div>
+        <img src="https://lalganjeats-cdn.b-cdn.net/icons/ChatGPT%20(9).webp"
+             alt="" loading="eager">
+      </article>
+
+      <article class="stat-card stat-card--orders">
+        <div class="stat-card__copy">
+          <span class="stat-card__label">Total Orders</span>
+          <strong class="stat-card__value">{{ dashboardStats.total_orders | number }}</strong>
+          <small>Orders received across the platform</small>
+        </div>
+        <img src="https://lalganjeats-cdn.b-cdn.net/icons/ChatGPT%20(8).webp"
+             alt="" loading="eager">
+      </article>
+
+      <article class="stat-card stat-card--delivery">
+        <div class="stat-card__copy">
+          <span class="stat-card__label">Delivery Partners</span>
+          <strong class="stat-card__value">{{ dashboardStats.total_delivery | number }}</strong>
+          <small>Delivery partners in your tenant</small>
+        </div>
+        <img src="https://lalganjeats-cdn.b-cdn.net/icons/ChatGPT%20(7).webp"
+             alt="" loading="lazy">
+      </article>
+
+      <article class="stat-card stat-card--revenue">
+        <div class="stat-card__copy">
+          <span class="stat-card__label">Total Revenue</span>
+          <strong class="stat-card__value">₹{{ dashboardStats.total_revenue | number:'1.0-0' }}</strong>
+          <small>Revenue from paid orders</small>
+        </div>
+        <img src="https://lalganjeats-cdn.b-cdn.net/icons/ChatGPT%20(6).webp"
+             alt="" loading="lazy">
+      </article>
+
+      <article class="stat-card stat-card--offers">
+        <div class="stat-card__copy">
+          <span class="stat-card__label">Active Offers</span>
+          <strong class="stat-card__value">{{ dashboardStats.active_promos | number }}</strong>
+          <small>Promo codes available right now</small>
+        </div>
+        <img src="https://lalganjeats-cdn.b-cdn.net/icons/ChatGPT%20(10).webp"
+             alt="" loading="lazy">
+      </article>
     </div>
 
-    <h2 class="section-title">Recent Orders</h2>
-    <div class="table-wrap">
-      <table class="data-table">
-        <thead><tr><th>Order #</th><th>Status</th><th>Amount</th><th>Date</th></tr></thead>
+    <section class="recent-panel">
+      <div class="recent-panel__header">
+        <div>
+          <p class="overview-kicker">LATEST ACTIVITY</p>
+          <h2>Recent Orders</h2>
+        </div>
+        <span>{{ recentOrders().length }} most recent</span>
+      </div>
+      <div class="table-wrap">
+        <table class="orders-table">
+          <thead><tr><th>Order</th><th>Status</th><th>Amount</th><th>Placed at</th></tr></thead>
         <tbody>
           @for (order of recentOrders(); track order.id) {
             <tr>
-              <td>{{ order.order_number }}</td>
-              <td><span class="status-chip status-{{ order.status }}">{{ order.status }}</span></td>
-              <td>₹{{ order.total_amount }}</td>
-              <td>{{ order.created_at | date:'d MMM, h:mm a' }}</td>
+              <td><span class="order-mark">#</span><strong>{{ order.order_number }}</strong></td>
+              <td><span class="status-chip status-{{ order.status }}">{{ order.status.replace('_', ' ') }}</span></td>
+              <td class="order-amount">₹{{ order.total_amount | number:'1.2-2' }}</td>
+              <td class="order-date">{{ order.created_at | date:'d MMM, h:mm a' }}</td>
             </tr>
+          } @empty {
+            <tr><td colspan="4" class="empty-orders">No orders yet.</td></tr>
           }
         </tbody>
       </table>
-    </div>
+      </div>
+    </section>
   </div>
 }
 }
