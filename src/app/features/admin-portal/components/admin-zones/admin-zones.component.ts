@@ -1,3 +1,4 @@
+import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
@@ -12,7 +13,7 @@ import {
 @Component({
   selector: 'app-admin-zones',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, PortalPageHeaderComponent],
   templateUrl: './admin-zones.component.html',
   styleUrl: './admin-zones.component.scss',
 })

@@ -1,18 +1,9 @@
 <!-- hp-active-orders.component.html -->
 <div class="hp-page">
 
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">Active Orders</h1>
-      <p class="page-subtitle">
-        {{ orders().length }} order(s) currently being prepared
-      </p>
-    </div>
-    <button class="refresh-btn" (click)="loadOrders()">
-      <app-hp-icon name="refresh" [size]="15" />
-      Refresh
-    </button>
-  </div>
+  <app-portal-page-header eyebrow="KITCHEN WORKFLOW" title="Active Orders" [subtitle]="orders().length + ' order(s) currently being prepared'" tone="hotel">
+    <button class="refresh-btn" (click)="loadOrders()"><app-hp-icon name="refresh" [size]="15" /> Refresh</button>
+  </app-portal-page-header>
 
   @if (loading()) {
     <div class="page-loading">

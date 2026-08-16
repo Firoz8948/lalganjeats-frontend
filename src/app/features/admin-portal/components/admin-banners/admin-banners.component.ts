@@ -1,3 +1,4 @@
+import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
 import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { AdminService } from '../../../../core/services/admin.service';
 import { HomeBannerSlide } from '../../../../core/services/banner.service';
@@ -12,6 +13,7 @@ type BannerPreview = {
 @Component({
   selector: 'app-admin-banners',
   standalone: true,
+  imports: [PortalPageHeaderComponent],
   templateUrl: './admin-banners.component.html',
   styleUrl: './admin-banners.component.scss',
 })

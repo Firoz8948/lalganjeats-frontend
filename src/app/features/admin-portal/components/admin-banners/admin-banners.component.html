@@ -1,9 +1,7 @@
 <div class="content-area">
-  <div class="page-title-row">
-    <h1 class="page-title">Home Page Banners</h1>
-    <button class="approve-btn" [disabled]="saving()" (click)="addSlide()">{{ saving() ? 'Adding…' : '+ Add Slide' }}</button>
-  </div>
-  <p class="page-sub">Add, edit, activate/deactivate, or delete carousel slides. Upload separate desktop and mobile images. Preview shows what <strong>object-fit: cover</strong> will keep vs crop before you confirm.</p>
+  <app-portal-page-header eyebrow="STOREFRONT MEDIA" title="Home Page Banners" subtitle="Curate responsive carousel slides and preview image cropping before publishing." tone="admin">
+    <button class="approve-btn" [disabled]="saving()" (click)="addSlide()">{{ saving() ? 'Adding...' : '+ Add Slide' }}</button>
+  </app-portal-page-header>
   @if (error()) { <p class="form-msg form-msg--error">{{ error() }}</p> }
   @if (success()) { <p class="form-msg form-msg--success">{{ success() }}</p> }
   @if (loading()) {

@@ -1,3 +1,4 @@
+import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
 // features/hotel-portal/components/hp-settings/hp-settings.component.ts
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -8,7 +9,7 @@ import { HpIconComponent } from '../shared/hp-icon/hp-icon.component';
 @Component({
   selector: 'app-hp-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, HpIconComponent],
+  imports: [CommonModule, FormsModule, HpIconComponent, PortalPageHeaderComponent],
   templateUrl: './hp-settings.component.html',
   styleUrl:    './hp-settings.component.scss'
 })

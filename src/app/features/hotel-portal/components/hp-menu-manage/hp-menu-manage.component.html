@@ -1,12 +1,7 @@
 <!-- features/hotel-portal/components/hp-menu-manage/hp-menu-manage.component.html -->
 <div class="hp-page">
 
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">Menu Items</h1>
-      <p class="page-subtitle">{{ items().length }} items · toggle availability below</p>
-    </div>
-  </div>
+  <app-portal-page-header eyebrow="MENU AVAILABILITY" title="Menu Items" [subtitle]="items().length + ' items - toggle availability below'" tone="hotel" />
 
   @if (loading()) {
     <div class="page-loading">

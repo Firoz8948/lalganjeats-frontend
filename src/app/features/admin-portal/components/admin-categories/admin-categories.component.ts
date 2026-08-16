@@ -1,3 +1,4 @@
+import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
@@ -8,7 +9,7 @@ import {
 @Component({
   selector: 'app-admin-categories',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, PortalPageHeaderComponent],
   templateUrl: './admin-categories.component.html',
   styleUrl: './admin-categories.component.scss',
 })

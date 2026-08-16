@@ -1,8 +1,5 @@
 <div class="content-area">
-  <h1 class="page-title">Partner Settlements</h1>
-  <p class="page-sub">
-    Pay partners manually, then use Settle now to clear only their currently unpaid orders.
-  </p>
+  <app-portal-page-header eyebrow="PAYOUT OPERATIONS" title="Partner Settlements" subtitle="Review unpaid balances and record manual payouts for restaurants and riders." tone="admin" />
   @if (settlementError()) { <div class="form-error">{{ settlementError() }}</div> }
   @if (settlementSuccess()) { <div class="form-success">{{ settlementSuccess() }}</div> }
   @if (settlementsLoading()) { <p class="page-sub">Loading settlements…</p> }

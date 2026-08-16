@@ -1,3 +1,4 @@
+import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
@@ -7,7 +8,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 @Component({
   selector: 'app-admin-settlements',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, PortalPageHeaderComponent],
   templateUrl: './admin-settlements.component.html',
   styleUrl: './admin-settlements.component.scss',
 })

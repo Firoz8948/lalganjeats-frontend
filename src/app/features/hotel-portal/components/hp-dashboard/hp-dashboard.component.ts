@@ -1,3 +1,4 @@
+import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
 // hp-dashboard.component.ts
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -11,7 +12,7 @@ import { HpIconComponent } from '../shared/hp-icon/hp-icon.component';
 @Component({
   selector: 'app-hp-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, HpIconComponent],
+  imports: [CommonModule, RouterModule, HpIconComponent, PortalPageHeaderComponent],
   templateUrl: './hp-dashboard.component.html',
   styleUrl:    './hp-dashboard.component.scss'
 })

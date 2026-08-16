@@ -1,3 +1,4 @@
+import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,7 +7,7 @@ import { AdminRestaurantRow, RestaurantCreatePayload, RestaurantUpdatePayload } 
 import { PaymentSettingsService } from '../../../../core/services/payment-settings.service';
 import { AuthService } from '../../../../core/services/auth.service';
 
-@Component({ selector:'app-admin-restaurants', standalone:true, imports:[FormsModule], templateUrl:'./admin-restaurants.component.html', styleUrl:'./admin-restaurants.component.scss' })
+@Component({ selector:'app-admin-restaurants', standalone:true, imports:[FormsModule, PortalPageHeaderComponent], templateUrl:'./admin-restaurants.component.html', styleUrl:'./admin-restaurants.component.scss' })
 export class AdminRestaurantsComponent implements OnInit {
   restaurants=signal<AdminRestaurantRow[]>([]); saving=signal(false); error=signal(''); success=signal('');
   impersonatingId=signal<number|null>(null);

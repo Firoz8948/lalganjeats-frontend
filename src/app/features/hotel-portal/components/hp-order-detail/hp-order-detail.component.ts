@@ -1,3 +1,4 @@
+import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
 // features/hotel-portal/components/hp-order-detail/hp-order-detail.component.ts
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -10,7 +11,7 @@ import { HpIconComponent, HpIconName } from '../shared/hp-icon/hp-icon.component
 @Component({
   selector: 'app-hp-order-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, HpIconComponent],
+  imports: [CommonModule, RouterModule, HpIconComponent, PortalPageHeaderComponent],
   templateUrl: './hp-order-detail.component.html',
   styleUrl:    './hp-order-detail.component.scss'
 })

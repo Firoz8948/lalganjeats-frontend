@@ -1,15 +1,6 @@
 <div class="dp-home">
   @if (data(); as d) {
-    <header class="dp-home__head">
-      <div>
-        <p class="eyebrow">Delivery partner</p>
-        <h1>{{ d.profile.full_name || 'Partner' }}</h1>
-        <p class="sub">Today: {{ d.today.orders }} orders · ₹{{ d.today.earnings | number:'1.0-0' }}</p>
-      </div>
-      <button type="button" class="online-btn" [class.on]="d.profile.is_online" (click)="toggleOnline()">
-        {{ d.profile.is_online ? 'Online' : 'Offline' }}
-      </button>
-    </header>
+    <app-portal-page-header eyebrow="DELIVERY PARTNER" [title]="d.profile.full_name || 'Partner'" [subtitle]="'Today: ' + d.today.orders + ' orders - INR ' + (d.today.earnings | number:'1.0-0')" tone="delivery" />
 
     @if (!d.profile.has_location) {
       <p class="hint">Enable location so you can receive nearest offers.</p>

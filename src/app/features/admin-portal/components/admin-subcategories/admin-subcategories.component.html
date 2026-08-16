@@ -1,20 +1,8 @@
 <div class="content-area subcategory-page">
-  <header>
-    <div>
-      <h1 class="page-title">Subcategories</h1>
-      <p>Manage item types available under each business category.</p>
-    </div>
-    <label>
-      <span>Category</span>
-      <select
-        [ngModel]="selectedCategoryId()"
-        (ngModelChange)="selectCategory($event)">
-        @for (category of categories(); track category.id) {
-          <option [value]="category.id">{{ category.name }}</option>
-        }
-      </select>
-    </label>
-  </header>
+  <app-portal-page-header eyebrow="CATALOG DETAIL" title="Subcategories" subtitle="Organize item types and featured discovery groups by business category." tone="admin">
+    <label class="header-category"><span>Category</span><select [ngModel]="selectedCategoryId()" (ngModelChange)="selectCategory($event)">@for (category of categories(); track category.id) {<option [value]="category.id">{{ category.name }}</option>}</select></label>
+    <button class="approve-btn" [disabled]="saving()" (click)="add()">{{ saving() ? 'Adding...' : '+ Add Subcategory' }}</button>
+  </app-portal-page-header>
 
   <section class="subcategory-tools">
     <p class="featured-help">
@@ -26,9 +14,6 @@
         [(ngModel)]="newName"
         (keyup.enter)="add()"
       />
-      <button class="approve-btn" [disabled]="saving()" (click)="add()">
-        {{ saving() ? 'Adding…' : '+ Add Subcategory' }}
-      </button>
     </div>
     <div class="filter-row">
       <input

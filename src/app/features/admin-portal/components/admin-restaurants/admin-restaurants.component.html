@@ -1,10 +1,9 @@
 <div class="content-area">
-  <div class="page-heading">
-    <h1 class="page-title">Restaurants</h1>
+  <app-portal-page-header eyebrow="RESTAURANT NETWORK" title="Restaurants" subtitle="Manage restaurant access, approvals, menus and storefront details." tone="admin">
     <button class="approve-btn" (click)="addRestaurantOpen.set(!addRestaurantOpen())">
       {{addRestaurantOpen() ? 'Close form' : '+ Add new restaurant'}}
     </button>
-  </div>
+  </app-portal-page-header>
   @if(success()){<p class="form-msg form-msg--success">{{success()}}</p>}
   <div class="table-wrap"><table class="data-table"><thead><tr><th>Name</th><th>Owner</th><th>Phone</th><th>Status</th><th>Approved</th><th>Actions</th></tr></thead><tbody>
     @for(r of restaurants();track r.id){<tr><td><strong>{{r.name}}</strong></td><td>{{r.owner}}</td><td>{{r.phone}}</td><td><span [class]="r.is_open?'badge-open':'badge-closed'">{{r.is_open?'Open':'Closed'}}</span></td><td><span [class]="r.is_approved?'badge-yes':'badge-no'">{{r.is_approved?'Yes':'No'}}</span></td><td class="actions"><button class="impersonate-btn" type="button" [disabled]="impersonatingId()===r.id||!r.is_active||!r.is_approved" [title]="!r.is_approved?'Approve the restaurant before viewing its dashboard':''" (click)="impersonate(r)">{{impersonatingId()===r.id?'Opening…':'View dashboard'}}</button><button class="approve-btn small" (click)="openEdit(r)">Edit</button>@if(!r.is_approved){<button class="approve-btn small" (click)="approve(r.id)">Approve</button>}<button class="menu-btn" (click)="openMenu(r)">Menu</button></td></tr>}

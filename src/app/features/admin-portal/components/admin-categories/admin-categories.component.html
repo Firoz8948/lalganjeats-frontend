@@ -1,10 +1,7 @@
 <div class="content-area catalog-page">
-  <header>
-    <div>
-      <h1 class="page-title">Categories</h1>
-      <p>Top-level business types available in LalganjEats.</p>
-    </div>
-  </header>
+  <app-portal-page-header eyebrow="CATALOG STRUCTURE" title="Categories" subtitle="Manage the top-level business types available across LalganjEats." tone="admin">
+    <button class="approve-btn" [disabled]="saving()" (click)="add()">{{ saving() ? 'Adding...' : '+ Add Category' }}</button>
+  </app-portal-page-header>
 
   <section class="catalog-card">
     <h2>Add category</h2>
@@ -14,9 +11,6 @@
         [(ngModel)]="newName"
         (keyup.enter)="add()"
       />
-      <button class="approve-btn" [disabled]="saving()" (click)="add()">
-        {{ saving() ? 'Adding…' : '+ Add Category' }}
-      </button>
     </div>
     @if (error()) { <p class="form-msg form-msg--error">{{ error() }}</p> }
   </section>

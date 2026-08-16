@@ -1,3 +1,4 @@
+import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
 // features/hotel-portal/components/hp-order-history/hp-order-history.component.ts
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -13,7 +14,7 @@ type HistoryFilter = 'all' | 'delivered' | 'cancelled';
 @Component({
   selector: 'app-hp-order-history',
   standalone: true,
-  imports: [CommonModule, RouterModule, HpIconComponent],
+  imports: [CommonModule, RouterModule, HpIconComponent, PortalPageHeaderComponent],
   templateUrl: './hp-order-history.component.html',
   styleUrl:    './hp-order-history.component.scss'
 })

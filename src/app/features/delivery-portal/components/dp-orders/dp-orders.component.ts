@@ -1,3 +1,4 @@
+import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DeliveryPortalService, DpOrder } from '../../services/delivery-portal.service';
@@ -5,10 +6,10 @@ import { DeliveryPortalService, DpOrder } from '../../services/delivery-portal.s
 @Component({
   selector: 'app-dp-orders',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, PortalPageHeaderComponent],
   template: `
     <div class="page">
-      <h1>My orders</h1>
+      <app-portal-page-header eyebrow="DELIVERY LOG" title="My Orders" subtitle="Review active assignments and completed deliveries." tone="delivery" />
       <div class="tabs">
         <button type="button" [class.on]="filter()==='all'" (click)="load('all')">All</button>
         <button type="button" [class.on]="filter()==='active'" (click)="load('active')">Active</button>
@@ -29,7 +30,6 @@ import { DeliveryPortalService, DpOrder } from '../../services/delivery-portal.s
   `,
   styles: [`
     .page { padding: 16px 16px 96px; max-width: 720px; margin: 0 auto; }
-    h1 { font-size: 22px; margin: 0 0 12px; }
     .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
     .tabs button { border: 1px solid #ddd; background: #fff; border-radius: 999px; padding: 6px 12px; cursor: pointer; }
     .tabs button.on { background: #222; color: #fff; border-color: #222; }

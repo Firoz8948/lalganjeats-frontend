@@ -1,9 +1,7 @@
 <div class="content-area">
-  <h1 class="page-title">Delivery Zones</h1>
-  <p class="page-sub">
-    Centre location is set by Super Admin and cannot be changed here.
-    Add radius rings with flat ₹ or per-km pricing.
-  </p>
+  <app-portal-page-header eyebrow="DELIVERY COVERAGE" title="Delivery Zones" subtitle="Configure radius rings and pricing around the locked tenant centre." tone="admin">
+    <button class="approve-btn" (click)="createZone()" [disabled]="zoneSaving()">{{ zoneSaving() ? 'Saving...' : 'Add Zone' }}</button>
+  </app-portal-page-header>
 
   @if (zoneError()) { <div class="form-error">{{ zoneError() }}</div> }
   @if (zoneSuccess()) { <div class="form-success">{{ zoneSuccess() }}</div> }
@@ -34,9 +32,6 @@
         </select>
       </label>
       <label>Rate (₹)<input type="number" min="0" step="1" [(ngModel)]="newZone.rate"/></label>
-      <button class="approve-btn" (click)="createZone()" [disabled]="zoneSaving()">
-        {{ zoneSaving() ? 'Saving…' : 'Add Zone' }}
-      </button>
     </div>
   </div>
 

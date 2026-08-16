@@ -7,35 +7,15 @@
 
   @if (!loading() && data()) {
 
-    <!-- Page Header -->
-    <div class="page-header">
-      <div>
-        <h1 class="page-title">Dashboard</h1>
-        <p class="page-subtitle">
-          Welcome back, {{ data()!.restaurant.name }}
-        </p>
-      </div>
-      <div class="header-actions">
-        <a routerLink="/hotel-portal/incoming-orders"
-           class="quick-action-btn primary">
-          <app-hp-icon name="bell" [size]="16" />
-          View Incoming Orders
-          @if (data()!.stats.pending_orders > 0) {
-            <span class="btn-badge">
-              {{ data()!.stats.pending_orders }}
-            </span>
-          }
-        </a>
-        <button
-          type="button"
-          class="quick-action-btn secondary"
-          [disabled]="refreshing()"
-          (click)="loadDashboard(true)">
-          <app-hp-icon name="refresh" [size]="16" />
-          {{ refreshing() ? 'Refreshing…' : 'Refresh' }}
-        </button>
-      </div>
-    </div>
+    <app-portal-page-header eyebrow="RESTAURANT OVERVIEW" title="Dashboard" [subtitle]="'Welcome back, ' + data()!.restaurant.name" tone="hotel">
+      <a routerLink="/hotel-portal/incoming-orders" class="quick-action-btn primary">
+        <app-hp-icon name="bell" [size]="16" /> View Incoming Orders
+        @if (data()!.stats.pending_orders > 0) { <span class="btn-badge">{{ data()!.stats.pending_orders }}</span> }
+      </a>
+      <button type="button" class="quick-action-btn secondary" [disabled]="refreshing()" (click)="loadDashboard(true)">
+        <app-hp-icon name="refresh" [size]="16" /> {{ refreshing() ? 'Refreshing...' : 'Refresh' }}
+      </button>
+    </app-portal-page-header>
 
     <!-- Stats Grid -->
     <div class="stats-grid">

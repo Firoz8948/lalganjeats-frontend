@@ -1,3 +1,4 @@
+import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
 // features/hotel-portal/components/hp-menu-manage/hp-menu-manage.component.ts
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -11,7 +12,7 @@ import { HpIconComponent } from '../shared/hp-icon/hp-icon.component';
 @Component({
   selector: 'app-hp-menu-manage',
   standalone: true,
-  imports: [CommonModule, HpIconComponent],
+  imports: [CommonModule, HpIconComponent, PortalPageHeaderComponent],
   templateUrl: './hp-menu-manage.component.html',
   styleUrl:    './hp-menu-manage.component.scss'
 })

@@ -1,3 +1,4 @@
+import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
 // hp-active-orders.component.ts
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -8,7 +9,7 @@ import { HpIconComponent, HpIconName } from '../shared/hp-icon/hp-icon.component
 @Component({
   selector: 'app-hp-active-orders',
   standalone: true,
-  imports: [CommonModule, RouterModule, HpIconComponent],
+  imports: [CommonModule, RouterModule, HpIconComponent, PortalPageHeaderComponent],
   templateUrl: './hp-active-orders.component.html',
   styleUrl:    './hp-active-orders.component.scss'
 })

@@ -1,8 +1,7 @@
 <div class="content-area">
-  <h1 class="page-title">Promocodes</h1>
-  <p class="page-sub">
-    Create codes for all clients or mobile app only. Usage decreases when an order is placed with the code.
-  </p>
+  <app-portal-page-header eyebrow="GROWTH CAMPAIGNS" title="Promocodes" subtitle="Create targeted discounts and track their usage across web and mobile." tone="admin">
+    <button class="approve-btn" (click)="createPromo()" [disabled]="promoSaving()">{{ promoSaving() ? 'Saving...' : 'Create Promo' }}</button>
+  </app-portal-page-header>
   @if (promoError()) { <div class="form-error">{{ promoError() }}</div> }
   @if (promoSuccess()) { <div class="form-success">{{ promoSuccess() }}</div> }
 
@@ -46,9 +45,6 @@
       </label>
       <p class="promo-delivery-block__hint">If checked, delivery is free when this coupon is applied.</p>
     </div>
-    <button class="approve-btn" (click)="createPromo()" [disabled]="promoSaving()">
-      {{ promoSaving() ? 'Saving…' : 'Create Promo' }}
-    </button>
   </div>
 
   <div class="table-wrap">
