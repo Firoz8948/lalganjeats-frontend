@@ -68,6 +68,32 @@ export interface CatalogSubcategory {
   product_count: number;
 }
 
+export interface RestaurantImpersonationSession {
+  access_token: string;
+  token_type: string;
+  role: 'restaurant_owner';
+  user_id: number;
+  full_name: string | null;
+  phone?: string | null;
+  restaurant_id: number;
+  restaurant_name: string;
+  impersonated_by: number;
+  impersonation_session_id: string;
+  redirect_to: string;
+}
+
+export interface DeliveryPartnerImpersonationSession {
+  access_token: string;
+  token_type: string;
+  role: 'delivery_partner';
+  user_id: number;
+  full_name: string | null;
+  phone?: string | null;
+  impersonated_by: number;
+  impersonation_session_id: string;
+  redirect_to: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private readonly baseUrl = `${environment.apiBaseUrl}/admin`;
@@ -132,6 +158,20 @@ export class AdminService {
 
   getRestaurants(): Observable<AdminRestaurantRow[]> {
     return this.http.get<AdminRestaurantRow[]>(`${this.baseUrl}/restaurants`);
+  }
+
+  impersonateRestaurant(id: number): Observable<RestaurantImpersonationSession> {
+    return this.http.post<RestaurantImpersonationSession>(
+      `${this.baseUrl}/restaurants/${id}/impersonate`,
+      {},
+    );
+  }
+
+  exitImpersonation(): Observable<{ ok: boolean; ended_at: string | null }> {
+    return this.http.post<{ ok: boolean; ended_at: string | null }>(
+      `${this.baseUrl}/impersonation/exit`,
+      {},
+    );
   }
 
   createRestaurant(payload: RestaurantCreatePayload): Observable<Restaurant> {
@@ -298,6 +338,13 @@ export class AdminService {
     );
   }
 
+  impersonateDeliveryPartner(id: number): Observable<DeliveryPartnerImpersonationSession> {
+    return this.http.post<DeliveryPartnerImpersonationSession>(
+      `${this.baseUrl}/delivery-partners/${id}/impersonate`,
+      {},
+    );
+  }
+
   settleRestaurant(id: number): Observable<SettlementResult> {
     return this.http.post<SettlementResult>(
       `${this.baseUrl}/settlements/restaurants/${id}/settle`,
@@ -403,6 +450,7 @@ export interface SettlementRow {
   id: number;
   name: string;
   phone?: string | null;
+  is_active?: boolean;
   unsettled_amount: number;
   unsettled_orders: number;
   settled_amount_lifetime: number;

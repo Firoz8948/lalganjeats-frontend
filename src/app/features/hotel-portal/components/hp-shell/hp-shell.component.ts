@@ -6,6 +6,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
+import { AdminService } from '../../../../core/services/admin.service';
 import { HotelPortalService } from '../../services/hotel-portal.service';
 import { filter } from 'rxjs/operators';
 import { HpIconComponent, HpIconName } from '../shared/hp-icon/hp-icon.component';
@@ -27,6 +28,7 @@ interface NavItem {
 export class HpShellComponent implements OnInit {
 
   auth    = inject(AuthService);
+  admin   = inject(AdminService);
   service = inject(HotelPortalService);
   router  = inject(Router);
 
@@ -35,6 +37,7 @@ export class HpShellComponent implements OnInit {
   isMobile        = signal(false);
   restaurantName  = signal('My Restaurant');
   pendingCount    = signal(0);
+  impersonating   = signal(false);
 
   navItems: NavItem[] = [
     { label: 'Dashboard',       iconId: 'dashboard',       route: '/hotel-portal/dashboard'       },
@@ -47,6 +50,7 @@ export class HpShellComponent implements OnInit {
   ];
 
   ngOnInit() {
+    this.impersonating.set(this.auth.isRestaurantImpersonating());
     this.checkMobile();
     this.loadRestaurantInfo();
 
@@ -89,7 +93,26 @@ export class HpShellComponent implements OnInit {
   toggleSidebar()  { this.isSidebarOpen.update(v => !v); }
   closeSidebar()   { this.isSidebarOpen.set(false);       }
 
-  logout() { this.auth.logout(); }
+  exitImpersonation() {
+    const restore = () => {
+      if (this.auth.exitRestaurantImpersonation()) {
+        this.router.navigate(['/admin/dashboard']);
+      }
+    };
+    // End the audited server session while still holding the impersonation token.
+    this.admin.exitImpersonation().subscribe({
+      next: () => restore(),
+      error: () => restore(),
+    });
+  }
+
+  logout() {
+    if (this.impersonating()) {
+      this.exitImpersonation();
+      return;
+    }
+    this.auth.logout();
+  }
 
   get user() { return this.auth.currentUser(); }
 

@@ -13,6 +13,10 @@ export interface AuthUser {
   role:         string;
   access_token: string;
   redirect_to:  string;
+  restaurant_id?: number;
+  restaurant_name?: string;
+  impersonated_by?: number;
+  impersonation_session_id?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -98,6 +102,50 @@ export class AuthService {
     return !!localStorage.getItem('le_superadmin_backup');
   }
 
+  private startAdminImpersonation(session: AuthUser) {
+    const current = this.currentUser();
+    if (current?.role !== 'admin') return false;
+    localStorage.setItem('le_admin_backup', JSON.stringify(current));
+    this.saveSession(session);
+    return true;
+  }
+
+  /** Enter a restaurant dashboard while preserving the tenant-admin session. */
+  startRestaurantImpersonation(session: AuthUser) {
+    return this.startAdminImpersonation(session);
+  }
+
+  startDeliveryPartnerImpersonation(session: AuthUser) {
+    return this.startAdminImpersonation(session);
+  }
+
+  exitAdminImpersonation(): boolean {
+    try {
+      const raw = localStorage.getItem('le_admin_backup');
+      if (!raw) return false;
+      const backup = JSON.parse(raw) as AuthUser;
+      localStorage.removeItem('le_admin_backup');
+      this.saveSession(backup);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  exitRestaurantImpersonation(): boolean {
+    return this.exitAdminImpersonation();
+  }
+
+  isRestaurantImpersonating(): boolean {
+    return !!localStorage.getItem('le_admin_backup')
+      && this.currentUser()?.role === 'restaurant_owner';
+  }
+
+  isDeliveryPartnerImpersonating(): boolean {
+    return !!localStorage.getItem('le_admin_backup')
+      && this.currentUser()?.role === 'delivery_partner';
+  }
+
   /** Refresh name/phone from profile API for navbar greeting */
   loadCustomerDisplayInfo() {
     if (!this.isCustomer()) return;
@@ -127,6 +175,8 @@ export class AuthService {
   }
 
   logout() {
+    localStorage.removeItem('le_admin_backup');
+    localStorage.removeItem('le_superadmin_backup');
     localStorage.removeItem('le_user');
     localStorage.removeItem('le_token');
     this.currentUser.set(null);

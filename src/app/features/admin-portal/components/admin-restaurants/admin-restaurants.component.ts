@@ -1,12 +1,15 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AdminMenuItem, AdminMenuItemCreate, AdminService, CatalogCategory, CatalogSubcategory } from '../../../../core/services/admin.service';
 import { AdminRestaurantRow, RestaurantCreatePayload, RestaurantUpdatePayload } from '../../../../core/models/restaurant.model';
 import { PaymentSettingsService } from '../../../../core/services/payment-settings.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({ selector:'app-admin-restaurants', standalone:true, imports:[FormsModule], templateUrl:'./admin-restaurants.component.html', styleUrl:'./admin-restaurants.component.scss' })
 export class AdminRestaurantsComponent implements OnInit {
   restaurants=signal<AdminRestaurantRow[]>([]); saving=signal(false); error=signal(''); success=signal('');
+  impersonatingId=signal<number|null>(null);
   addRestaurantOpen=signal(false);
   catalogCategories=signal<CatalogCategory[]>([]);
   bannerPreview=signal<string|null>(null); bannerUploading=signal(false); uploadError=signal('');
@@ -31,7 +34,12 @@ export class AdminRestaurantsComponent implements OnInit {
   readonly bannerSpec={label:'Restaurant Card',hint:'Shown on home page and restaurants list (desktop + mobile)',size:'600 × 400 px (3:2)',formats:'JPG, PNG, or WebP · max 2 MB'};
   readonly desktopHeroSpec={label:'Hotel Hero Banner — Desktop',hint:'Shown on restaurant menu page for desktop screens',size:'1600 × 600 px (~8:3)',formats:'JPG, PNG, or WebP · max 2 MB'};
   readonly mobileHeroSpec={label:'Hotel Hero Banner — Mobile',hint:'Shown on restaurant menu page for mobile screens',size:'1080 × 720 px (3:2)',formats:'JPG, PNG, or WebP · max 2 MB'};
-  constructor(private admin:AdminService, private paymentSettings:PaymentSettingsService){}
+  constructor(
+    private admin:AdminService,
+    private paymentSettings:PaymentSettingsService,
+    private auth:AuthService,
+    private router:Router,
+  ){}
   ngOnInit(){this.load();this.loadCatalog();this.loadPriceMarkup();}
   loadCatalog(){this.admin.getCatalogCategories().subscribe(categories=>{this.catalogCategories.set(categories.filter(item=>item.is_active));const restaurant=categories.find(item=>item.slug==='restaurant'&&item.is_active);if(!this.newRestaurant.business_category_id)this.newRestaurant.business_category_id=restaurant?.id||categories[0]?.id||null;});}
   loadPriceMarkup(){this.paymentSettings.getSettings().subscribe({next:s=>this.displayPriceMarkup.set(s.display_price_markup_percent),error:()=>this.displayPriceMarkup.set(30)});}
@@ -41,6 +49,38 @@ export class AdminRestaurantsComponent implements OnInit {
   addVariantRow(){this.variantDrafts=[...this.variantDrafts,{label:'',actual_price:null,original_price:null}];}
   removeVariantRow(index:number){if(this.variantDrafts.length<=1)return;this.variantDrafts=this.variantDrafts.filter((_,i)=>i!==index);}
   load(){this.admin.getRestaurants().subscribe(v=>this.restaurants.set(v));}
+  impersonate(r:AdminRestaurantRow){
+    if(!confirm(`Open the hotel dashboard as "${r.name}"?`))return;
+    this.error.set('');
+    this.impersonatingId.set(r.id);
+    this.admin.impersonateRestaurant(r.id).subscribe({
+      next:session=>{
+        const started=this.auth.startRestaurantImpersonation({
+          access_token:session.access_token,
+          role:session.role,
+          user_id:session.user_id,
+          full_name:session.full_name||r.name,
+          phone:session.phone||undefined,
+          restaurant_id:session.restaurant_id,
+          restaurant_name:session.restaurant_name,
+          impersonated_by:session.impersonated_by,
+          impersonation_session_id:session.impersonation_session_id,
+          redirect_to:session.redirect_to,
+        });
+        this.impersonatingId.set(null);
+        if(started)this.router.navigateByUrl(session.redirect_to||'/hotel-portal/dashboard');
+        else this.error.set('Only a tenant admin can impersonate a restaurant.');
+      },
+      error:e=>{
+        this.impersonatingId.set(null);
+        this.error.set(
+          typeof e.error?.detail==='string'
+            ? e.error.detail
+            : 'Could not open restaurant dashboard.'
+        );
+      },
+    });
+  }
   phone(value:string,field:'restaurant'|'owner'){const v=value.replace(/\D/g,'').slice(0,10);field==='restaurant'?this.restaurantPhone=v:this.ownerPhone=v;}
   create(){
     this.error.set('');this.success.set('');

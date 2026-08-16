@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
+import { AdminService } from '../../../../core/services/admin.service';
 import { DeliveryPortalService } from '../../services/delivery-portal.service';
 
 @Component({
@@ -13,10 +14,12 @@ import { DeliveryPortalService } from '../../services/delivery-portal.service';
 })
 export class DpShellComponent implements OnInit {
   auth = inject(AuthService);
+  private admin = inject(AdminService);
   router = inject(Router);
   private dp = inject(DeliveryPortalService);
 
   isOnline = signal(false);
+  impersonating = computed(() => this.auth.isDeliveryPartnerImpersonating());
 
   bottomNav = [
     { label: 'Home', route: '/deliverypartner/home', icon: 'home' },
@@ -38,7 +41,23 @@ export class DpShellComponent implements OnInit {
   }
 
   logout() {
+    if (this.impersonating()) {
+      this.exitImpersonation();
+      return;
+    }
     this.auth.logout();
+  }
+
+  exitImpersonation() {
+    const restore = () => {
+      if (this.auth.exitAdminImpersonation()) {
+        this.router.navigate(['/admin/dashboard']);
+      }
+    };
+    this.admin.exitImpersonation().subscribe({
+      next: () => restore(),
+      error: () => restore(),
+    });
   }
 
   get user() {

@@ -54,7 +54,13 @@
               <td>{{ row.unsettled_orders }}</td>
               <td><strong class="unsettled-amount">₹{{ row.unsettled_amount | number:'1.2-2' }}</strong></td>
               <td>₹{{ row.settled_amount_lifetime | number:'1.2-2' }}</td>
-              <td>
+              <td class="settlement-actions">
+                <button type="button" class="impersonate-btn"
+                        [disabled]="row.is_active === false || impersonatingPartnerId() === row.id"
+                        [title]="row.is_active === false ? 'Inactive delivery partners cannot be opened' : ''"
+                        (click)="impersonateDeliveryPartner(row)">
+                  {{ impersonatingPartnerId() === row.id ? 'Opening…' : 'View dashboard' }}
+                </button>
                 <button type="button" class="approve-btn small"
                         [disabled]="row.unsettled_amount <= 0 || settlementAction() === 'delivery-' + row.id"
                         (click)="settleDeliveryPartner(row)">

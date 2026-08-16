@@ -6,3 +6,23 @@
 }
 .unsettled-amount { color: #b91c1c; }
 .settlement-phone { margin-top: 3px; color: #888; font-size: 12px; }
+.settlement-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.impersonate-btn {
+  padding: 6px 10px;
+  border: 1px solid #111;
+  border-radius: 8px;
+  background: #111;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 100ms ease-out, opacity 100ms ease-out;
+
+  &:hover:not(:disabled) { transform: translateY(-1px); }
+  &:active:not(:disabled) { transform: translateY(0); }
+  &:disabled { cursor: not-allowed; opacity: .5; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .impersonate-btn { transition: none; }
+}

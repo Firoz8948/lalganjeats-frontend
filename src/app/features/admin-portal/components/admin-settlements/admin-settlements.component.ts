@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { AdminService, SettlementRow } from '../../../../core/services/admin.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-admin-settlements',
@@ -16,8 +18,13 @@ export class AdminSettlementsComponent implements OnInit {
   settlementAction = signal('');
   settlementError = signal('');
   settlementSuccess = signal('');
+  impersonatingPartnerId = signal<number | null>(null);
 
-  constructor(private admin: AdminService) {}
+  constructor(
+    private admin: AdminService,
+    private auth: AuthService,
+    private router: Router,
+  ) {}
 
   ngOnInit() {
     this.loadSettlements();
@@ -53,6 +60,38 @@ export class AdminSettlementsComponent implements OnInit {
 
   settleDeliveryPartner(row: SettlementRow) {
     this.runSettlement('delivery', row);
+  }
+
+  impersonateDeliveryPartner(row: SettlementRow) {
+    if (!window.confirm(`Open the delivery dashboard as "${row.name}"?`)) return;
+    this.impersonatingPartnerId.set(row.id);
+    this.settlementError.set('');
+    this.admin.impersonateDeliveryPartner(row.id).subscribe({
+      next: (session) => {
+        const started = this.auth.startDeliveryPartnerImpersonation({
+          access_token: session.access_token,
+          role: session.role,
+          user_id: session.user_id,
+          full_name: session.full_name || row.name,
+          phone: session.phone || undefined,
+          impersonated_by: session.impersonated_by,
+          impersonation_session_id: session.impersonation_session_id,
+          redirect_to: session.redirect_to,
+        });
+        this.impersonatingPartnerId.set(null);
+        if (started) {
+          this.router.navigateByUrl(session.redirect_to || '/deliverypartner/home');
+        } else {
+          this.settlementError.set('Only a tenant admin can impersonate a delivery partner.');
+        }
+      },
+      error: (error) => {
+        this.impersonatingPartnerId.set(null);
+        this.settlementError.set(
+          error?.error?.detail || 'Could not open the delivery partner dashboard.',
+        );
+      },
+    });
   }
 
   private runSettlement(type: 'restaurant' | 'delivery', row: SettlementRow) {

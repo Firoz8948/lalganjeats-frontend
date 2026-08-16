@@ -75,7 +75,9 @@
         </div>
         <div class="sidebar-user__info">
           <p class="sidebar-user__name">{{ user?.full_name }}</p>
-          <p class="sidebar-user__role">Restaurant Owner</p>
+          <p class="sidebar-user__role">
+            {{ impersonating() ? 'Admin viewing restaurant' : 'Restaurant Owner' }}
+          </p>
         </div>
       </div>
       <button class="sidebar__logout" (click)="logout()">
@@ -85,7 +87,7 @@
           <polyline points="16 17 21 12 16 7"/>
           <line x1="21" y1="12" x2="9" y2="12"/>
         </svg>
-        Logout
+        {{ impersonating() ? 'Return to Admin' : 'Logout' }}
       </button>
     </div>
 
@@ -95,6 +97,13 @@
        MAIN CONTENT AREA
        ══════════════════════════════════════ -->
   <div class="hp-main">
+
+    @if (impersonating()) {
+      <div class="restaurant-impersonation-banner">
+        <span>Viewing {{ restaurantName() }} as restaurant owner</span>
+        <button type="button" (click)="exitImpersonation()">Return to Admin</button>
+      </div>
+    }
 
     <!-- Mobile Top Bar -->
     <header class="hp-topbar">
