@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
+import { PartnerContactDialogComponent } from '../partner-contact-dialog/partner-contact-dialog.component';
 
 type Step = 'phone' | 'otp';
 
 @Component({
   selector: 'app-delivery-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, PartnerContactDialogComponent],
   templateUrl: './delivery-login.component.html',
   styleUrl: '../customer-login/customer-login.component.scss',
 })
@@ -20,6 +21,7 @@ export class DeliveryLoginComponent {
   acceptedLegal = false;
   loading = signal(false);
   error = signal('');
+  contactDialogOpen = signal(false);
 
   readonly ROLE = 'delivery_partner';
 
@@ -44,6 +46,11 @@ export class DeliveryLoginComponent {
       },
       error: (e) => {
         this.loading.set(false);
+        if (this.isUnregisteredPartnerError(e)) {
+          this.contactDialogOpen.set(true);
+          this.error.set('');
+          return;
+        }
         this.error.set(e.error?.detail || 'Failed to send OTP');
       },
     });
@@ -86,5 +93,10 @@ export class DeliveryLoginComponent {
   goBack() {
     this.step.set('phone');
     this.error.set('');
+  }
+
+  private isUnregisteredPartnerError(error: any): boolean {
+    const detail = String(error.error?.detail || '').toLowerCase();
+    return error.status === 403 && detail.includes('not registered on this number');
   }
 }

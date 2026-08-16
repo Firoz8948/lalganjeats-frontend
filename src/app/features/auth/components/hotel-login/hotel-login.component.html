@@ -78,3 +78,9 @@
 
   </div>
 </div>
+
+@if (contactDialogOpen()) {
+  <app-partner-contact-dialog
+    partnerLabel="Restaurant partner"
+    (closed)="contactDialogOpen.set(false)" />
+}
