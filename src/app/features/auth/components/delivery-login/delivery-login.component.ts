@@ -17,6 +17,7 @@ export class DeliveryLoginComponent {
   step = signal<Step>('phone');
   phone = '';
   otp = '';
+  acceptedLegal = false;
   loading = signal(false);
   error = signal('');
 
@@ -53,10 +54,19 @@ export class DeliveryLoginComponent {
       this.error.set('Enter the 6-digit OTP');
       return;
     }
+    if (!this.acceptedLegal) {
+      this.error.set('Accept the partner Terms, Privacy Policy and Refund Policy to continue');
+      return;
+    }
     this.error.set('');
     this.loading.set(true);
 
-    this.auth.verifyOTP(this.phone, this.otp, this.ROLE).subscribe({
+    this.auth.verifyOTP(
+      this.phone,
+      this.otp,
+      this.ROLE,
+      this.acceptedLegal,
+    ).subscribe({
       next: (user) => {
         this.loading.set(false);
         this.router.navigate([user.redirect_to]);

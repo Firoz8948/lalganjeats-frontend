@@ -15,6 +15,7 @@ import {
 })
 export class PaymentSettingsComponent implements OnInit {
   readonly previewTransferPrice = 100;
+  readonly previewZoneDeliveryCharge = 30;
   readonly markupPresets = [10, 20, 30];
 
   form!: FormGroup;
@@ -30,10 +31,12 @@ export class PaymentSettingsComponent implements OnInit {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      delivery_boy_per_order_earning: [0, [Validators.required, Validators.min(0)]],
       platform_fee_percent: [0, [Validators.min(0), Validators.max(100)]],
       platform_charge_rupees: [2, [Validators.required, Validators.min(0)]],
       display_price_markup_percent: [30, [Validators.required, Validators.min(0), Validators.max(500)]],
+      allow_prepaid_orders: [true],
+      allow_cod_orders: [true],
+      cod_max_order_amount: [500, [Validators.required, Validators.min(0)]],
     });
     this.loadSettings();
   }
@@ -62,14 +65,12 @@ export class PaymentSettingsComponent implements OnInit {
   }
 
   get adminProfitPreview(): number {
-    const deliveryEarning =
-      Number(this.form.get('delivery_boy_per_order_earning')?.value) || 0;
     const platformCharge =
       Number(this.form.get('platform_charge_rupees')?.value) || 0;
     return (
       this.previewDisplayPrice -
       this.previewTransferPrice -
-      deliveryEarning +
+      this.previewZoneDeliveryCharge +
       platformCharge
     );
   }

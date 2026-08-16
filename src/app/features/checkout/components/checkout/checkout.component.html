@@ -122,14 +122,27 @@
           <h2>Payment</h2>
           <label class="addr">
             <input type="radio" name="pay" [checked]="paymentMethod === 'cash'"
+                   [disabled]="!codAvailable()"
                    (change)="paymentMethod = 'cash'" />
-            <span>Cash on delivery</span>
+            <span>
+              Cash on delivery
+              @if (!codAvailable()) {
+                <small> — available only below ₹{{ codMaxAmount() }}</small>
+              }
+            </span>
           </label>
           <label class="addr">
             <input type="radio" name="pay" [checked]="paymentMethod === 'online'"
+                   [disabled]="!allowPrepaid()"
                    (change)="paymentMethod = 'online'" />
-            <span>Online (stub — marked paid)</span>
+            <span>Prepaid online</span>
           </label>
+          @if (!codAvailable() && allowPrepaid()) {
+            <p class="payment-policy-note">
+              This order is ₹{{ grandTotal() | number:'1.2-2' }}. Orders of
+              ₹{{ codMaxAmount() }} or more must be prepaid.
+            </p>
+          }
           <textarea rows="2" placeholder="Notes for restaurant (optional)"
                     [(ngModel)]="notes"></textarea>
         </section>

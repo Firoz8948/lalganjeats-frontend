@@ -58,4 +58,55 @@
       </tbody>
     </table>
   </div>
+
+  <section class="exception-section">
+    <div class="exception-section__header">
+      <span>EXCEPTION ACCESS</span>
+      <h2>Exception delivery locations</h2>
+      <p>
+        Customers inside the custom radius can order from every active restaurant
+        in this tenant, even outside normal zone rings. This custom charge replaces
+        the normal zone charge for that order.
+      </p>
+    </div>
+
+    <div class="zone-form exception-form">
+      <h3>Add exception location</h3>
+      <div class="zone-form__row">
+        <label>Name<input [(ngModel)]="newException.name" placeholder="College gate"/></label>
+        <label>Latitude<input type="number" step="0.000001" [(ngModel)]="newException.latitude"/></label>
+        <label>Longitude<input type="number" step="0.000001" [(ngModel)]="newException.longitude"/></label>
+        <label>Radius (meters)<input type="number" min="50" step="50" [(ngModel)]="newException.radius_meters"/></label>
+        <label>Delivery charge (₹)<input type="number" min="0" step="1" [(ngModel)]="newException.delivery_charge"/></label>
+        <button class="approve-btn" (click)="createDeliveryException()" [disabled]="zoneSaving()">
+          {{ zoneSaving() ? 'Saving…' : 'Add Exception' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>Location</th><th>Coordinates</th><th>Radius</th><th>Charge</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (item of deliveryExceptions(); track item.id) {
+            <tr>
+              <td><strong>{{ item.name }}</strong></td>
+              <td>{{ item.latitude }}, {{ item.longitude }}</td>
+              <td>{{ item.radius_meters }} m</td>
+              <td>₹{{ item.delivery_charge }}</td>
+              <td>
+                <button class="danger-link" (click)="deleteDeliveryException(item)">Delete</button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="empty-table-cell">No exception locations configured.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
 </div>

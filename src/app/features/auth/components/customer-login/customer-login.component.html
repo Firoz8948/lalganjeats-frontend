@@ -59,6 +59,16 @@
             (keyup.enter)="verifyOTP()"
           />
         </div>
+        <label class="legal-consent" [class.legal-consent--sealed]="acceptedLegal">
+          <input type="checkbox" [(ngModel)]="acceptedLegal">
+          <span class="legal-seal" aria-hidden="true">✓</span>
+          <span>
+            I accept the
+            <a routerLink="/legal/terms" target="_blank">Terms</a>,
+            <a routerLink="/legal/privacy" target="_blank">Privacy Policy</a> and
+            <a routerLink="/legal/refund" target="_blank">Refund Policy</a>.
+          </span>
+        </label>
         <button class="auth-btn" (click)="verifyOTP()" [disabled]="loading()">
           @if (loading()) { Verifying… } @else { Verify & Login }
         </button>

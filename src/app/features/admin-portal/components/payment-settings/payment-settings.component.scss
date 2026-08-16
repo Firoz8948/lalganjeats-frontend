@@ -61,6 +61,31 @@
     }
   }
 
+  .zone-earning-note {
+    padding: 1rem;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    background: #f0fdf4;
+
+    > strong { color: #166534; font-size: 0.9rem; }
+  }
+
+  .payment-toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    cursor: pointer;
+
+    input { width: 18px; height: 18px; accent-color: #16a34a; }
+    span { display: grid; gap: 0.25rem; }
+    strong { color: #1e293b; font-size: 0.875rem; }
+    small { color: #64748b; font-size: 0.75rem; line-height: 1.4; }
+  }
+
   .input-prefix {
     display: flex;
     align-items: center;

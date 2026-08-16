@@ -3,7 +3,7 @@
   <div class="table-wrap">
     <table class="data-table">
       <thead>
-        <tr><th>Name</th><th>Phone</th><th>Email</th><th>Joined</th><th>Status</th></tr>
+        <tr><th>Name</th><th>Phone</th><th>Email</th><th>Joined</th><th>Status</th><th>Action</th></tr>
       </thead>
       <tbody>
         @for (c of customers(); track c.id) {
@@ -16,6 +16,14 @@
               <span [class]="c.is_active ? 'badge-open' : 'badge-closed'">
                 {{ c.is_active ? 'Active' : 'Inactive' }}
               </span>
+            </td>
+            <td>
+              <button
+                [class]="c.is_active ? 'danger-link' : 'approve-btn'"
+                [disabled]="updatingId() === c.id"
+                (click)="toggleStatus(c)">
+                {{ updatingId() === c.id ? 'Updating…' : (c.is_active ? 'Suspend' : 'Reactivate') }}
+              </button>
             </td>
           </tr>
         }

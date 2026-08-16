@@ -60,6 +60,7 @@ export class NavbarComponent implements AfterViewInit, OnInit {
   @ViewChild('locationMap') locationMapRef?: ElementRef<HTMLDivElement>;
 
   isScrolled = signal(false);
+  isMobileSearchHidden = signal(false);
   isProfileDropdownOpen = signal(false);
   isLocationModalOpen = signal(false);
   locationBusy = signal(false);
@@ -89,6 +90,7 @@ export class NavbarComponent implements AfterViewInit, OnInit {
   private searchInput$ = new Subject<string>();
   private googleReady?: Promise<GoogleMapsApi>;
   private draftSource: 'gps' | 'map' | 'manual' = 'map';
+  private lastScrollY = 0;
 
   ngOnInit() {
     if (this.auth.isLoggedIn() && this.auth.isCustomer()) {
@@ -138,7 +140,22 @@ export class NavbarComponent implements AfterViewInit, OnInit {
 
   @HostListener('window:scroll')
   onScroll() {
-    this.isScrolled.set(window.scrollY > 10);
+    const currentY = Math.max(0, window.scrollY);
+    this.isScrolled.set(currentY > 10);
+    if (window.innerWidth <= 768) {
+      const previousHidden = this.isMobileSearchHidden();
+      const delta = currentY - this.lastScrollY;
+      if (currentY < 48) {
+        this.isMobileSearchHidden.set(false);
+      } else if (Math.abs(delta) > 5) {
+        this.isMobileSearchHidden.set(delta > 0);
+      }
+      if (previousHidden !== this.isMobileSearchHidden()) {
+        // Let the search collapse/expand animation settle, then shrink page padding.
+        setTimeout(() => this.updateMobileHeaderHeight(), 200);
+      }
+    }
+    this.lastScrollY = currentY;
   }
 
   @HostListener('window:resize')

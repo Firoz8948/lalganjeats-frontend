@@ -4,6 +4,8 @@ import {
   AdminService,
   DeliveryZone,
   DeliveryZoneCreate,
+  DeliveryException,
+  DeliveryExceptionCreate,
   TenantCentre,
 } from '../../../../core/services/admin.service';
 
@@ -17,11 +19,19 @@ import {
 export class AdminZonesComponent implements OnInit {
   tenant = signal<TenantCentre | null>(null);
   zones = signal<DeliveryZone[]>([]);
+  deliveryExceptions = signal<DeliveryException[]>([]);
   zoneSaving = signal(false);
   zoneError = signal('');
   zoneSuccess = signal('');
   newZone: DeliveryZoneCreate = {
     name: '', radius_km: 2, pricing_type: 'flat', rate: 30, sort_order: 0,
+  };
+  newException: DeliveryExceptionCreate = {
+    name: '',
+    latitude: 26.1635,
+    longitude: 80.9345,
+    radius_meters: 500,
+    delivery_charge: 50,
   };
 
   constructor(private admin: AdminService) {}
@@ -36,6 +46,9 @@ export class AdminZonesComponent implements OnInit {
       next: (tenant) => {
         this.tenant.set(tenant);
         this.zones.set(tenant.zones || []);
+        this.deliveryExceptions.set(tenant.delivery_exceptions || []);
+        this.newException.latitude = Number(tenant.center_latitude);
+        this.newException.longitude = Number(tenant.center_longitude);
       },
       error: (error) => this.zoneError.set(
         typeof error.error?.detail === 'string'
@@ -79,6 +92,51 @@ export class AdminZonesComponent implements OnInit {
     if (!confirm(`Delete zone "${zone.name}"?`)) return;
     this.admin.deleteZone(zone.id).subscribe({
       next: () => this.zones.update((list) => list.filter((item) => item.id !== zone.id)),
+    });
+  }
+
+  createDeliveryException() {
+    this.zoneError.set('');
+    this.zoneSuccess.set('');
+    if (
+      !this.newException.name.trim()
+      || this.newException.radius_meters < 50
+      || this.newException.delivery_charge < 0
+    ) {
+      this.zoneError.set('Exception name, radius (minimum 50 m) and charge are required.');
+      return;
+    }
+    this.zoneSaving.set(true);
+    this.admin.createDeliveryException(this.newException).subscribe({
+      next: (item) => {
+        this.deliveryExceptions.update((list) => [...list, item]);
+        this.newException = {
+          name: '',
+          latitude: Number(this.tenant()?.center_latitude || 26.1635),
+          longitude: Number(this.tenant()?.center_longitude || 80.9345),
+          radius_meters: 500,
+          delivery_charge: 50,
+        };
+        this.zoneSaving.set(false);
+        this.zoneSuccess.set('Exception delivery location added.');
+      },
+      error: (error) => {
+        this.zoneSaving.set(false);
+        this.zoneError.set(
+          typeof error.error?.detail === 'string'
+            ? error.error.detail
+            : 'Failed to create exception location.',
+        );
+      },
+    });
+  }
+
+  deleteDeliveryException(item: DeliveryException) {
+    if (!confirm(`Delete exception location "${item.name}"?`)) return;
+    this.admin.deleteDeliveryException(item.id).subscribe({
+      next: () => this.deliveryExceptions.update(
+        (list) => list.filter((entry) => entry.id !== item.id),
+      ),
     });
   }
 }

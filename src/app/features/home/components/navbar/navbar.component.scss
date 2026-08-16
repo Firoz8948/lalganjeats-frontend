@@ -67,7 +67,16 @@
     border: 1.5px solid var(--color-border);
     border-radius: var(--radius-sm);
     padding: 10px 16px;
-    transition: var(--transition);
+    max-height: 48px;
+    overflow: hidden;
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+      max-height 180ms ease-out,
+      padding 180ms ease-out,
+      border-width 180ms ease-out,
+      opacity 140ms ease-out,
+      transform 180ms ease-out;
 
     svg { color: var(--color-muted); flex-shrink: 0; }
 
@@ -426,6 +435,16 @@
     }
 
     &:focus-within { border-color: var(--color-primary); }
+
+    &--hidden {
+      max-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      border-width: 0;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-8px);
+    }
   }
 }
 

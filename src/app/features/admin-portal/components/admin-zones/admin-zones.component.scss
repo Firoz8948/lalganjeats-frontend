@@ -18,3 +18,26 @@
   }
   .locked-note { margin-top: 10px; color: #c0392b; font-size: 12px; font-weight: 600; }
 }
+
+.exception-section {
+  margin-top: 32px;
+  padding-top: 26px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.exception-section__header {
+  margin-bottom: 16px;
+  padding: 18px;
+  border: 1px solid #bbf7d0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f0fdf4, #fff);
+
+  span { color: #15803d; font-size: 10px; font-weight: 900; letter-spacing: .14em; }
+  h2 { margin: 5px 0 6px; color: #14532d; font-size: 20px; }
+  p { max-width: 760px; margin: 0; color: #4b6354; font-size: 13px; line-height: 1.55; }
+}
+
+.exception-form {
+  border-color: #dcfce7;
+  background: #fbfffc;
+}

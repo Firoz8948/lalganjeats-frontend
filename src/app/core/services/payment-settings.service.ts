@@ -11,6 +11,9 @@ export interface PaymentSettings {
   platform_fee_percent: number;
   platform_charge_rupees: number;
   display_price_markup_percent: number;
+  allow_prepaid_orders: boolean;
+  allow_cod_orders: boolean;
+  cod_max_order_amount: number;
 }
 
 @Injectable({ providedIn: 'root' })

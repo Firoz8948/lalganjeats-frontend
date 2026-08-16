@@ -83,8 +83,9 @@
 
       <section class="user-sidebar__section">
         <h2 class="user-sidebar__section-title">Legal</h2>
-        <a class="user-sidebar__item" href="#" (click)="$event.preventDefault()">Terms &amp; Conditions</a>
-        <a class="user-sidebar__item" href="#" (click)="$event.preventDefault()">Privacy Policy</a>
+        <a class="user-sidebar__item" routerLink="/legal/terms" (click)="close()">Terms &amp; Conditions</a>
+        <a class="user-sidebar__item" routerLink="/legal/privacy" (click)="close()">Privacy Policy</a>
+        <a class="user-sidebar__item" routerLink="/legal/refund" (click)="close()">Return &amp; Refund Policy</a>
       </section>
     </nav>
 

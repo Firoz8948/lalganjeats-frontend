@@ -82,6 +82,12 @@ export const routes: Routes = [
       import('./features/offers/offers.routes').then(m => m.OFFERS_ROUTES),
   },
 
+  {
+    path: 'legal',
+    loadChildren: () =>
+      import('./features/legal/legal.routes').then(m => m.LEGAL_ROUTES),
+  },
+
   // Legacy alias — old /hotels links still work
   {
     path: 'hotels',

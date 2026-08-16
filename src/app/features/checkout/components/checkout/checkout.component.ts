@@ -47,6 +47,9 @@ export class CheckoutComponent implements OnInit {
   success = signal<{ order_number: string; eta_minutes: number | null; distance_km: number | null } | null>(null);
   deliveryCharge = signal(0);
   platformCharge = signal(2);
+  allowPrepaid = signal(true);
+  allowCod = signal(true);
+  codMaxAmount = signal(500);
   discountAmount = signal(0);
   freeDeliveryApplied = signal(false);
   appliedPromoCode = signal<string | null>(null);
@@ -63,6 +66,9 @@ export class CheckoutComponent implements OnInit {
       0,
       this.totalAmount() + this.effectiveDelivery() + this.platformCharge() - this.discountAmount(),
     ),
+  );
+  codAvailable = computed(() =>
+    this.allowCod() && this.grandTotal() < this.codMaxAmount(),
   );
   isLoggedIn = this.auth.isLoggedIn;
 
@@ -82,8 +88,17 @@ export class CheckoutComponent implements OnInit {
         });
     }
     this.paymentSettings.getPublicSettings().subscribe({
-      next: settings =>
-        this.platformCharge.set(Number(settings.platform_charge_rupees) || 0),
+      next: settings => {
+        this.platformCharge.set(Number(settings.platform_charge_rupees) || 0);
+        this.allowPrepaid.set(settings.allow_prepaid_orders !== false);
+        this.allowCod.set(settings.allow_cod_orders !== false);
+        this.codMaxAmount.set(Number(settings.cod_max_order_amount) || 500);
+        if (!this.codAvailable() && this.allowPrepaid()) {
+          this.paymentMethod = 'online';
+        } else if (!this.allowPrepaid() && this.codAvailable()) {
+          this.paymentMethod = 'cash';
+        }
+      },
       error: () => this.platformCharge.set(2),
     });
     this.promos.listActive().subscribe({
@@ -170,6 +185,16 @@ export class CheckoutComponent implements OnInit {
     const c = this.cartData();
     if (!c) return;
     this.error.set('');
+    if (this.paymentMethod === 'cash' && !this.codAvailable()) {
+      this.error.set(
+        `Cash on delivery is available only below ₹${this.codMaxAmount()}. Choose prepaid payment.`,
+      );
+      return;
+    }
+    if (this.paymentMethod === 'online' && !this.allowPrepaid()) {
+      this.error.set('Prepaid orders are currently unavailable.');
+      return;
+    }
     this.placing.set(true);
 
     const loc = this.customerLocation.location();

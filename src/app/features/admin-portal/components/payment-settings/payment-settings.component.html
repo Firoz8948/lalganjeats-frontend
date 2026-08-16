@@ -48,13 +48,13 @@
       <div class="settings-card">
         <h3>Earnings Split</h3>
         <div class="form-row">
-          <div class="form-group">
-            <label>Delivery Boy Per Order Earning (₹)</label>
-            <div class="input-prefix">
-              <span>₹</span>
-              <input type="number" formControlName="delivery_boy_per_order_earning" min="0" step="1" />
-            </div>
-            <small>Fixed amount delivery partner earns per order</small>
+          <div class="form-group zone-earning-note">
+            <label>Delivery Partner Earning</label>
+            <strong>Calculated from the matched delivery zone</strong>
+            <small>
+              The zone delivery charge is paid to the delivery partner.
+              Configure rates under Delivery Zones.
+            </small>
           </div>
           <div class="form-group">
             <label>Platform Charge (₹)</label>
@@ -83,7 +83,7 @@
           </div>
           <div class="split-row">
             <span>Delivery partner earns</span>
-            <strong>₹{{ form.get('delivery_boy_per_order_earning')?.value || 0 | number:'1.2-2' }}</strong>
+            <strong>₹{{ previewZoneDeliveryCharge | number:'1.2-2' }} <small>(example zone)</small></strong>
           </div>
           <div class="split-row">
             <span>Platform charge (customer)</span>
@@ -94,6 +94,34 @@
             <strong>
               {{ adminProfitPreview < 0 ? '−' : '' }}₹{{ (adminProfitPreview < 0 ? -adminProfitPreview : adminProfitPreview) | number:'1.2-2' }}
             </strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <h3>Customer Payment Methods</h3>
+        <div class="form-row">
+          <label class="payment-toggle">
+            <input type="checkbox" formControlName="allow_prepaid_orders">
+            <span>
+              <strong>Allow prepaid orders</strong>
+              <small>Customers can pay online for orders of any amount.</small>
+            </span>
+          </label>
+          <label class="payment-toggle">
+            <input type="checkbox" formControlName="allow_cod_orders">
+            <span>
+              <strong>Allow cash on delivery</strong>
+              <small>COD remains subject to the maximum amount below.</small>
+            </span>
+          </label>
+          <div class="form-group">
+            <label>COD available below (₹)</label>
+            <div class="input-prefix">
+              <span>₹</span>
+              <input type="number" formControlName="cod_max_order_amount" min="0" step="1" />
+            </div>
+            <small>At this amount and above, customers must use prepaid payment.</small>
           </div>
         </div>
       </div>

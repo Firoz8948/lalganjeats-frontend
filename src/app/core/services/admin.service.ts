@@ -219,6 +219,13 @@ export class AdminService {
     return this.http.get<any[]>(`${this.baseUrl}/customers`);
   }
 
+  setCustomerStatus(id: number, isActive: boolean): Observable<{ id: number; is_active: boolean }> {
+    return this.http.patch<{ id: number; is_active: boolean }>(
+      `${this.baseUrl}/customers/${id}/status`,
+      { is_active: isActive },
+    );
+  }
+
   // ── Menu management (admin impersonation) ─────────────────────────────────
 
   getRestaurantMenu(restaurantId: number): Observable<AdminMenuItem[]> {
@@ -314,6 +321,19 @@ export class AdminService {
     return this.http.delete<{ message: string }>(`${this.baseUrl}/zones/${id}`);
   }
 
+  createDeliveryException(payload: DeliveryExceptionCreate): Observable<DeliveryException> {
+    return this.http.post<DeliveryException>(
+      `${this.baseUrl}/delivery-exceptions`,
+      payload,
+    );
+  }
+
+  deleteDeliveryException(id: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(
+      `${this.baseUrl}/delivery-exceptions/${id}`,
+    );
+  }
+
   // ── Orders ───────────────────────────────────────────────────────────────
 
   getOrders(): Observable<AdminOrderRow[]> {
@@ -400,6 +420,24 @@ export interface DeliveryZoneCreate {
   sort_order?: number;
 }
 
+export interface DeliveryException {
+  id: number;
+  name: string;
+  latitude: number;
+  longitude: number;
+  radius_meters: number;
+  delivery_charge: number;
+  is_active: boolean;
+}
+
+export interface DeliveryExceptionCreate {
+  name: string;
+  latitude: number;
+  longitude: number;
+  radius_meters: number;
+  delivery_charge: number;
+}
+
 export interface TenantCentre {
   id: number;
   name: string;
@@ -409,6 +447,7 @@ export interface TenantCentre {
   center_address: string;
   platform_charge_percent: number;
   zones: DeliveryZone[];
+  delivery_exceptions: DeliveryException[];
 }
 
 export interface AdminOrderRow {

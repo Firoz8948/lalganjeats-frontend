@@ -250,3 +250,64 @@
 .auth-card--partner .auth-btn {
   background: var(--color-primary);
 }
+
+.legal-consent {
+  display: grid;
+  grid-template-columns: 0 30px 1fr;
+  align-items: center;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 11px;
+  line-height: 1.45;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease-out, background 120ms ease-out;
+
+  input {
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+
+  a {
+    color: #b91c1c;
+    font-weight: 800;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  &--sealed {
+    border-color: #86efac;
+    background: #f0fdf4;
+  }
+}
+
+.legal-seal {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 50%;
+  background: #fff;
+  color: transparent;
+  font-size: 14px;
+  font-weight: 900;
+  transition: transform 140ms ease-out, background 140ms ease-out;
+
+  .legal-consent--sealed & {
+    border-color: #16a34a;
+    background: #16a34a;
+    color: #fff;
+    transform: scale(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .legal-consent,
+  .legal-seal { transition: none; }
+}

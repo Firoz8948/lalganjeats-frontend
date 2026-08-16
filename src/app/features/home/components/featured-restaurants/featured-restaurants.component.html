@@ -2,10 +2,20 @@
   <div class="container">
 
     <div class="section-header">
-      <div>
-        <h2 class="section-title">
-          {{ selectedSubcategoryName() || 'Restaurants Near You' }}
-        </h2>
+      <div class="section-heading-copy">
+        <span class="section-eyebrow">HANDPICKED AROUND YOU</span>
+        <div class="section-title-row">
+          <span class="section-title-icon" aria-hidden="true">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </span>
+          <h2 class="section-title">
+            {{ selectedSubcategoryName() || 'Restaurants Near You' }}
+          </h2>
+        </div>
         <p class="section-subtitle">
           @if (selectedSubcategoryName()) {
             Restaurants serving {{ selectedSubcategoryName() }} near you

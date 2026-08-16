@@ -21,6 +21,7 @@ export class CustomerLoginComponent {
   phone     = '';
   otp       = '';
   fullName  = '';
+  acceptedLegal = false;
   isNewUser = false;
   loading   = signal(false);
   error     = signal('');
@@ -67,10 +68,19 @@ export class CustomerLoginComponent {
       this.error.set('Enter the 6-digit OTP');
       return;
     }
+    if (!this.acceptedLegal) {
+      this.error.set('Accept the Terms, Privacy Policy and Refund Policy to continue');
+      return;
+    }
     this.error.set('');
     this.loading.set(true);
 
-    this.auth.verifyOTP(this.phone, this.otp, this.ROLE).subscribe({
+    this.auth.verifyOTP(
+      this.phone,
+      this.otp,
+      this.ROLE,
+      this.acceptedLegal,
+    ).subscribe({
       next: (user) => {
         this.loading.set(false);
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');

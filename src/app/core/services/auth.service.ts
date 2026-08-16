@@ -17,6 +17,7 @@ export interface AuthUser {
   restaurant_name?: string;
   impersonated_by?: number;
   impersonation_session_id?: string;
+  legal_terms_version?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -53,10 +54,23 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/send-otp`, { phone, role });
   }
 
-  verifyOTP(phone: string, otp_code: string, role: string, full_name?: string) {
+  verifyOTP(
+    phone: string,
+    otp_code: string,
+    role: string,
+    accepted_legal: boolean,
+    full_name?: string,
+  ) {
     return this.http.post<AuthUser>(
       `${this.apiUrl}/verify-otp`,
-      { phone, otp_code, role, full_name }
+      {
+        phone,
+        otp_code,
+        role,
+        full_name,
+        accepted_legal,
+        legal_version: '2026-08-17',
+      }
     ).pipe(tap(user => this.saveSession(user)));
   }
 
