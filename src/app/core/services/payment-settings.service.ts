@@ -9,6 +9,7 @@ export interface PaymentSettings {
   free_delivery_above: number;
   delivery_boy_per_order_earning: number;
   platform_fee_percent: number;
+  platform_charge_rupees: number;
   display_price_markup_percent: number;
 }
 

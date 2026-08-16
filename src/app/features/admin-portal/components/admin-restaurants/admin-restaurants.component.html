@@ -24,12 +24,43 @@
       <input type="number" step="any" placeholder="Latitude" [(ngModel)]="newRestaurant.latitude"><input type="number" step="any" placeholder="Longitude" [(ngModel)]="newRestaurant.longitude">
     </div>
     @if(uploadError()){<p class="form-msg form-msg--error">{{uploadError()}}</p>}
-    <p class="upload-note">Upload a card banner for the restaurant listing. Stored locally for now — S3 bucket upload will be used in production.</p>
-    <div class="banner"><h3>{{bannerSpec.label}}</h3><p>{{bannerSpec.hint}}</p><small>Recommended: {{bannerSpec.size}} · {{bannerSpec.formats}}</small>
-      @if(bannerPreview()){<img [src]="bannerPreview()"><button class="danger-link" (click)="bannerPreview.set(null);newRestaurant.list_banner_url=''">Remove</button>}
-      @else{<label class="dropzone"><input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectBanner($event)">Click to upload restaurant card banner</label>}
+    <p class="upload-note">Upload three restaurant images. Each slot has its own recommended size and preview.</p>
+    <div class="image-upload-grid">
+      <div class="banner">
+        <h3>{{bannerSpec.label}}</h3>
+        <p>{{bannerSpec.hint}}</p>
+        <small>Recommended: {{bannerSpec.size}} · {{bannerSpec.formats}}</small>
+        @if(bannerPreview()){
+          <img [src]="bannerPreview()" alt="Restaurant card preview">
+          <button class="danger-link" type="button" (click)="bannerPreview.set(null);newRestaurant.list_banner_url=''">Remove</button>
+        } @else {
+          <label class="dropzone"><input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectBanner($event,'card')">Click to upload restaurant card</label>
+        }
+      </div>
+      <div class="banner">
+        <h3>{{desktopHeroSpec.label}}</h3>
+        <p>{{desktopHeroSpec.hint}}</p>
+        <small>Recommended: {{desktopHeroSpec.size}} · {{desktopHeroSpec.formats}}</small>
+        @if(desktopHeroPreview()){
+          <img class="banner-preview--wide" [src]="desktopHeroPreview()" alt="Desktop hero preview">
+          <button class="danger-link" type="button" (click)="desktopHeroPreview.set(null);newRestaurant.banner_url=''">Remove</button>
+        } @else {
+          <label class="dropzone"><input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectBanner($event,'desktop')">Click to upload desktop hero</label>
+        }
+      </div>
+      <div class="banner">
+        <h3>{{mobileHeroSpec.label}}</h3>
+        <p>{{mobileHeroSpec.hint}}</p>
+        <small>Recommended: {{mobileHeroSpec.size}} · {{mobileHeroSpec.formats}}</small>
+        @if(mobileHeroPreview()){
+          <img class="banner-preview--mobile" [src]="mobileHeroPreview()" alt="Mobile hero preview">
+          <button class="danger-link" type="button" (click)="mobileHeroPreview.set(null);newRestaurant.banner_mobile_url=''">Remove</button>
+        } @else {
+          <label class="dropzone"><input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectBanner($event,'mobile')">Click to upload mobile hero</label>
+        }
+      </div>
     </div>
-    <button class="approve-btn" [disabled]="saving()||bannerUploading()" (click)="create()">{{saving()?'Saving…':'Add Restaurant'}}</button>
+    <button class="approve-btn" [disabled]="saving()||bannerUploading()||desktopHeroUploading()||mobileHeroUploading()" (click)="create()">{{saving()?'Saving…':'Add Restaurant'}}</button>
   </div>
   }
 </div>
@@ -38,8 +69,12 @@
   @if(editError()){<p class="form-msg form-msg--error">{{editError()}}</p>}
   <div class="form-grid"><input placeholder="Restaurant name *" [(ngModel)]="editForm.name"><input placeholder="Cuisine / description" [(ngModel)]="editForm.description"><label class="select-field"><span>Business category</span><select [(ngModel)]="editForm.business_category_id">@for(category of catalogCategories();track category.id){<option [ngValue]="category.id">{{category.name}}</option>}</select></label><div class="phone-input"><span>+91</span><input type="tel" maxlength="10" placeholder="Restaurant phone" [ngModel]="editForm.restaurant_phone" (ngModelChange)="editPhone($event)"></div><input placeholder="Address" [(ngModel)]="editForm.address"><input placeholder="City" [(ngModel)]="editForm.city"><input placeholder="Pincode" [(ngModel)]="editForm.pincode"><input type="number" placeholder="Latitude" [(ngModel)]="editForm.latitude"><input type="number" placeholder="Longitude" [(ngModel)]="editForm.longitude"><input placeholder="Owner name" [(ngModel)]="editForm.owner_name"><input placeholder="Owner phone (read-only)" [ngModel]="editForm.owner_phone" disabled></div>
   <div class="flags"><label><input type="checkbox" [(ngModel)]="editForm.is_open"> Open now</label><label><input type="checkbox" [(ngModel)]="editForm.is_approved"> Approved</label><label><input type="checkbox" [(ngModel)]="editForm.is_active"> Active</label></div>
-  <div class="banner"><h3>Card banner</h3>@if(editBannerPreview()){<img [src]="editBannerPreview()"><button class="danger-link" (click)="editBannerPreview.set(null);editForm.list_banner_url=null">Remove</button>}@else{<label class="dropzone"><input hidden type="file" (change)="selectBanner($event,true)">Upload card banner</label>}</div>
-  <footer><button class="btn-secondary" (click)="closeEdit()">Cancel</button><button class="approve-btn" [disabled]="editSaving()||editBannerUploading()" (click)="saveEdit()">{{editSaving()?'Saving…':'Save changes'}}</button></footer>
+  <div class="image-upload-grid">
+    <div class="banner"><h3>Restaurant Card</h3><small>600 × 400 · home/list card</small>@if(editBannerPreview()){<img [src]="editBannerPreview()"><button class="danger-link" type="button" (click)="editBannerPreview.set(null);editForm.list_banner_url=null">Remove</button>}@else{<label class="dropzone"><input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectBanner($event,'card',true)">Upload card</label>}</div>
+    <div class="banner"><h3>Desktop Hero</h3><small>1600 × 600 · menu page</small>@if(editDesktopHeroPreview()){<img class="banner-preview--wide" [src]="editDesktopHeroPreview()"><button class="danger-link" type="button" (click)="editDesktopHeroPreview.set(null);editForm.banner_url=null">Remove</button>}@else{<label class="dropzone"><input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectBanner($event,'desktop',true)">Upload desktop hero</label>}</div>
+    <div class="banner"><h3>Mobile Hero</h3><small>1080 × 720 · menu page</small>@if(editMobileHeroPreview()){<img class="banner-preview--mobile" [src]="editMobileHeroPreview()"><button class="danger-link" type="button" (click)="editMobileHeroPreview.set(null);editForm.banner_mobile_url=null">Remove</button>}@else{<label class="dropzone"><input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectBanner($event,'mobile',true)">Upload mobile hero</label>}</div>
+  </div>
+  <footer><button class="btn-secondary" (click)="closeEdit()">Cancel</button><button class="approve-btn" [disabled]="editSaving()||editBannerUploading()||editDesktopHeroUploading()||editMobileHeroUploading()" (click)="saveEdit()">{{editSaving()?'Saving…':'Save changes'}}</button></footer>
 </div></div></div>}
 
 @if(menuOpen()){<div class="modal-backdrop" (click)="menuOpen.set(false)"><div class="modal" (click)="$event.stopPropagation()"><div class="modal__header"><div><h2 class="modal__title">Menu — {{menuName()}}</h2><p class="modal__sub">Add, toggle or delete menu items</p></div><button class="modal__close" (click)="menuOpen.set(false)">×</button></div>

@@ -10,6 +10,7 @@ export interface CartMenuItem {
   original_price: number | null;
   is_veg:         boolean;
   category:       string;
+  image_url:      string | null;
 }
 
 export interface CartItem extends CartMenuItem {
@@ -18,6 +19,7 @@ export interface CartItem extends CartMenuItem {
 
 export interface CartData {
   restaurantId: number;
+  restaurantName?: string;
   items:        CartItem[];
 }
 
@@ -54,14 +56,15 @@ export class CartService {
     return `${itemId}:${variantId ?? 'none'}`;
   }
 
-  addItem(restaurantId: number, item: CartMenuItem) {
+  addItem(
+    restaurantId: number,
+    item: CartMenuItem,
+    restaurantName?: string,
+  ): 'added' | 'conflict' {
     const current = this._cart();
 
     if (current && current.restaurantId !== restaurantId) {
-      const confirmed = confirm(
-        'Your cart has items from another restaurant. Clear cart and add this item?'
-      );
-      if (!confirmed) return;
+      return 'conflict';
     }
 
     const existing = current?.restaurantId === restaurantId ? current : null;
@@ -74,7 +77,12 @@ export class CartService {
       ? items.map((i, n) => n === idx ? { ...i, quantity: i.quantity + 1 } : i)
       : [...items, { ...item, quantity: 1 }];
 
-    this._save({ restaurantId, items: newItems });
+    this._save({
+      restaurantId,
+      restaurantName: restaurantName || existing?.restaurantName,
+      items: newItems,
+    });
+    return 'added';
   }
 
   removeItem(restaurantId: number, itemId: number, variantId: number | null = null) {
@@ -101,7 +109,11 @@ export class CartService {
     if (newItems.length === 0) {
       this._save(null);
     } else {
-      this._save({ restaurantId, items: newItems });
+      this._save({
+        restaurantId,
+        restaurantName: current.restaurantName,
+        items: newItems,
+      });
     }
   }
 
@@ -129,6 +141,7 @@ export class CartService {
         ...i,
         variant_id: (i as CartItem).variant_id ?? null,
         variant_label: (i as CartItem).variant_label ?? null,
+        image_url: (i as CartItem).image_url ?? null,
       }));
       return parsed;
     } catch { return null; }

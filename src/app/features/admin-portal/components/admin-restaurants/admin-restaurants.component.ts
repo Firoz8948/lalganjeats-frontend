@@ -10,9 +10,13 @@ export class AdminRestaurantsComponent implements OnInit {
   addRestaurantOpen=signal(false);
   catalogCategories=signal<CatalogCategory[]>([]);
   bannerPreview=signal<string|null>(null); bannerUploading=signal(false); uploadError=signal('');
+  desktopHeroPreview=signal<string|null>(null); mobileHeroPreview=signal<string|null>(null);
+  desktopHeroUploading=signal(false); mobileHeroUploading=signal(false);
   restaurantPhone=''; ownerPhone='';
-  newRestaurant:RestaurantCreatePayload={name:'',description:'',phone:'',address:'',city:'Lalganj',pincode:'',owner_phone:'',owner_name:'',latitude:null,longitude:null,logo_url:'',list_banner_url:'',business_category_id:null,is_approved:true};
-  editOpen=signal(false); editSaving=signal(false); editError=signal(''); editId:number|null=null; editBannerPreview=signal<string|null>(null); editBannerUploading=signal(false);
+  newRestaurant:RestaurantCreatePayload={name:'',description:'',phone:'',address:'',city:'Lalganj',pincode:'',owner_phone:'',owner_name:'',latitude:null,longitude:null,logo_url:'',list_banner_url:'',banner_url:'',banner_mobile_url:'',business_category_id:null,is_approved:true};
+  editOpen=signal(false); editSaving=signal(false); editError=signal(''); editId:number|null=null;
+  editBannerPreview=signal<string|null>(null); editDesktopHeroPreview=signal<string|null>(null); editMobileHeroPreview=signal<string|null>(null);
+  editBannerUploading=signal(false); editDesktopHeroUploading=signal(false); editMobileHeroUploading=signal(false);
   editForm:RestaurantUpdatePayload&{owner_phone?:string;restaurant_phone?:string}={};
   menuOpen=signal(false); menuRestaurantId=signal(0); menuName=signal(''); menuItems=signal<AdminMenuItem[]>([]); menuLoading=signal(false); menuSaving=signal(false); menuError=signal(''); deletingId=signal<number|null>(null);
   menuSubcategories=signal<CatalogSubcategory[]>([]);
@@ -24,7 +28,9 @@ export class AdminRestaurantsComponent implements OnInit {
   hasVariants=signal(false);
   variantDrafts:{label:string;actual_price:number|null;original_price:number|null}[]=[];
   newMenuItem:AdminMenuItemCreate={name:'',description:'',price:0,actual_price:0,category_name:'Other',subcategory_id:null,is_veg:true,is_bestseller:false};
-  readonly bannerSpec={label:'Restaurant Card Banner',hint:'Shown on the restaurant card in home page & restaurants list',size:'600 × 400 px (3:2 ratio)',formats:'JPG, PNG, or WebP · max 2 MB'};
+  readonly bannerSpec={label:'Restaurant Card',hint:'Shown on home page and restaurants list (desktop + mobile)',size:'600 × 400 px (3:2)',formats:'JPG, PNG, or WebP · max 2 MB'};
+  readonly desktopHeroSpec={label:'Hotel Hero Banner — Desktop',hint:'Shown on restaurant menu page for desktop screens',size:'1600 × 600 px (~8:3)',formats:'JPG, PNG, or WebP · max 2 MB'};
+  readonly mobileHeroSpec={label:'Hotel Hero Banner — Mobile',hint:'Shown on restaurant menu page for mobile screens',size:'1080 × 720 px (3:2)',formats:'JPG, PNG, or WebP · max 2 MB'};
   constructor(private admin:AdminService, private paymentSettings:PaymentSettingsService){}
   ngOnInit(){this.load();this.loadCatalog();this.loadPriceMarkup();}
   loadCatalog(){this.admin.getCatalogCategories().subscribe(categories=>{this.catalogCategories.set(categories.filter(item=>item.is_active));const restaurant=categories.find(item=>item.slug==='restaurant'&&item.is_active);if(!this.newRestaurant.business_category_id)this.newRestaurant.business_category_id=restaurant?.id||categories[0]?.id||null;});}
@@ -43,27 +49,103 @@ export class AdminRestaurantsComponent implements OnInit {
     if(this.restaurantPhone&&this.restaurantPhone.length!==10){this.error.set('Restaurant phone must be exactly 10 digits.');return}
     this.saving.set(true);
     this.admin.createRestaurant({...this.newRestaurant,owner_phone:this.ownerPhone,phone:this.restaurantPhone||undefined,latitude:this.newRestaurant.latitude??null,longitude:this.newRestaurant.longitude??null}).subscribe({
-      next:()=>{this.saving.set(false);this.success.set('Restaurant added successfully.');this.addRestaurantOpen.set(false);const categoryId=this.newRestaurant.business_category_id;this.newRestaurant={name:'',description:'',phone:'',address:'',city:'Lalganj',pincode:'',owner_phone:'',owner_name:'',latitude:null,longitude:null,logo_url:'',list_banner_url:'',business_category_id:categoryId,is_approved:true};this.restaurantPhone='';this.ownerPhone='';this.bannerPreview.set(null);this.load();},
+      next:()=>{this.saving.set(false);this.success.set('Restaurant added successfully.');this.addRestaurantOpen.set(false);const categoryId=this.newRestaurant.business_category_id;this.newRestaurant={name:'',description:'',phone:'',address:'',city:'Lalganj',pincode:'',owner_phone:'',owner_name:'',latitude:null,longitude:null,logo_url:'',list_banner_url:'',banner_url:'',banner_mobile_url:'',business_category_id:categoryId,is_approved:true};this.restaurantPhone='';this.ownerPhone='';this.bannerPreview.set(null);this.desktopHeroPreview.set(null);this.mobileHeroPreview.set(null);this.load();},
       error:e=>{this.saving.set(false);this.error.set(e.error?.detail||'Failed to add restaurant.')}
     });
   }
-  selectBanner(event:Event,editing=false){
-    const input=event.target as HTMLInputElement,file=input.files?.[0];if(!file)return;
-    const setError=(v:string)=>editing?this.editError.set(v):this.uploadError.set(v);
-    if(!['image/jpeg','image/png','image/webp'].includes(file.type)){setError('Please upload JPG, PNG, or WebP only.');input.value='';return}
-    if(file.size>2*1024*1024){setError('Image must be 2 MB or smaller.');input.value='';return}
-    const url=URL.createObjectURL(file); editing?this.editBannerPreview.set(url):this.bannerPreview.set(url); editing?this.editBannerUploading.set(true):this.bannerUploading.set(true);
-    this.admin.uploadBanner(file,'list_banner').subscribe({next:r=>{if(editing)this.editForm.list_banner_url=r.url;else this.newRestaurant.list_banner_url=r.url;editing?this.editBannerUploading.set(false):this.bannerUploading.set(false);input.value='';},error:e=>{editing?this.editBannerUploading.set(false):this.bannerUploading.set(false);setError(e.error?.detail||'Failed to upload image.');input.value='';}});
+  selectBanner(
+    event: Event,
+    slot: 'card' | 'desktop' | 'mobile' = 'card',
+    editing = false,
+  ) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const setError = (v: string) => editing ? this.editError.set(v) : this.uploadError.set(v);
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setError('Please upload JPG, PNG, or WebP only.');
+      input.value = '';
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Image must be 2 MB or smaller.');
+      input.value = '';
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    const purpose =
+      slot === 'card' ? 'list_banner' : slot === 'desktop' ? 'menu_banner' : 'menu_banner_mobile';
+    const setUploading = (v: boolean) => {
+      if (editing) {
+        if (slot === 'card') this.editBannerUploading.set(v);
+        else if (slot === 'desktop') this.editDesktopHeroUploading.set(v);
+        else this.editMobileHeroUploading.set(v);
+      } else {
+        if (slot === 'card') this.bannerUploading.set(v);
+        else if (slot === 'desktop') this.desktopHeroUploading.set(v);
+        else this.mobileHeroUploading.set(v);
+      }
+    };
+    const setPreview = (value: string | null) => {
+      if (editing) {
+        if (slot === 'card') this.editBannerPreview.set(value);
+        else if (slot === 'desktop') this.editDesktopHeroPreview.set(value);
+        else this.editMobileHeroPreview.set(value);
+      } else {
+        if (slot === 'card') this.bannerPreview.set(value);
+        else if (slot === 'desktop') this.desktopHeroPreview.set(value);
+        else this.mobileHeroPreview.set(value);
+      }
+    };
+    setPreview(url);
+    setUploading(true);
+    this.admin.uploadBanner(file, purpose).subscribe({
+      next: r => {
+        if (editing) {
+          if (slot === 'card') this.editForm.list_banner_url = r.url;
+          else if (slot === 'desktop') this.editForm.banner_url = r.url;
+          else this.editForm.banner_mobile_url = r.url;
+        } else {
+          if (slot === 'card') this.newRestaurant.list_banner_url = r.url;
+          else if (slot === 'desktop') this.newRestaurant.banner_url = r.url;
+          else this.newRestaurant.banner_mobile_url = r.url;
+        }
+        setUploading(false);
+        input.value = '';
+      },
+      error: e => {
+        setUploading(false);
+        setPreview(null);
+        setError(e.error?.detail || 'Failed to upload image.');
+        input.value = '';
+      },
+    });
   }
   approve(id:number){this.admin.approveRestaurant(id).subscribe(()=>this.load());}
-  openEdit(r:AdminRestaurantRow){this.editId=r.id;this.editError.set('');this.editForm={name:r.name,description:r.description??'',phone:r.phone??'',address:r.address??'',city:r.city??'Lalganj',pincode:r.pincode??'',latitude:r.latitude??null,longitude:r.longitude??null,logo_url:r.logo_url??'',list_banner_url:r.list_banner_url??'',banner_url:r.banner_url??'',business_category_id:r.business_category_id??null,is_open:r.is_open,is_approved:r.is_approved,is_active:r.is_active,owner_name:r.owner??'',owner_phone:r.owner_phone??'',restaurant_phone:(r.phone??'').replace(/\D/g,'').slice(-10)};this.editBannerPreview.set(r.list_banner_url||null);this.editOpen.set(true);}
-  closeEdit(){this.editOpen.set(false);this.editId=null;this.editError.set('');this.editBannerUploading.set(false);}
+  openEdit(r:AdminRestaurantRow){
+    this.editId=r.id;this.editError.set('');
+    this.editForm={
+      name:r.name,description:r.description??'',phone:r.phone??'',address:r.address??'',city:r.city??'Lalganj',
+      pincode:r.pincode??'',latitude:r.latitude??null,longitude:r.longitude??null,logo_url:r.logo_url??'',
+      list_banner_url:r.list_banner_url??'',banner_url:r.banner_url??'',banner_mobile_url:r.banner_mobile_url??'',
+      business_category_id:r.business_category_id??null,is_open:r.is_open,is_approved:r.is_approved,is_active:r.is_active,
+      owner_name:r.owner??'',owner_phone:r.owner_phone??'',restaurant_phone:(r.phone??'').replace(/\D/g,'').slice(-10)
+    };
+    this.editBannerPreview.set(r.list_banner_url||null);
+    this.editDesktopHeroPreview.set(r.banner_url||null);
+    this.editMobileHeroPreview.set(r.banner_mobile_url||null);
+    this.editOpen.set(true);
+  }
+  closeEdit(){
+    this.editOpen.set(false);this.editId=null;this.editError.set('');
+    this.editBannerUploading.set(false);this.editDesktopHeroUploading.set(false);this.editMobileHeroUploading.set(false);
+  }
   editPhone(v:string){this.editForm.restaurant_phone=v.replace(/\D/g,'').slice(0,10);}
   saveEdit(){
     if(!this.editId)return;this.editError.set('');
     if(!this.editForm.name?.trim()){this.editError.set('Restaurant name is required.');return}
     const phone=this.editForm.restaurant_phone||'';if(phone&&phone.length!==10){this.editError.set('Restaurant phone must be exactly 10 digits.');return}
-    const p:RestaurantUpdatePayload={name:this.editForm.name.trim(),description:this.editForm.description||null,phone:phone||null,address:this.editForm.address||null,city:this.editForm.city||'Lalganj',pincode:this.editForm.pincode||null,latitude:this.editForm.latitude!=null&&this.editForm.latitude!==('' as any)?Number(this.editForm.latitude):null,longitude:this.editForm.longitude!=null&&this.editForm.longitude!==('' as any)?Number(this.editForm.longitude):null,logo_url:this.editForm.logo_url||null,list_banner_url:this.editForm.list_banner_url||null,banner_url:this.editForm.banner_url||null,business_category_id:this.editForm.business_category_id??null,is_open:this.editForm.is_open,is_approved:this.editForm.is_approved,is_active:this.editForm.is_active,owner_name:this.editForm.owner_name||null};
+    const p:RestaurantUpdatePayload={name:this.editForm.name.trim(),description:this.editForm.description||null,phone:phone||null,address:this.editForm.address||null,city:this.editForm.city||'Lalganj',pincode:this.editForm.pincode||null,latitude:this.editForm.latitude!=null&&this.editForm.latitude!==('' as any)?Number(this.editForm.latitude):null,longitude:this.editForm.longitude!=null&&this.editForm.longitude!==('' as any)?Number(this.editForm.longitude):null,logo_url:this.editForm.logo_url||null,list_banner_url:this.editForm.list_banner_url||null,banner_url:this.editForm.banner_url||null,banner_mobile_url:this.editForm.banner_mobile_url||null,business_category_id:this.editForm.business_category_id??null,is_open:this.editForm.is_open,is_approved:this.editForm.is_approved,is_active:this.editForm.is_active,owner_name:this.editForm.owner_name||null};
     this.editSaving.set(true);this.admin.updateRestaurant(this.editId,p).subscribe({next:()=>{this.editSaving.set(false);this.closeEdit();this.success.set('Restaurant updated.');this.load();},error:e=>{this.editSaving.set(false);this.editError.set(typeof e.error?.detail==='string'?e.error.detail:'Failed to update restaurant.')}});
   }
   openMenu(r:AdminRestaurantRow){this.menuRestaurantId.set(r.id);this.menuName.set(r.name);this.menuBusinessCategoryId.set(r.business_category_id||0);this.menuOpen.set(true);this.menuError.set('');this.resetMenu();this.loadMenu();this.loadMenuSubcategories();}

@@ -21,6 +21,15 @@ export interface PromoValidateResult {
   remaining_uses?: number | null;
 }
 
+export interface PublicPromo {
+  code: string;
+  channel: string;
+  percent_off: number | null;
+  free_delivery: boolean;
+  description: string | null;
+  expires_at?: string | null;
+}
+
 /**
  * Public promocode validation.
  * Always send client_channel explicitly via getClientChannel().
@@ -34,6 +43,10 @@ export class PromoService {
   }
 
   constructor(private http: HttpClient) {}
+
+  listActive(): Observable<PublicPromo[]> {
+    return this.http.get<PublicPromo[]>(`${this.baseUrl}/active`);
+  }
 
   validate(
     code: string,

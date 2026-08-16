@@ -64,6 +64,8 @@ export interface CatalogSubcategory {
   name: string;
   slug: string;
   is_active: boolean;
+  is_featured: boolean;
+  product_count: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -90,9 +92,13 @@ export class AdminService {
     );
   }
 
-  getCatalogSubcategories(categoryId: number): Observable<CatalogSubcategory[]> {
+  getCatalogSubcategories(
+    categoryId: number,
+    productSort?: 'asc' | 'desc',
+  ): Observable<CatalogSubcategory[]> {
+    const sort = productSort ? `&product_sort=${productSort}` : '';
     return this.http.get<CatalogSubcategory[]>(
-      `${this.baseUrl}/catalog/subcategories?category_id=${categoryId}`,
+      `${this.baseUrl}/catalog/subcategories?category_id=${categoryId}${sort}`,
     );
   }
 
@@ -109,6 +115,13 @@ export class AdminService {
   toggleCatalogSubcategory(id: number): Observable<CatalogSubcategory> {
     return this.http.patch<CatalogSubcategory>(
       `${this.baseUrl}/catalog/subcategories/${id}/toggle`,
+      {},
+    );
+  }
+
+  toggleCatalogSubcategoryFeatured(id: number): Observable<CatalogSubcategory> {
+    return this.http.patch<CatalogSubcategory>(
+      `${this.baseUrl}/catalog/subcategories/${id}/featured`,
       {},
     );
   }
@@ -145,7 +158,13 @@ export class AdminService {
   /** Upload banner image — local storage now, S3 later */
   uploadBanner(
     file: File,
-    purpose: 'list_banner' | 'menu_banner' | 'menu_item' | 'home_banner_desktop' | 'home_banner_mobile'
+    purpose:
+      | 'list_banner'
+      | 'menu_banner'
+      | 'menu_banner_mobile'
+      | 'menu_item'
+      | 'home_banner_desktop'
+      | 'home_banner_mobile'
   ): Observable<{ url: string; path: string; purpose: string }> {
     const form = new FormData();
     form.append('file', file);
@@ -405,6 +424,7 @@ export interface PromoCode {
   remaining_uses: number;
   used_count: number;
   is_active: boolean;
+  is_public: boolean;
   is_expired: boolean;
   description: string | null;
   created_at: string | null;
@@ -418,6 +438,7 @@ export interface PromoCodeCreate {
   expires_at?: string | null;
   max_uses: number;
   description?: string | null;
+  is_public?: boolean;
 }
 
 export interface PromoUsage {

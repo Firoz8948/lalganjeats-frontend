@@ -56,6 +56,14 @@
             </div>
             <small>Fixed amount delivery partner earns per order</small>
           </div>
+          <div class="form-group">
+            <label>Platform Charge (₹)</label>
+            <div class="input-prefix">
+              <span>₹</span>
+              <input type="number" formControlName="platform_charge_rupees" min="0" step="0.5" />
+            </div>
+            <small>Added to every customer checkout total</small>
+          </div>
         </div>
 
         <div class="split-preview">
@@ -63,7 +71,7 @@
           <p class="preview-note">
             ₹{{ previewDisplayPrice | number:'1.2-2' }} calculated display price,
             ₹{{ previewTransferPrice | number:'1.2-2' }} seller transfer price.
-            MRP does not affect this calculation.
+            Customer also pays delivery + platform charge.
           </p>
           <div class="split-row">
             <span>Seller transfer</span>
@@ -76,6 +84,10 @@
           <div class="split-row">
             <span>Delivery partner earns</span>
             <strong>₹{{ form.get('delivery_boy_per_order_earning')?.value || 0 | number:'1.2-2' }}</strong>
+          </div>
+          <div class="split-row">
+            <span>Platform charge (customer)</span>
+            <strong>₹{{ form.get('platform_charge_rupees')?.value || 0 | number:'1.2-2' }}</strong>
           </div>
           <div class="split-row highlight" [class.loss]="adminProfitPreview < 0">
             <span>{{ adminProfitPreview < 0 ? 'Admin loss' : 'Admin profit' }}</span>

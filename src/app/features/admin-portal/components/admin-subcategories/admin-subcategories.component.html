@@ -17,6 +17,9 @@
   </header>
 
   <section class="subcategory-tools">
+    <p class="featured-help">
+      Tick a subcategory to show it in the customer hero row below the slides.
+    </p>
     <div class="add-row">
       <input
         placeholder="Add a new subcategory"
@@ -27,12 +30,23 @@
         {{ saving() ? 'Adding…' : '+ Add Subcategory' }}
       </button>
     </div>
-    <input
-      class="search"
-      placeholder="Search subcategories"
-      [ngModel]="search()"
-      (ngModelChange)="search.set($event)"
-    />
+    <div class="filter-row">
+      <input
+        class="search"
+        placeholder="Search subcategories"
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+      />
+      <label class="sort-control">
+        <span>Sort by products</span>
+        <select
+          [ngModel]="productSort()"
+          (ngModelChange)="productSort.set($event)">
+          <option value="desc">High to low</option>
+          <option value="asc">Low to high</option>
+        </select>
+      </label>
+    </div>
     @if (error()) { <p class="form-msg form-msg--error">{{ error() }}</p> }
   </section>
 
@@ -46,13 +60,21 @@
       </div>
     } @else {
       @for (item of filtered(); track item.id) {
-        <article [class.inactive]="!item.is_active">
+        <article [class.featured]="item.is_featured">
           <span class="item-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="8" cy="8" r="1"/></svg>
           </span>
-          <div><strong>{{ item.name }}</strong><small>{{ item.slug }}</small></div>
-          <button (click)="toggle(item)">
-            {{ item.is_active ? 'Active' : 'Inactive' }}
+          <div>
+            <strong>{{ item.name }}</strong>
+            <small>{{ item.product_count }} products · {{ item.slug }}</small>
+          </div>
+          <button
+            class="feature-tick"
+            [class.checked]="item.is_featured"
+            [attr.aria-label]="(item.is_featured ? 'Hide ' : 'Show ') + item.name + ' in hero row'"
+            [attr.aria-pressed]="item.is_featured"
+            (click)="toggleFeatured(item)">
+            @if (item.is_featured) { ✓ }
           </button>
         </article>
       }

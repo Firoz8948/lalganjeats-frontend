@@ -1,9 +1,11 @@
-import { Component, OnInit, effect, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { Restaurant } from '../../../../core/models/restaurant.model';
 import { RestaurantService } from '../../../../core/services/restaurant.service';
 import { CustomerLocationService } from '../../../../core/services/customer-location.service';
+
+type CardMetaKind = 'time' | 'min' | 'fee';
 
 @Component({
   selector: 'app-featured-restaurants',
@@ -12,27 +14,64 @@ import { CustomerLocationService } from '../../../../core/services/customer-loca
   templateUrl: './featured-restaurants.component.html',
   styleUrl: './featured-restaurants.component.scss',
 })
-export class FeaturedRestaurantsComponent implements OnInit {
+export class FeaturedRestaurantsComponent implements OnInit, OnDestroy {
   private restaurantService = inject(RestaurantService);
   private customerLocation = inject(CustomerLocationService);
+  private route = inject(ActivatedRoute);
+  private metaTimer: ReturnType<typeof setInterval> | null = null;
 
   restaurants = signal<Restaurant[]>([]);
   loading = signal(true);
   error = signal('');
   needsLocation = signal(false);
+  /** Shared ticker so each card cycles time → min order → delivery fee. */
+  metaTick = signal(0);
+  selectedSubcategoryId = signal<number | null>(null);
+  selectedSubcategoryName = signal('');
 
   constructor() {
+    this.route.queryParamMap.subscribe(params => {
+      const id = Number(params.get('subcategory_id'));
+      this.selectedSubcategoryId.set(Number.isInteger(id) && id > 0 ? id : null);
+      this.selectedSubcategoryName.set(params.get('name')?.trim() || '');
+    });
     effect(() => {
       const loc = this.customerLocation.location();
-      this.loadRestaurants(loc?.lat ?? null, loc?.lng ?? null);
+      this.loadRestaurants(
+        loc?.lat ?? null,
+        loc?.lng ?? null,
+        this.selectedSubcategoryId(),
+      );
     });
   }
 
   ngOnInit() {
-    // Initial load handled by effect; keep hook for Angular lifecycle.
+    this.metaTimer = setInterval(() => {
+      this.metaTick.update((n) => n + 1);
+    }, 2800);
   }
 
-  private loadRestaurants(lat: number | null, lng: number | null) {
+  ngOnDestroy() {
+    if (this.metaTimer) clearInterval(this.metaTimer);
+  }
+
+  cardMeta(restaurant: Restaurant): { kind: CardMetaKind; label: string } {
+    const kinds: CardMetaKind[] = ['time', 'min', 'fee'];
+    const kind = kinds[this.metaTick() % 3];
+    if (kind === 'time') {
+      return { kind, label: restaurant.delivery_time || '—' };
+    }
+    if (kind === 'min') {
+      return { kind, label: `Min. order: ${restaurant.min_order || '—'}` };
+    }
+    return { kind, label: restaurant.delivery_fee || '—' };
+  }
+
+  private loadRestaurants(
+    lat: number | null,
+    lng: number | null,
+    subcategoryId: number | null,
+  ) {
     if (lat == null || lng == null) {
       this.needsLocation.set(true);
       this.restaurants.set([]);
@@ -44,7 +83,7 @@ export class FeaturedRestaurantsComponent implements OnInit {
     this.needsLocation.set(false);
     this.loading.set(true);
     this.error.set('');
-    this.restaurantService.getRestaurants(lat, lng).subscribe({
+    this.restaurantService.getRestaurants(lat, lng, subcategoryId).subscribe({
       next: (data) => {
         this.restaurants.set(data);
         this.loading.set(false);

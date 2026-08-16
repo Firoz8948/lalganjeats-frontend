@@ -29,10 +29,17 @@
         <label>Number of uses<input type="number" min="1" [(ngModel)]="newPromo.max_uses"/></label>
       }
       <label>Expiry<input type="datetime-local" [(ngModel)]="promoExpiresLocal"/></label>
-      <label>Description<input [(ngModel)]="newPromo.description" placeholder="Optional note"/></label>
+      <label>Description<input [(ngModel)]="newPromo.description" placeholder="Shown with the offer"/></label>
     </div>
     <div class="promo-delivery-block">
-      <h4 class="promo-delivery-block__title">Delivery</h4>
+      <h4 class="promo-delivery-block__title">Visibility & delivery</h4>
+      <label class="promo-delivery-block__check">
+        <input type="checkbox" [(ngModel)]="newPromo.is_public"/>
+        <span>Show in active coupons (checkout + offers)</span>
+      </label>
+      <p class="promo-delivery-block__hint">
+        Leave unchecked for secret codes that customers can only enter manually.
+      </p>
       <label class="promo-delivery-block__check">
         <input type="checkbox" [(ngModel)]="newPromo.free_delivery"/>
         <span>Free Delivery</span>
@@ -47,13 +54,19 @@
   <div class="table-wrap">
     <table class="data-table">
       <thead>
-        <tr><th>Code</th><th>Channel</th><th>Benefit</th><th>Uses left</th><th>Expiry</th><th>Status</th><th></th></tr>
+        <tr><th>Code</th><th>Channel</th><th>Visibility</th><th>Benefit</th><th>Uses left</th><th>Expiry</th><th>Status</th><th></th></tr>
       </thead>
       <tbody>
         @for (promo of promos(); track promo.id) {
           <tr>
-            <td><strong>{{ promo.code }}</strong></td>
+            <td>
+              <strong>{{ promo.code }}</strong>
+              @if (promo.description) {
+                <div class="promo-desc">{{ promo.description }}</div>
+              }
+            </td>
             <td>{{ promo.channel === 'mobile_app' ? 'Mobile app only' : 'All' }}</td>
+            <td>{{ promo.is_public ? 'Public' : 'Secret' }}</td>
             <td>
               @if (promo.percent_off) { {{ promo.percent_off }}% off }
               @if (promo.percent_off && promo.free_delivery) { + }
@@ -73,7 +86,7 @@
             </td>
           </tr>
         } @empty {
-          <tr><td colspan="7" class="empty-table-cell">No promocodes yet.</td></tr>
+          <tr><td colspan="8" class="empty-table-cell">No promocodes yet.</td></tr>
         }
       </tbody>
     </table>

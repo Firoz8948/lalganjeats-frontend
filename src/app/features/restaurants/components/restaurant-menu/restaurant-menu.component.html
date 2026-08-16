@@ -14,13 +14,18 @@
       </button>
 
       <div class="hotel-hero"
-           [class.has-banner]="!!restaurant().bannerUrl"
-           [style.background]="restaurant().bannerUrl ? null : restaurant().imageBg">
+           [class.has-banner]="!!(restaurant().bannerUrl || restaurant().bannerMobileUrl)"
+           [style.background]="(restaurant().bannerUrl || restaurant().bannerMobileUrl) ? null : restaurant().imageBg">
 
-        @if (restaurant().bannerUrl) {
-          <img class="hotel-hero__banner"
-               [src]="restaurant().bannerUrl"
-               [alt]="restaurant().name">
+        @if (restaurant().bannerUrl || restaurant().bannerMobileUrl) {
+          <picture>
+            @if (restaurant().bannerMobileUrl) {
+              <source media="(max-width: 768px)" [srcset]="restaurant().bannerMobileUrl!" />
+            }
+            <img class="hotel-hero__banner"
+                 [src]="restaurant().bannerUrl || restaurant().bannerMobileUrl"
+                 [alt]="restaurant().name">
+          </picture>
           <div class="hotel-hero__scrim"></div>
         }
 
@@ -272,6 +277,30 @@
     <a routerLink="/checkout" class="mobile-cart-bar__btn">
       View Cart →
     </a>
+  </div>
+}
+
+@if (pendingCartItem()) {
+  <div class="cart-conflict" role="dialog" aria-modal="true" aria-labelledby="cart-conflict-title">
+    <button
+      class="cart-conflict__backdrop"
+      type="button"
+      aria-label="Close"
+      (click)="pendingCartItem.set(null)"></button>
+    <section class="cart-conflict__panel">
+      <h2 id="cart-conflict-title">Items already in your cart</h2>
+      <p>
+        Your cart has food from
+        <strong>{{ cartService.cart()?.restaurantName || 'another restaurant' }}</strong>.
+        A cart can contain items from only one restaurant.
+      </p>
+      <button class="cart-conflict__primary" type="button" (click)="clearCartAndProceed()">
+        Clear cart and add this item
+      </button>
+      <button class="cart-conflict__secondary" type="button" (click)="keepCartAndView()">
+        Don't remove — go to checkout
+      </button>
+    </section>
   </div>
 }
 

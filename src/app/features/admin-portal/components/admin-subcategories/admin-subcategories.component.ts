@@ -21,13 +21,21 @@ export class AdminSubcategoriesComponent implements OnInit {
   saving = signal(false);
   error = signal('');
   search = signal('');
+  productSort = signal<'asc' | 'desc'>('desc');
   newName = '';
 
   filtered = computed(() => {
     const query = this.search().trim().toLowerCase();
-    if (!query) return this.subcategories();
-    return this.subcategories().filter(item =>
-      item.name.toLowerCase().includes(query)
+    const items = query
+      ? this.subcategories().filter(item =>
+          item.name.toLowerCase().includes(query)
+        )
+      : this.subcategories();
+    const direction = this.productSort() === 'asc' ? 1 : -1;
+    return [...items].sort(
+      (a, b) =>
+        (a.product_count - b.product_count) * direction ||
+        a.name.localeCompare(b.name),
     );
   });
 
@@ -94,11 +102,13 @@ export class AdminSubcategoriesComponent implements OnInit {
     });
   }
 
-  toggle(item: CatalogSubcategory) {
-    this.admin.toggleCatalogSubcategory(item.id).subscribe(updated => {
+  toggleFeatured(item: CatalogSubcategory) {
+    this.admin.toggleCatalogSubcategoryFeatured(item.id).subscribe(updated => {
       this.subcategories.update(value =>
         value.map(subcategory =>
-          subcategory.id === updated.id ? updated : subcategory
+          subcategory.id === updated.id
+            ? { ...subcategory, ...updated }
+            : subcategory
         )
       );
     });

@@ -6,6 +6,13 @@ import { CartService, CartItem } from '../../../../core/services/cart.service';
 import { OrderService, PlaceOrderPayload, PlaceOrderResult } from '../../../../core/services/order.service';
 import { CustomerLocationService } from '../../../../core/services/customer-location.service';
 import { RestaurantService } from '../../../../core/services/restaurant.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { PaymentSettingsService } from '../../../../core/services/payment-settings.service';
+import {
+  PromoService,
+  PromoValidateResult,
+  PublicPromo,
+} from '../../../../core/services/promo.service';
 import { ProfileService, Address } from '../../../profile/services/profile.service';
 import { NavbarComponent } from '../../../home/components/navbar/navbar.component';
 
@@ -22,6 +29,9 @@ export class CheckoutComponent implements OnInit {
   private profile = inject(ProfileService);
   private customerLocation = inject(CustomerLocationService);
   private restaurants = inject(RestaurantService);
+  private auth = inject(AuthService);
+  private paymentSettings = inject(PaymentSettingsService);
+  private promos = inject(PromoService);
   private router = inject(Router);
 
   addresses = signal<Address[]>([]);
@@ -29,14 +39,32 @@ export class CheckoutComponent implements OnInit {
   paymentMethod: 'cash' | 'online' = 'cash';
   notes = '';
   newAddress = '';
+  promoCode = '';
   placing = signal(false);
+  applyingPromo = signal(false);
   error = signal('');
+  promoMessage = signal('');
   success = signal<{ order_number: string; eta_minutes: number | null; distance_km: number | null } | null>(null);
   deliveryCharge = signal(0);
+  platformCharge = signal(2);
+  discountAmount = signal(0);
+  freeDeliveryApplied = signal(false);
+  appliedPromoCode = signal<string | null>(null);
+  publicPromos = signal<PublicPromo[]>([]);
+  showAppPromoPopup = signal(false);
 
   cartData = this.cart.cart;
   totalAmount = this.cart.totalAmount;
-  grandTotal = computed(() => this.totalAmount() + this.deliveryCharge());
+  effectiveDelivery = computed(() =>
+    this.freeDeliveryApplied() ? 0 : this.deliveryCharge(),
+  );
+  grandTotal = computed(() =>
+    Math.max(
+      0,
+      this.totalAmount() + this.effectiveDelivery() + this.platformCharge() - this.discountAmount(),
+    ),
+  );
+  isLoggedIn = this.auth.isLoggedIn;
 
   ngOnInit() {
     if (!this.cartData()) {
@@ -53,6 +81,20 @@ export class CheckoutComponent implements OnInit {
             this.deliveryCharge.set(restaurant.delivery_charge || 0),
         });
     }
+    this.paymentSettings.getPublicSettings().subscribe({
+      next: settings =>
+        this.platformCharge.set(Number(settings.platform_charge_rupees) || 0),
+      error: () => this.platformCharge.set(2),
+    });
+    this.promos.listActive().subscribe({
+      next: rows => this.publicPromos.set(rows),
+    });
+    if (this.isLoggedIn()) {
+      this.loadAddresses();
+    }
+  }
+
+  private loadAddresses() {
     this.profile.getAddresses().subscribe({
       next: (list: Address[]) => {
         this.addresses.set(list);
@@ -60,6 +102,68 @@ export class CheckoutComponent implements OnInit {
         if (def) this.selectedAddressId.set(def.id);
       },
     });
+  }
+
+  usePublicPromo(code: string) {
+    this.promoCode = code;
+    this.applyPromo();
+  }
+
+  applyPromo() {
+    const code = this.promoCode.trim();
+    if (!code) {
+      this.promoMessage.set('Enter a promo code.');
+      return;
+    }
+    this.applyingPromo.set(true);
+    this.promoMessage.set('');
+    this.error.set('');
+    this.promos
+      .validate(code, {
+        subtotal: this.totalAmount(),
+        delivery_fee: this.deliveryCharge(),
+      })
+      .subscribe({
+        next: (result: PromoValidateResult) => {
+          this.applyingPromo.set(false);
+          if (result.download_required) {
+            this.clearPromoBenefits();
+            this.showAppPromoPopup.set(true);
+            this.promoMessage.set(result.message);
+            return;
+          }
+          if (!result.valid) {
+            this.clearPromoBenefits();
+            this.promoMessage.set(result.message || 'Invalid promocode');
+            return;
+          }
+          this.appliedPromoCode.set(result.code || code.toUpperCase());
+          this.discountAmount.set(Number(result.discount_amount) || 0);
+          this.freeDeliveryApplied.set(!!result.free_delivery);
+          this.promoMessage.set(result.message || 'Promocode applied');
+        },
+        error: () => {
+          this.applyingPromo.set(false);
+          this.clearPromoBenefits();
+          this.promoMessage.set('Could not verify promocode.');
+        },
+      });
+  }
+
+  clearPromoBenefits() {
+    this.appliedPromoCode.set(null);
+    this.discountAmount.set(0);
+    this.freeDeliveryApplied.set(false);
+  }
+
+  onPrimaryAction() {
+    if (!this.isLoggedIn()) {
+      this.router.navigate(['/auth/login'], {
+        queryParams: { returnUrl: '/checkout' },
+      });
+      return;
+    }
+    this.placeOrder();
   }
 
   placeOrder() {
@@ -73,6 +177,8 @@ export class CheckoutComponent implements OnInit {
       restaurant_id: c.restaurantId,
       payment_method: this.paymentMethod,
       notes: this.notes || null,
+      promo_code: this.appliedPromoCode() || this.promoCode.trim() || null,
+      client_channel: this.promos.clientChannel,
       items: c.items.map((i: CartItem) => ({
         menu_item_id: i.id,
         quantity: i.quantity,
@@ -108,9 +214,19 @@ export class CheckoutComponent implements OnInit {
           distance_km: res.distance_km,
         });
       },
-      error: (err: { error?: { detail?: string } }) => {
+      error: (err: { error?: { detail?: any } }) => {
         this.placing.set(false);
-        this.error.set(err.error?.detail || 'Failed to place order.');
+        const detail = err.error?.detail;
+        if (detail && typeof detail === 'object') {
+          if (detail.download_required) {
+            this.showAppPromoPopup.set(true);
+          }
+          this.error.set(detail.message || 'Failed to place order.');
+          return;
+        }
+        this.error.set(
+          typeof detail === 'string' ? detail : 'Failed to place order.',
+        );
       },
     });
   }

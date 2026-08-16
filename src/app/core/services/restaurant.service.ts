@@ -27,18 +27,39 @@ export interface PublicMenuItem {
   variants?:      PublicMenuVariant[];
 }
 
+export interface FeaturedSubcategory {
+  id: number;
+  name: string;
+  slug: string;
+  product_count: number;
+  restaurant_count: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class RestaurantService {
   private readonly baseUrl = `${environment.apiBaseUrl}/restaurants`;
 
   constructor(private http: HttpClient) {}
 
-  getRestaurants(lat?: number | null, lng?: number | null): Observable<Restaurant[]> {
+  getRestaurants(
+    lat?: number | null,
+    lng?: number | null,
+    subcategoryId?: number | null,
+  ): Observable<Restaurant[]> {
     let params = new HttpParams();
     if (lat != null && lng != null) {
       params = params.set('lat', String(lat)).set('lng', String(lng));
     }
+    if (subcategoryId != null) {
+      params = params.set('subcategory_id', String(subcategoryId));
+    }
     return this.http.get<Restaurant[]>(this.baseUrl, { params });
+  }
+
+  getFeaturedSubcategories(): Observable<FeaturedSubcategory[]> {
+    return this.http.get<FeaturedSubcategory[]>(
+      `${this.baseUrl}/subcategories/featured`,
+    );
   }
 
   getRestaurant(

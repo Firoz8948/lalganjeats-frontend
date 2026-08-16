@@ -34,6 +34,7 @@ export class AdminPromosComponent implements OnInit {
     expires_at: null,
     max_uses: 100,
     description: '',
+    is_public: true,
   };
 
   constructor(private admin: AdminService) {}
@@ -86,7 +87,7 @@ export class AdminPromosComponent implements OnInit {
         this.promoSuccess.set('Promocode created.');
         this.newPromo = {
           code: '', channel: 'all', percent_off: 10, free_delivery: false,
-          expires_at: null, max_uses: 100, description: '',
+          expires_at: null, max_uses: 100, description: '', is_public: true,
         };
         this.promoMaxUsesMode = 'custom';
         this.promoExpiresLocal = '';

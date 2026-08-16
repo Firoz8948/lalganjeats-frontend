@@ -32,14 +32,12 @@ export const routes: Routes = [
 
   {
     path: 'cart',
-    canActivate: [authGuard],
-    loadChildren: () =>
-      import('./features/cart/cart.routes').then(m => m.CART_ROUTES),
+    redirectTo: 'checkout',
+    pathMatch: 'full',
   },
 
   {
     path: 'checkout',
-    canActivate: [authGuard],
     loadChildren: () =>
       import('./features/checkout/checkout.routes').then(m => m.CHECKOUT_ROUTES),
   },
@@ -76,6 +74,12 @@ export const routes: Routes = [
     path: 'restaurants',
     loadChildren: () =>
       import('./features/restaurants/restaurants.routes').then(m => m.RESTAURANT_ROUTES),
+  },
+
+  {
+    path: 'offers',
+    loadChildren: () =>
+      import('./features/offers/offers.routes').then(m => m.OFFERS_ROUTES),
   },
 
   // Legacy alias — old /hotels links still work

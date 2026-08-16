@@ -18,6 +18,7 @@ export interface PlaceOrderPayload {
   payment_method: 'cash' | 'online';
   notes?: string | null;
   promo_code?: string | null;
+  client_channel?: string | null;
   items: PlaceOrderItem[];
 }
 
@@ -30,6 +31,7 @@ export interface PlaceOrderResult {
   total_amount: number;
   delivery_fee: number;
   discount: number;
+  platform_charge?: number;
   distance_km: number | null;
   eta_minutes: number | null;
   online_payment_stub?: { stub: boolean; message: string } | null;

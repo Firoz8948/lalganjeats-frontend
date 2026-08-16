@@ -15,6 +15,7 @@ export interface Restaurant {
   logo_url?: string | null;
   list_banner_url?: string | null;
   banner_url?: string | null;
+  banner_mobile_url?: string | null;
   address?: string | null;
   city?: string;
 }
@@ -31,6 +32,7 @@ export interface RestaurantCreatePayload {
   logo_url?: string;
   list_banner_url?: string;
   banner_url?: string;
+  banner_mobile_url?: string;
   owner_phone: string;
   owner_name?: string;
   business_category_id?: number | null;
@@ -49,6 +51,7 @@ export interface RestaurantUpdatePayload {
   logo_url?: string | null;
   list_banner_url?: string | null;
   banner_url?: string | null;
+  banner_mobile_url?: string | null;
   is_open?: boolean;
   is_approved?: boolean;
   is_active?: boolean;
@@ -71,6 +74,7 @@ export interface AdminRestaurantRow {
   logo_url?: string | null;
   list_banner_url?: string | null;
   banner_url?: string | null;
+  banner_mobile_url?: string | null;
   business_category_id?: number | null;
   business_category?: string | null;
   is_open: boolean;

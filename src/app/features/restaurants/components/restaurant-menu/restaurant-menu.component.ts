@@ -25,6 +25,7 @@ interface RestaurantInfo {
   emoji: string;
   imageBg: string;
   bannerUrl: string | null;
+  bannerMobileUrl: string | null;
   logoUrl: string | null;
 }
 
@@ -49,13 +50,14 @@ export class RestaurantMenuComponent implements OnInit {
   loading = signal(true);
   outOfArea = signal(false);
   selectedVariant = signal<Record<number, number>>({});
+  pendingCartItem = signal<PublicMenuItem | null>(null);
 
   restaurant = signal<RestaurantInfo>({
     name: '', cuisine: '', rating: 4.0, reviewCount: 0,
     deliveryTime: '30-40 min', deliveryFee: 'Free delivery',
     minOrder: '₹100', isOpen: true, address: '',
     emoji: '🍛', imageBg: '#FFF0F0',
-    bannerUrl: null, logoUrl: null,
+    bannerUrl: null, bannerMobileUrl: null, logoUrl: null,
   });
 
   categories = computed(() => {
@@ -108,6 +110,8 @@ export class RestaurantMenuComponent implements OnInit {
           emoji: data.image_emoji,
           imageBg: data.image_bg,
           bannerUrl: data.banner_url || data.list_banner_url || null,
+          bannerMobileUrl:
+            data.banner_mobile_url || data.banner_url || data.list_banner_url || null,
           logoUrl: data.logo_url || null,
         });
       },
@@ -170,7 +174,7 @@ export class RestaurantMenuComponent implements OnInit {
       alert('Choose Half or Full first.');
       return;
     }
-    this.cartService.addItem(this.restaurantId(), {
+    const result = this.cartService.addItem(this.restaurantId(), {
       id: item.id,
       variant_id: variant?.id ?? null,
       variant_label: variant?.label ?? null,
@@ -179,7 +183,9 @@ export class RestaurantMenuComponent implements OnInit {
       original_price: variant?.original_price ?? item.original_price,
       is_veg: item.is_veg,
       category: item.category,
-    });
+      image_url: item.image_url,
+    }, this.restaurant().name);
+    if (result === 'conflict') this.pendingCartItem.set(item);
   }
 
   incrementCartItem(item: CartItem) {
@@ -192,7 +198,21 @@ export class RestaurantMenuComponent implements OnInit {
       original_price: item.original_price,
       is_veg: item.is_veg,
       category: item.category,
-    });
+      image_url: item.image_url,
+    }, this.restaurant().name);
+  }
+
+  clearCartAndProceed() {
+    const item = this.pendingCartItem();
+    if (!item) return;
+    this.cartService.clearCart();
+    this.pendingCartItem.set(null);
+    this.addToCart(item);
+  }
+
+  keepCartAndView() {
+    this.pendingCartItem.set(null);
+    this.router.navigate(['/checkout']);
   }
 
   removeFromCart(item: PublicMenuItem | CartItem) {

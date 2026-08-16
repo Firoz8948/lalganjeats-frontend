@@ -1,0 +1,43 @@
+<app-navbar />
+
+<main class="offers page-content">
+  <div class="container offers__wrap">
+    <header>
+      <p>Active coupons</p>
+      <h1>Offers & promo codes</h1>
+      <span>Public coupons you can use at checkout. Secret codes stay hidden.</span>
+    </header>
+
+    @if (loading()) {
+      <p class="offers__status">Loading offers…</p>
+    } @else if (error()) {
+      <p class="offers__status">{{ error() }}</p>
+    } @else if (!items().length) {
+      <div class="offers__empty">
+        <strong>No public offers yet</strong>
+        <p>Check back soon, or ask support if you have a private code.</p>
+      </div>
+    } @else {
+      <div class="offers__grid">
+        @for (item of items(); track item.code) {
+          <article class="offer-card">
+            <div class="offer-card__code">{{ item.code }}</div>
+            <h2>
+              @if (item.percent_off) { {{ item.percent_off }}% off }
+              @if (item.percent_off && item.free_delivery) { + }
+              @if (item.free_delivery) { Free delivery }
+            </h2>
+            <p>{{ item.description || 'Use this code at checkout.' }}</p>
+            @if (item.channel === 'mobile_app') {
+              <span class="offer-card__badge">App only</span>
+            }
+          </article>
+        }
+      </div>
+    }
+
+    <a routerLink="/restaurants" class="offers__cta">Browse restaurants</a>
+  </div>
+</main>
+
+<app-footer />

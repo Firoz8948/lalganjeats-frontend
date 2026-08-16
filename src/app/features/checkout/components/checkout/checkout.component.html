@@ -21,12 +21,19 @@
         <section class="panel">
           <h2>Items</h2>
           @for (item of c.items; track item.id + '-' + (item.variant_id ?? 'x')) {
-            <div class="line">
-              <span>
-                {{ item.name }}
-                @if (item.variant_label) { ({{ item.variant_label }}) }
-                × {{ item.quantity }}
-              </span>
+            <div class="line checkout-item">
+              <div class="checkout-item__details">
+                @if (item.image_url) {
+                  <img [src]="item.image_url" [alt]="item.name" loading="lazy" />
+                } @else {
+                  <span class="checkout-item__placeholder" aria-hidden="true">🍽️</span>
+                }
+                <span>
+                  {{ item.name }}
+                  @if (item.variant_label) { ({{ item.variant_label }}) }
+                  × {{ item.quantity }}
+                </span>
+              </div>
               <strong>₹{{ item.price * item.quantity }}</strong>
             </div>
           }
@@ -35,13 +42,55 @@
             <strong>₹{{ totalAmount() }}</strong>
           </div>
           <div class="line">
-            <span>Delivery (distance zone)</span>
-            <strong>₹{{ deliveryCharge() }}</strong>
+            <span>Delivery Charge</span>
+            <strong>₹{{ effectiveDelivery() }}</strong>
           </div>
+          <div class="line">
+            <span>Platform Charge</span>
+            <strong>₹{{ platformCharge() }}</strong>
+          </div>
+          @if (discountAmount() > 0) {
+            <div class="line">
+              <span>Discount</span>
+              <strong>−₹{{ discountAmount() }}</strong>
+            </div>
+          }
           <div class="line total">
             <span>Total</span>
             <strong>₹{{ grandTotal() }}</strong>
           </div>
+        </section>
+
+        <section class="panel">
+          <h2>Coupons</h2>
+          @if (publicPromos().length) {
+            <div class="active-coupons">
+              <p>Active coupons</p>
+              @for (promo of publicPromos(); track promo.code) {
+                <button type="button" class="coupon-chip" (click)="usePublicPromo(promo.code)">
+                  <strong>{{ promo.code }}</strong>
+                  <span>{{ promo.description || 'Tap to apply' }}</span>
+                </button>
+              }
+            </div>
+          }
+          <div class="promo-row">
+            <input
+              type="text"
+              placeholder="Promo code"
+              [(ngModel)]="promoCode"
+              (keyup.enter)="applyPromo()"
+            />
+            <button type="button" class="btn-secondary" [disabled]="applyingPromo()" (click)="applyPromo()">
+              {{ applyingPromo() ? 'Checking…' : 'Apply' }}
+            </button>
+          </div>
+          @if (promoMessage()) {
+            <p class="promo-msg">{{ promoMessage() }}</p>
+          }
+          @if (appliedPromoCode()) {
+            <p class="promo-msg promo-msg--ok">Applied: {{ appliedPromoCode() }}</p>
+          }
         </section>
 
         <section class="panel">
@@ -90,10 +139,27 @@
         }
 
         <button class="btn-primary" type="button"
-                [disabled]="placing()" (click)="placeOrder()">
-          {{ placing() ? 'Placing…' : 'Place order' }}
+                [disabled]="placing()" (click)="onPrimaryAction()">
+          @if (!isLoggedIn()) {
+            Login to place order
+          } @else if (placing()) {
+            Placing…
+          } @else {
+            Place order
+          }
         </button>
       }
     }
   </div>
 </div>
+
+@if (showAppPromoPopup()) {
+  <div class="app-promo" role="dialog" aria-modal="true">
+    <button class="app-promo__backdrop" type="button" aria-label="Close" (click)="showAppPromoPopup.set(false)"></button>
+    <section class="app-promo__panel">
+      <h2>Coupon code applicable for app only</h2>
+      <p>Download the LalganjEats app to use this promocode. App link will be added soon.</p>
+      <button type="button" class="btn-primary" (click)="showAppPromoPopup.set(false)">Got it</button>
+    </section>
+  </div>
+}
