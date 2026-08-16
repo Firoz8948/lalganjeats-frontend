@@ -12,6 +12,7 @@ import { AdminSettlementsComponent } from '../admin-settlements/admin-settlement
 import { AdminSubcategoriesComponent } from '../admin-subcategories/admin-subcategories.component';
 import { AdminZonesComponent } from '../admin-zones/admin-zones.component';
 import { PaymentSettingsComponent } from '../payment-settings/payment-settings.component';
+import { AdminReportsComponent } from '../reports/admin-reports.component';
 
 type AdminTab =
   | 'overview'
@@ -23,6 +24,7 @@ type AdminTab =
   | 'banners'
   | 'payment'
   | 'settlements'
+  | 'reports'
   | 'zones'
   | 'promos';
 
@@ -39,6 +41,7 @@ type AdminTab =
     AdminBannersComponent,
     PaymentSettingsComponent,
     AdminSettlementsComponent,
+    AdminReportsComponent,
     AdminZonesComponent,
     AdminPromosComponent,
   ],

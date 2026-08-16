@@ -1,0 +1,153 @@
+<div class="reports-page">
+  <header class="reports-hero">
+    <div>
+      <p class="eyebrow">PARTNER COMMUNICATIONS</p>
+      <h1>Reports</h1>
+      <p>Generate and send privacy-safe order, financial and settlement summaries.</p>
+    </div>
+    <div class="privacy-note">
+      <span>Privacy safe</span>
+      No customer details or individual order records
+    </div>
+  </header>
+
+  @if (error()) { <div class="message message--error">{{ error() }}</div> }
+  @if (success()) { <div class="message message--success">{{ success() }}</div> }
+
+  <section class="report-builder">
+    <div class="builder-heading">
+      <span class="step-number">01</span>
+      <div><h2>Build a report</h2><p>Choose who receives it and the reporting period.</p></div>
+    </div>
+
+    <div class="target-toggle" role="group" aria-label="Partner type">
+      <button type="button" [class.active]="targetType === 'restaurant'"
+              (click)="changeTargetType('restaurant')">Restaurants</button>
+      <button type="button" [class.active]="targetType === 'delivery_partner'"
+              (click)="changeTargetType('delivery_partner')">Delivery partners</button>
+    </div>
+
+    <div class="form-grid">
+      <label>
+        <span>Recipient</span>
+        <select [(ngModel)]="targetId" (ngModelChange)="onTargetChanged()" [disabled]="loading()">
+          @for (recipient of visibleRecipients(); track recipient.id) {
+            <option [ngValue]="recipient.id" [disabled]="!recipient.is_active">
+              {{ recipient.name }}{{ recipient.is_active ? '' : ' (Inactive)' }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label>
+        <span>Report period</span>
+        <select [(ngModel)]="period" (ngModelChange)="summary.set(null)">
+          <option value="daily">Today</option>
+          <option value="last_week">Last 7 days</option>
+          <option value="last_month">Last 30 days</option>
+          <option value="overall">Overall</option>
+          <option value="custom">Custom dates</option>
+        </select>
+      </label>
+
+      @if (period === 'custom') {
+        <label><span>From</span><input type="date" [(ngModel)]="customStart"></label>
+        <label><span>To</span><input type="date" [(ngModel)]="customEnd"></label>
+      }
+    </div>
+
+    <button type="button" class="preview-button" [disabled]="!!action()" (click)="preview()">
+      {{ action() === 'preview' ? 'Generating…' : 'Generate preview' }}
+    </button>
+  </section>
+
+  @if (summary(); as report) {
+    <section class="report-preview">
+      <div class="preview-header">
+        <div>
+          <p class="eyebrow">REPORT PREVIEW</p>
+          <h2>{{ report.target_name }}</h2>
+          <p>{{ report.period_label }} · {{ report.period_start | date:'mediumDate' }}—{{ report.period_end | date:'mediumDate' }}</p>
+        </div>
+        <span class="report-type">{{ report.target_type === 'restaurant' ? 'Restaurant' : 'Delivery partner' }}</span>
+      </div>
+
+      <div class="metric-grid">
+        <article><span>Total orders</span><strong>{{ report.order_count }}</strong></article>
+        <article><span>Delivered</span><strong>{{ report.delivered_orders }}</strong></article>
+        <article><span>Cancelled</span><strong>{{ report.cancelled_orders }}</strong></article>
+        <article class="metric-money"><span>Gross order value</span><strong>₹{{ report.gross_order_value | number:'1.2-2' }}</strong></article>
+      </div>
+
+      <div class="financial-grid">
+        <div>
+          <h3>Financial summary</h3>
+          <dl>
+            <div><dt>Partner gross earnings</dt><dd>₹{{ report.gross_earnings | number:'1.2-2' }}</dd></div>
+            <div><dt>Discounts</dt><dd>₹{{ report.discounts | number:'1.2-2' }}</dd></div>
+            <div><dt>Delivery fees</dt><dd>₹{{ report.delivery_fees | number:'1.2-2' }}</dd></div>
+            <div><dt>Platform fees</dt><dd>₹{{ report.platform_fees | number:'1.2-2' }}</dd></div>
+          </dl>
+        </div>
+        <div>
+          <h3>Settlement summary</h3>
+          <dl>
+            <div class="settled"><dt>Settled</dt><dd>₹{{ report.settled_amount | number:'1.2-2' }}</dd></div>
+            <div class="unsettled"><dt>Not settled</dt><dd>₹{{ report.unsettled_amount | number:'1.2-2' }}</dd></div>
+            <div><dt>Settled orders</dt><dd>{{ report.settled_orders }}</dd></div>
+            <div><dt>Unsettled orders</dt><dd>{{ report.unsettled_orders }}</dd></div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="delivery-panel">
+        <div>
+          <h3>Send or download</h3>
+          <p>Uses the selected partner’s saved contact unless you enter another destination.</p>
+        </div>
+        <label>
+          <span>Optional email or WhatsApp number</span>
+          <input type="text" [(ngModel)]="destination"
+                 [placeholder]="selectedRecipient()?.email || selectedRecipient()?.phone || 'Enter destination'">
+        </label>
+        <div class="delivery-actions">
+          <button type="button" class="action-download" [disabled]="!!action()" (click)="download()">
+            {{ action() === 'download' ? 'Preparing…' : 'Download PDF' }}
+          </button>
+          <button type="button" class="action-email" [disabled]="!!action()" (click)="send('email')">
+            {{ action() === 'email' ? 'Sending…' : 'Send email' }}
+          </button>
+          <button type="button" class="action-whatsapp" [disabled]="!!action()" (click)="send('whatsapp')">
+            {{ action() === 'whatsapp' ? 'Sending…' : 'Send WhatsApp' }}
+          </button>
+        </div>
+      </div>
+    </section>
+  }
+
+  <section class="history">
+    <div class="builder-heading">
+      <span class="step-number">02</span>
+      <div><h2>Recent deliveries</h2><p>The latest report delivery attempts for this tenant.</p></div>
+    </div>
+    <div class="history-table">
+      <table>
+        <thead><tr><th>Partner</th><th>Period</th><th>Channel</th><th>Sent to</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody>
+          @for (row of history(); track row.id) {
+            <tr>
+              <td><strong>{{ row.target_name }}</strong><small>{{ row.target_type === 'restaurant' ? 'Restaurant' : 'Delivery partner' }}</small></td>
+              <td>{{ row.period === 'daily' ? 'Today' : row.period === 'last_week' ? 'Last 7 days' : row.period === 'last_month' ? 'Last 30 days' : row.period }}</td>
+              <td>{{ row.channel | titlecase }}</td>
+              <td>{{ row.recipient }}</td>
+              <td><span class="status" [class]="'status status--' + row.status">{{ row.status }}</span></td>
+              <td>{{ row.created_at | date:'medium' }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="empty">No reports have been sent yet.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
