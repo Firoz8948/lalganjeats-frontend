@@ -114,19 +114,15 @@
 
           <div class="menu-main">
 
-            <div class="category-tabs">
-              @for (cat of categories(); track cat) {
-                <button
-                  class="category-tab"
-                  [class.active]="activeCategory() === cat"
-                  (click)="setCategory(cat)">
-                  {{ cat }}
-                </button>
-              }
-            </div>
+            @for (group of menuGroups(); track group.category) {
+            <section class="menu-group">
+              <h2 class="menu-group__title">
+                {{ group.category }}
+                <span class="menu-group__count">{{ group.items.length }}</span>
+              </h2>
 
-            <div class="menu-items">
-              @for (item of filteredItems(); track item.id) {
+              <div class="menu-items">
+                @for (item of group.items; track item.id) {
                 <div class="menu-card" [class.unavailable]="!item.is_available">
 
                   <div class="menu-card__info">
@@ -202,8 +198,10 @@
                   </div>
 
                 </div>
-              }
-            </div>
+                }
+              </div>
+            </section>
+            }
 
           </div>
 

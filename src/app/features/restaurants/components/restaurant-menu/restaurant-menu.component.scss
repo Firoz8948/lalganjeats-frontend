@@ -272,38 +272,40 @@
   }
 }
 
-.category-tabs {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  margin-bottom: 24px;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar { display: none; }
+// Grid items default to min-width:auto, which lets wide content stretch the
+// whole page. Menus with many categories relied on this and pushed the layout
+// wider than the viewport.
+.menu-main {
+  min-width: 0;
 }
 
-.category-tab {
-  padding: 8px 18px;
-  border-radius: var(--radius-xl);
-  border: 1.5px solid var(--color-border);
-  background: var(--color-white);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-muted);
-  white-space: nowrap;
-  transition: var(--transition);
-
-  &:hover {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
+.menu-group {
+  & + & {
+    margin-top: 32px;
   }
 
-  &.active {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: var(--color-white);
-    font-weight: 600;
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--color-text);
+
+    @media (max-width: 768px) {
+      font-size: 16px;
+    }
+  }
+
+  &__count {
+    padding: 2px 8px;
+    border-radius: var(--radius-xl);
+    background: var(--color-primary-soft);
+    border: 1px solid var(--color-primary-border);
+    color: var(--color-primary-deep);
+    font-size: 11px;
+    font-weight: 700;
   }
 }
 

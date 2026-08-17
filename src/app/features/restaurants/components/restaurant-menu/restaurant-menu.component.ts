@@ -45,7 +45,6 @@ export class RestaurantMenuComponent implements OnInit {
   readonly cartService = inject(CartService);
 
   restaurantId = signal(0);
-  activeCategory = signal('All');
   menuItems = signal<PublicMenuItem[]>([]);
   loading = signal(true);
   outOfArea = signal(false);
@@ -60,15 +59,16 @@ export class RestaurantMenuComponent implements OnInit {
     bannerUrl: null, bannerMobileUrl: null, logoUrl: null,
   });
 
-  categories = computed(() => {
-    const cats = new Set(this.menuItems().map(i => i.category));
-    return ['All', ...cats];
-  });
-
-  filteredItems = computed(() => {
-    const cat = this.activeCategory();
-    if (cat === 'All') return this.menuItems();
-    return this.menuItems().filter(i => i.category === cat);
+  /** Items grouped under their menu category, in the order the API returns them. */
+  menuGroups = computed(() => {
+    const groups = new Map<string, PublicMenuItem[]>();
+    for (const item of this.menuItems()) {
+      const category = item.category?.trim() || 'Other';
+      const existing = groups.get(category);
+      if (existing) existing.push(item);
+      else groups.set(category, [item]);
+    }
+    return [...groups].map(([category, items]) => ({ category, items }));
   });
 
   cartItems = computed(() => this.cartService.itemsFor(this.restaurantId()));
@@ -134,10 +134,6 @@ export class RestaurantMenuComponent implements OnInit {
       },
       error: () => this.loading.set(false),
     });
-  }
-
-  setCategory(cat: string) {
-    this.activeCategory.set(cat);
   }
 
   variantsFor(item: PublicMenuItem): PublicMenuVariant[] {
