@@ -8,8 +8,10 @@
     "build": "ng build --configuration=production",
     "watch": "ng build --watch --configuration development",
     "android:sync": "npm run build && cap sync android",
+    "android:sync:mobile": "ng build --configuration=mobile && cap sync android",
     "android:open": "cap open android",
-    "android:run": "npm run android:sync && cap run android"
+    "android:run": "npm run android:sync && cap run android",
+    "android:run:mobile": "npm run android:sync:mobile && cap run android"
   },
   "private": true,
   "dependencies": {
