@@ -1,5 +1,12 @@
 // frontend/src/styles.scss
 
+// Ionic's native application shell. Existing LalganjEats styles remain the
+// visual source of truth; only the required platform and safe-area layers are
+// loaded globally.
+@import '@ionic/angular/css/core.css';
+@import '@ionic/angular/css/structure.css';
+@import '@ionic/angular/css/typography.css';
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {

@@ -7,11 +7,16 @@ import {
   withPreloading,
 } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideIonicAngular } from '@ionic/angular/standalone';
 import { routes } from './app.routes';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideIonicAngular({
+      mode: 'md',
+      animated: true,
+    }),
     provideRouter(
       routes,
       // Fetch lazy route chunks in the background so page-to-page taps are
