@@ -58,6 +58,12 @@ html { scroll-behavior: smooth; }
   html { scroll-behavior: auto; }
 }
 
+// Stop at the ends of the page instead of rubber-banding. This also disables
+// pull-to-refresh, which otherwise fires on an upward flick at the top.
+html, body {
+  overscroll-behavior-y: none;
+}
+
 body {
   font-family: var(--font-family);
   background-color: var(--color-bg);
@@ -135,7 +141,7 @@ a, button, input, select, textarea, label, [role='button'] {
 
   @media (max-width: 768px) {
     padding-top: var(--mobile-header-height);
-    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 12px);
+    padding-bottom: calc(var(--bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px) + 12px);
   }
 }
 

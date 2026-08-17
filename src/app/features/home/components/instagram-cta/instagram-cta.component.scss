@@ -57,7 +57,11 @@
 
   @media (max-width: 768px) {
     margin-top: 32px;
-    padding: 22px 0 calc(22px + var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+    // Last visible section on mobile (the footer is hidden), so it has to clear
+    // the fixed bottom nav on its own. The fallback keeps the whole calc valid
+    // if the variable is ever missing — without it the padding would collapse
+    // to zero and the nav would sit on top of the button.
+    padding: 22px 0 calc(32px + var(--bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px));
 
     &__title { font-size: 18px; }
 
