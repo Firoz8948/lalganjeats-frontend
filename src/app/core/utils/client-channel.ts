@@ -45,7 +45,12 @@ export function isMobileAppChannel(): boolean {
   return channel === 'android_app' || channel === 'ios_app';
 }
 
-/** First screen after open / login / logout for this channel. */
+/**
+ * First screen after open / login / logout.
+ *
+ * Home is public on every channel, so the app never opens on a guarded route
+ * that would bounce a logged-out user to the login screen.
+ */
 export function getDefaultLandingPath(): string {
-  return isMobileAppChannel() ? '/profile' : '/home';
+  return '/home';
 }

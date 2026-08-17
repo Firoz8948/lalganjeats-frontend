@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { getDefaultLandingPath } from './core/utils/client-channel';
 
-const defaultLanding = getDefaultLandingPath().replace(/^\//, ''); // 'home' | 'profile'
+const defaultLanding = getDefaultLandingPath().replace(/^\//, '');
 
 export const routes: Routes = [
   {
