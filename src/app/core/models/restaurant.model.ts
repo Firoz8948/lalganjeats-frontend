@@ -18,6 +18,8 @@ export interface Restaurant {
   banner_mobile_url?: string | null;
   address?: string | null;
   city?: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface RestaurantCreatePayload {

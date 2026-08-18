@@ -41,8 +41,10 @@
 
   --navbar-height:          68px;
 
-  // ✅ FIXED: mobile header has 3 rows — must be tall enough
-  --mobile-header-height:   136px;
+  // Mobile header has 3 rows (logo, location, search). Navbar measures the
+  // real height and overwrites this; keep a tall enough fallback so pages
+  // never start under the bar before that measurement lands.
+  --mobile-header-height:   168px;
   --bottom-nav-height:      64px;
 }
 
@@ -135,12 +137,17 @@ a, button, input, select, textarea, label, [role='button'] {
   }
 }
 
-// ✅ FIXED: page-content uses correct heights per breakpoint
-.page-content {
+// Offset content below the fixed customer navbar on every page that has it.
+body.has-customer-header {
   padding-top: var(--navbar-height);
 
   @media (max-width: 768px) {
     padding-top: var(--mobile-header-height);
+  }
+}
+
+.page-content {
+  @media (max-width: 768px) {
     padding-bottom: calc(var(--bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px) + 12px);
   }
 }

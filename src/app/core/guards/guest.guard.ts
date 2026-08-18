@@ -8,12 +8,17 @@ import { AuthService } from '../services/auth.service';
  * send them to their dashboard.
  */
 export const guestGuard = (role: string, dashboardPath: string): CanActivateFn => {
-  return () => {
+  return (route) => {
     const auth = inject(AuthService);
     const router = inject(Router);
 
     if (auth.hasRole(role)) {
-      router.navigateByUrl(dashboardPath);
+      const returnUrl = route.queryParamMap.get('returnUrl');
+      const safe =
+        returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')
+          ? returnUrl
+          : dashboardPath;
+      router.navigateByUrl(safe);
       return false;
     }
     return true;

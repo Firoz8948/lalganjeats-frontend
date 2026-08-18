@@ -9,6 +9,7 @@ import {
   ViewChild,
   NgZone,
   inject,
+  OnDestroy,
   OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -55,7 +56,8 @@ export interface LocationSuggestion {
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
 })
-export class NavbarComponent implements AfterViewInit, OnInit {
+export class NavbarComponent implements AfterViewInit, OnInit, OnDestroy {
+  private static instanceCount = 0;
   @ViewChild('mobileHeader') mobileHeaderRef!: ElementRef<HTMLElement>;
   @ViewChild('locationMap') locationMapRef?: ElementRef<HTMLDivElement>;
 
@@ -93,6 +95,9 @@ export class NavbarComponent implements AfterViewInit, OnInit {
   private lastScrollY = 0;
 
   ngOnInit() {
+    NavbarComponent.instanceCount += 1;
+    document.body.classList.add('has-customer-header');
+
     if (this.auth.isLoggedIn() && this.auth.isCustomer()) {
       this.auth.loadCustomerDisplayInfo();
     }
@@ -113,6 +118,13 @@ export class NavbarComponent implements AfterViewInit, OnInit {
           this.searchResults.set(results);
         });
       });
+  }
+
+  ngOnDestroy() {
+    NavbarComponent.instanceCount = Math.max(0, NavbarComponent.instanceCount - 1);
+    if (NavbarComponent.instanceCount === 0) {
+      document.body.classList.remove('has-customer-header');
+    }
   }
 
   ngAfterViewInit() {

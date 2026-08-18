@@ -83,8 +83,10 @@ export class CustomerLoginComponent {
     ).subscribe({
       next: (user) => {
         this.loading.set(false);
-        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-        this.router.navigateByUrl(returnUrl || getDefaultLandingPath() || user.redirect_to || '/home');
+        const returnUrl = this.resolveReturnUrl();
+        this.router.navigateByUrl(
+          returnUrl || getDefaultLandingPath() || user.redirect_to || '/home',
+        );
       },
       error: (e) => {
         this.loading.set(false);
@@ -101,5 +103,24 @@ export class CustomerLoginComponent {
   goBackToPhone() {
     this.step.set('phone');
     this.error.set('');
+  }
+
+  private resolveReturnUrl(): string | null {
+    const fromQuery = this.route.snapshot.queryParamMap.get('returnUrl');
+    let stored: string | null = null;
+    try {
+      stored = sessionStorage.getItem('le_return_url');
+      sessionStorage.removeItem('le_return_url');
+    } catch {
+      /* ignore */
+    }
+    return this.safeInternalUrl(fromQuery) || this.safeInternalUrl(stored);
+  }
+
+  private safeInternalUrl(url: string | null): string | null {
+    if (!url || !url.startsWith('/') || url.startsWith('//')) {
+      return null;
+    }
+    return url;
   }
 }

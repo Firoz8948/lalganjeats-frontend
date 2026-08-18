@@ -173,6 +173,11 @@ export class CheckoutComponent implements OnInit {
 
   onPrimaryAction() {
     if (!this.isLoggedIn()) {
+      try {
+        sessionStorage.setItem('le_return_url', '/checkout');
+      } catch {
+        /* ignore */
+      }
       this.router.navigate(['/auth/login'], {
         queryParams: { returnUrl: '/checkout' },
       });

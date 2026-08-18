@@ -5,7 +5,30 @@ import { Restaurant } from '../../../../core/models/restaurant.model';
 import { RestaurantService } from '../../../../core/services/restaurant.service';
 import { CustomerLocationService } from '../../../../core/services/customer-location.service';
 
-type CardMetaKind = 'time' | 'min' | 'fee';
+type CardMetaKind = 'min' | 'time' | 'distance';
+
+const EARTH_RADIUS_KM = 6371;
+
+function haversineKm(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
+): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(a)));
+}
+
+function formatDistanceKm(km: number): string {
+  if (km < 0.1) return '0.1 km';
+  if (km < 10) return `${km.toFixed(1)} km`;
+  return `${Math.round(km)} km`;
+}
 
 @Component({
   selector: 'app-featured-restaurants',
@@ -24,7 +47,7 @@ export class FeaturedRestaurantsComponent implements OnInit, OnDestroy {
   loading = signal(true);
   error = signal('');
   needsLocation = signal(false);
-  /** Shared ticker so each card cycles time → min order → delivery fee. */
+  /** Shared ticker so each card cycles min price → delivery time → distance. */
   metaTick = signal(0);
   selectedSubcategoryId = signal<number | null>(null);
   selectedSubcategoryName = signal('');
@@ -56,15 +79,31 @@ export class FeaturedRestaurantsComponent implements OnInit, OnDestroy {
   }
 
   cardMeta(restaurant: Restaurant): { kind: CardMetaKind; label: string } {
-    const kinds: CardMetaKind[] = ['time', 'min', 'fee'];
+    const kinds: CardMetaKind[] = ['min', 'time', 'distance'];
     const kind = kinds[this.metaTick() % 3];
+    if (kind === 'min') {
+      return { kind, label: `Min. ${restaurant.min_order || '—'}` };
+    }
     if (kind === 'time') {
       return { kind, label: restaurant.delivery_time || '—' };
     }
-    if (kind === 'min') {
-      return { kind, label: `Min. order: ${restaurant.min_order || '—'}` };
+    return { kind, label: this.distanceLabel(restaurant) };
+  }
+
+  private distanceLabel(restaurant: Restaurant): string {
+    const loc = this.customerLocation.location();
+    const rLat = restaurant.latitude;
+    const rLng = restaurant.longitude;
+    if (
+      loc == null ||
+      rLat == null ||
+      rLng == null ||
+      Number.isNaN(Number(rLat)) ||
+      Number.isNaN(Number(rLng))
+    ) {
+      return '—';
     }
-    return { kind, label: restaurant.delivery_fee || '—' };
+    return formatDistanceKm(haversineKm(loc.lat, loc.lng, Number(rLat), Number(rLng)));
   }
 
   private loadRestaurants(
