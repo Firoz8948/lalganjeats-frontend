@@ -30,7 +30,24 @@ export class SeoService {
     this.applyForUrl(this.router.url);
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
-      .subscribe((event) => this.applyForUrl(event.urlAfterRedirects));
+      .subscribe((event) => {
+        this.applyForUrl(event.urlAfterRedirects);
+        this.trackPageView(event.urlAfterRedirects);
+      });
+  }
+
+  /** SPA page views for Google Analytics (gtag). */
+  private trackPageView(rawUrl: string): void {
+    const path = rawUrl.split('?')[0].split('#')[0] || '/';
+    const gtag = (this.document.defaultView as Window & {
+      gtag?: (...args: unknown[]) => void;
+    })?.gtag;
+    if (typeof gtag !== 'function') return;
+    gtag('event', 'page_view', {
+      page_path: path,
+      page_location: `${SITE_URL}${path}`,
+      page_title: this.title.getTitle(),
+    });
   }
 
   setPage(page: Partial<SeoPage> & Pick<SeoPage, 'title' | 'description'>): void {
@@ -58,7 +75,7 @@ export class SeoService {
       );
       return;
     }
-    if (/^\/restaurants\/\d+$/.test(path)) {
+    if (/^\/restaurants\/[^/]+$/.test(path)) {
       this.apply(
         {
           title: 'Restaurant Menu & Online Food Delivery | LalganjEats',
