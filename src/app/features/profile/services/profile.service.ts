@@ -39,6 +39,7 @@ export interface CustomerOrder {
   restaurant_id:   number;
   restaurant_name: string;
   status:          string;
+  status_meta?:    string;
   payment_method:  string;
   payment_status:  string;
   subtotal:        number;

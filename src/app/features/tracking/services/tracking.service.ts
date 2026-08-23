@@ -30,6 +30,7 @@ export interface TrackSnapshot {
     registered_vehicle_number: string | null;
     bike_info: string | null;
   } | null;
+  status_meta: string | null;
   google_maps_api_key: string | null;
 }
 

@@ -58,8 +58,8 @@ export class HpShellComponent implements OnInit {
 
   mobileNavItems: MobileNavItem[] = [
     { label: 'Home',     iconId: 'bell',      route: '/hotel-portal/incoming-orders', showPendingBadge: true },
-    { label: 'Orders',   iconId: 'clipboard', route: '/hotel-portal/order-history' },
-    { label: 'Menu',     iconId: 'utensils',  route: '/hotel-portal/menu' },
+    { label: 'Active',   iconId: 'flame',     route: '/hotel-portal/active-orders' },
+    { label: 'History',  iconId: 'clipboard', route: '/hotel-portal/order-history' },
     { label: 'Earnings', iconId: 'wallet',    route: '/hotel-portal/earnings' },
   ];
 

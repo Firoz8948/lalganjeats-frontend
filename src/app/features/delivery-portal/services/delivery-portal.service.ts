@@ -18,6 +18,9 @@ export interface DpOrder {
   map_to_restaurant: string | null;
   map_to_customer: string | null;
   payment_method: string;
+  payment_status?: string;
+  otp_verified?: boolean;
+  cash_collected?: number | null;
   items: { name: string; quantity: number; price: number }[];
   created_at: string | null;
 }
@@ -34,6 +37,15 @@ export interface DpDashboard {
   active_order: DpOrder | null;
   available_orders: DpOrder[];
 }
+
+export interface CollectionPaymentResponse {
+  razorpay_order_id: string;
+  amount: number;
+  currency: string;
+  key_id: string;
+}
+
+declare const Razorpay: any;
 
 @Injectable({ providedIn: 'root' })
 export class DeliveryPortalService {
@@ -62,6 +74,10 @@ export class DeliveryPortalService {
     return this.http.patch(`${this.api}/orders/${orderId}/picked-up`, {});
   }
 
+  onTheWay(orderId: number) {
+    return this.http.patch(`${this.api}/orders/${orderId}/on-the-way`, {});
+  }
+
   sendOtp(orderId: number) {
     return this.http.post<{ message: string; dev_otp?: string }>(
       `${this.api}/orders/${orderId}/send-otp`,
@@ -69,11 +85,60 @@ export class DeliveryPortalService {
     );
   }
 
-  complete(orderId: number, otp: string, collection_method: 'cash' | 'online') {
-    return this.http.post(`${this.api}/orders/${orderId}/complete`, {
-      otp,
-      collection_method,
-    });
+  verifyOtp(orderId: number, otp: string) {
+    return this.http.post<{ verified: boolean }>(
+      `${this.api}/orders/${orderId}/verify-otp`,
+      { otp },
+    );
+  }
+
+  createCollectionPayment(orderId: number, onlineAmount: number) {
+    return this.http.post<CollectionPaymentResponse>(
+      `${this.api}/orders/${orderId}/collection-payment`,
+      { online_amount: onlineAmount },
+    );
+  }
+
+  complete(
+    orderId: number,
+    payload: {
+      otp: string;
+      cash_amount: number;
+      online_amount: number;
+      razorpay_order_id?: string;
+      razorpay_payment_id?: string;
+      razorpay_signature?: string;
+    },
+  ) {
+    return this.http.post(`${this.api}/orders/${orderId}/complete`, payload);
+  }
+
+  openCollectionCheckout(
+    pay: CollectionPaymentResponse,
+    onSuccess: (data: {
+      razorpay_order_id: string;
+      razorpay_payment_id: string;
+      razorpay_signature: string;
+    }) => void,
+    onFailure: () => void,
+  ) {
+    const options = {
+      key: pay.key_id,
+      amount: Math.round(pay.amount * 100),
+      currency: pay.currency,
+      name: 'LalganjEats',
+      description: 'Order collection',
+      order_id: pay.razorpay_order_id,
+      theme: { color: '#187a43' },
+      handler: (response: {
+        razorpay_order_id: string;
+        razorpay_payment_id: string;
+        razorpay_signature: string;
+      }) => onSuccess(response),
+      modal: { ondismiss: () => onFailure() },
+    };
+    const rzp = new Razorpay(options);
+    rzp.open();
   }
 
   myOrders(filter = 'all') {

@@ -16,10 +16,17 @@
         <p class="oid">{{ a.order_number }} · {{ a.status }}</p>
         <p>{{ a.restaurant }}</p>
         <p class="muted">{{ a.delivery_address }}</p>
-        <p>Payout: <strong>₹{{ a.payout }}</strong>
+        <p>
+          Collect: <strong>₹{{ a.customer_total }}</strong>
+          · Payout: <strong>₹{{ a.payout }}</strong>
           @if (a.distance_km_to_restaurant != null) {
             · {{ a.distance_km_to_restaurant }} km to restaurant
           }
+        </p>
+        <p class="muted">
+          Payment:
+          @if (isPrepaid(a)) { Prepaid (already paid) }
+          @else { Collect at door · {{ a.payment_method || 'cash' }} }
         </p>
 
         @if (a.status === 'assigned' && a.map_to_restaurant) {
@@ -27,18 +34,55 @@
           <button type="button" class="primary" (click)="pickedUp(a)">Mark picked up</button>
         }
 
-        @if (a.status === 'picked_up' || a.status === 'on_the_way') {
+        @if (a.status === 'picked_up') {
           @if (a.map_to_customer) {
             <a class="map-link" [href]="a.map_to_customer" target="_blank" rel="noopener">Open map to customer</a>
           }
-          <button type="button" class="secondary" (click)="sendOtp(a)">Send OTP to customer</button>
-          @if (lastDevOtp()) {
-            <p class="hint">Dev OTP: {{ lastDevOtp() }}</p>
-          }
-          <input class="otp-input" maxlength="6" placeholder="Enter customer OTP" [(ngModel)]="otp" />
-          <div class="row">
-            <button type="button" class="primary" (click)="complete(a, 'cash')">Cash collect</button>
-            <button type="button" class="secondary" (click)="complete(a, 'online')">Online (stub)</button>
+          <button type="button" class="primary" (click)="onTheWay(a)">Order on the way</button>
+        }
+
+        @if (a.status === 'on_the_way') {
+          <div class="complete-box">
+            <h3>Hand over &amp; collect</h3>
+            <button type="button" class="secondary" (click)="sendOtp(a)">Send OTP to customer</button>
+            @if (lastDevOtp()) {
+              <p class="hint">Dev OTP: {{ lastDevOtp() }}</p>
+            }
+            <input class="otp-input" maxlength="6" placeholder="Enter customer OTP" [(ngModel)]="otp" />
+            @if (!otpVerified()) {
+              <button type="button" class="secondary" (click)="verifyOtp(a)">Verify OTP</button>
+            } @else {
+              <p class="ok">OTP verified</p>
+            }
+
+            @if (otpVerified()) {
+              @if (isPrepaid(a)) {
+                <p class="ok">Paid — customer already paid online.</p>
+              } @else {
+                <div class="pay-modes">
+                  <button type="button" class="ghost" (click)="setFullCash(a)">Cash</button>
+                  <button type="button" class="ghost" (click)="setFullOnline(a)">Pay online</button>
+                  <button type="button" class="ghost" (click)="setSplitHalf(a)">Cash / Online</button>
+                </div>
+                <div class="split-row">
+                  <label>Cash ₹
+                    <input type="number" min="0" [ngModel]="cashAmount" (ngModelChange)="onSplitChange(a, 'cash', $event)" />
+                  </label>
+                  <label>Online ₹
+                    <input type="number" min="0" [ngModel]="onlineAmount" (ngModelChange)="onSplitChange(a, 'online', $event)" />
+                  </label>
+                </div>
+                @if (onlineAmount > 0) {
+                  <button type="button" class="secondary" [disabled]="onlinePaid()" (click)="payOnlinePortion(a)">
+                    {{ onlinePaid() ? 'Online paid ✓' : 'Open scanner / pay ₹' + onlineAmount }}
+                  </button>
+                }
+              }
+
+              <button type="button" class="primary" [disabled]="!canComplete(a)" (click)="complete(a)">
+                Mark delivered
+              </button>
+            }
           </div>
         }
       </section>

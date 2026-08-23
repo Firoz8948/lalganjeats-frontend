@@ -4,7 +4,7 @@
     <div>
       <h1>Live tracking</h1>
       @if (snap(); as s) {
-        <p class="sub">{{ s.order_number }} · {{ s.order_status }}</p>
+        <p class="sub">{{ s.order_number }} · {{ s.status_meta || s.order_status }}</p>
       }
     </div>
     <span class="live-pill" [class.ws]="liveMode() === 'websocket'" [class.fallback]="liveMode() === 'rest-fallback'">
@@ -61,12 +61,17 @@
 
   @if (snap(); as s) {
     <section class="meta">
-      <p>{{ s.message || 'Updating…' }}</p>
+      <p>{{ s.status_meta || s.message || 'Updating…' }}</p>
       @if (s.phase === 'to_restaurant') {
         <p class="hint">Rider is heading to the restaurant to pick up your order.</p>
       }
-      @if (s.phase === 'to_customer') {
-        <p class="hint">Rider is on the way to you.</p>
+      @if (s.phase === 'to_customer' && s.order_status === 'on_the_way' && s.delivery_partner; as rider) {
+        <p class="hint">
+          Our delivery partner, {{ rider.name }}, is on the way with your order
+          @if (rider.registered_vehicle_number) {
+            on bike {{ rider.registered_vehicle_number }}
+          }.
+        </p>
       }
       @if (usingNativeMap()) {
         <p class="hint">Using native Google Maps on this device.</p>

@@ -37,13 +37,12 @@ export class MyOrdersComponent implements OnInit {
   ];
 
   private readonly ORDER_FLOW = [
-    { key: 'pending',          label: 'Order Placed'    },
-    { key: 'confirmed',        label: 'Confirmed'       },
-    { key: 'preparing',        label: 'Preparing'       },
-    { key: 'assigned',         label: 'Rider assigned'  },
-    { key: 'picked_up',        label: 'Picked Up'       },
-    { key: 'on_the_way',       label: 'On the Way'      },
-    { key: 'delivered',        label: 'Delivered'       },
+    { key: 'pending',          label: 'Waiting for restaurant' },
+    { key: 'confirmed',        label: 'Restaurant cooking' },
+    { key: 'ready_for_pickup', label: 'Waiting for pickup' },
+    { key: 'picked_up',        label: 'Picked up' },
+    { key: 'on_the_way',       label: 'On the way' },
+    { key: 'delivered',        label: 'Delivered' },
   ];
 
   constructor(
@@ -74,9 +73,16 @@ export class MyOrdersComponent implements OnInit {
     return ['assigned', 'picked_up', 'on_the_way'].includes(status);
   }
 
+  /** Map internal statuses onto the customer-facing progress steps. */
+  private flowKey(status: string): string {
+    if (status === 'preparing') return 'confirmed';
+    if (status === 'assigned') return 'ready_for_pickup';
+    return status;
+  }
+
   getTrackingSteps(currentStatus: string): TrackingStep[] {
     const currentIndex = this.ORDER_FLOW.findIndex(
-      s => s.key === currentStatus
+      s => s.key === this.flowKey(currentStatus)
     );
     return this.ORDER_FLOW.map((step, i) => ({
       key:     step.key,
@@ -101,17 +107,21 @@ export class MyOrdersComponent implements OnInit {
     return map[status] || 'default';
   }
 
-  getStatusLabel(status: string): string {
+  getStatusLabel(order: CustomerOrder | string): string {
+    if (typeof order === 'object' && order.status_meta) {
+      return order.status_meta;
+    }
+    const status = typeof order === 'string' ? order : order.status;
     const map: Record<string, string> = {
-      pending:          'Pending',
-      confirmed:        'Confirmed',
-      preparing:        'Preparing',
-      ready_for_pickup: 'Ready',
-      assigned:         'Rider assigned',
-      picked_up:        'Picked Up',
-      on_the_way:       'On the Way',
-      delivered:        'Delivered',
-      cancelled:        'Cancelled',
+      pending:          'Waiting for restaurant partner',
+      confirmed:        'Restaurant is cooking your food',
+      preparing:        'Restaurant is cooking your food',
+      ready_for_pickup: 'Waiting for pickup',
+      assigned:         'Waiting for pickup',
+      picked_up:        'Order picked up',
+      on_the_way:       'Order on the way',
+      delivered:        'Order delivered',
+      cancelled:        'Order cancelled',
     };
     return map[status] || status;
   }

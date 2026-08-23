@@ -21,12 +21,13 @@ export class HpOrderDetailComponent implements OnInit {
   saving  = signal(false);
 
   readonly STATUS_FLOW = [
-    { key: 'pending',          label: 'Order Placed',     icon: 'clipboard' as HpIconName },
-    { key: 'confirmed',        label: 'Confirmed',        icon: 'check' as HpIconName },
+    { key: 'pending',          label: 'Waiting',          icon: 'clipboard' as HpIconName },
+    { key: 'confirmed',        label: 'Accepted',         icon: 'check' as HpIconName },
     { key: 'preparing',        label: 'Preparing',        icon: 'flame' as HpIconName },
-    { key: 'ready_for_pickup', label: 'Ready for Pickup', icon: 'package' as HpIconName },
+    { key: 'ready_for_pickup', label: 'Prepared',         icon: 'package' as HpIconName },
     { key: 'picked_up',        label: 'Picked Up',        icon: 'bike' as HpIconName },
-    { key: 'delivered',        label: 'Delivered',        icon: 'check' as HpIconName },
+    { key: 'on_the_way',       label: 'On the Way',       icon: 'bike' as HpIconName },
+    { key: 'delivered',        label: 'Delivered',         icon: 'check' as HpIconName },
   ];
 
   constructor(
@@ -69,7 +70,7 @@ export class HpOrderDetailComponent implements OnInit {
     const flow: Record<string, { status: string; label: string; icon: HpIconName }> = {
       pending:          { status: 'confirmed',        label: 'Confirm Order',         icon: 'check' },
       confirmed:        { status: 'preparing',        label: 'Start Preparing',       icon: 'flame' },
-      preparing:        { status: 'ready_for_pickup', label: 'Mark Ready for Pickup', icon: 'package' },
+      preparing:        { status: 'ready_for_pickup', label: 'Mark Prepared', icon: 'package' },
     };
     return flow[current] || null;
   }

@@ -9,7 +9,7 @@ import {
 } from '../../services/hotel-portal.service';
 import { HpIconComponent, HpIconName } from '../shared/hp-icon/hp-icon.component';
 
-type HistoryFilter = 'all' | 'delivered' | 'cancelled';
+type HistoryFilter = 'delivered' | 'cancelled';
 
 @Component({
   selector: 'app-hp-order-history',
@@ -21,24 +21,23 @@ type HistoryFilter = 'all' | 'delivered' | 'cancelled';
 export class HpOrderHistoryComponent implements OnInit {
   orders       = signal<Order[]>([]);
   loading      = signal(true);
-  activeFilter = signal<HistoryFilter>('all');
+  activeFilter = signal<HistoryFilter>('delivered');
   expandedId   = signal<number | null>(null);
 
   filters: { key: HistoryFilter; label: string }[] = [
-    { key: 'all',       label: 'All History'    },
     { key: 'delivered', label: 'Delivered'      },
     { key: 'cancelled', label: 'Cancelled'      },
   ];
 
   constructor(private service: HotelPortalService) {}
 
-  ngOnInit() { this.loadOrders('all'); }
+  ngOnInit() { this.loadOrders('delivered'); }
 
   loadOrders(filter: HistoryFilter) {
     this.activeFilter.set(filter);
     this.loading.set(true);
 
-    const statusParam = filter === 'all' ? 'history' : filter;
+    const statusParam = filter;
     this.service.getOrders(statusParam).subscribe({
       next:  (data) => { this.orders.set(data); this.loading.set(false); },
       error: ()     => this.loading.set(false)

@@ -18,9 +18,9 @@ export class HpActiveOrdersComponent implements OnInit {
   loading = signal(true);
 
   statusSteps = [
-    { key: 'confirmed',        label: 'Confirmed'       },
+    { key: 'confirmed',        label: 'Accepted'        },
     { key: 'preparing',        label: 'Preparing'       },
-    { key: 'ready_for_pickup', label: 'Ready for Pickup'},
+    { key: 'ready_for_pickup', label: 'Prepared'        },
   ];
 
   constructor(private service: HotelPortalService) {}
@@ -46,7 +46,7 @@ export class HpActiveOrdersComponent implements OnInit {
   nextStatusLabel(current: string): string {
     const labels: Record<string,string> = {
       confirmed:        'Start Preparing',
-      preparing:        'Mark Ready',
+      preparing:        'Mark Prepared',
       ready_for_pickup: 'Awaiting Pickup'
     };
     return labels[current] || current;

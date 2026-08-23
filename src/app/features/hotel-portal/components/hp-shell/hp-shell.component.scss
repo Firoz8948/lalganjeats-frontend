@@ -331,11 +331,13 @@ $sidebar-border:        rgba(255, 255, 255, 0.07);
   }
 }
 
-// Mobile Topbar
+// Mobile Topbar — fixed so it stays visible while scrolling
 .hp-topbar {
   display: none;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
   background: var(--color-white);
   border-bottom: 1px solid var(--color-border);
@@ -438,8 +440,13 @@ $sidebar-border:        rgba(255, 255, 255, 0.07);
   min-width: 0;
   overflow-x: hidden;
 
+  @media (max-width: 900px) {
+    padding-top: calc(#{$topbar-height} + 16px);
+  }
+
   @media (max-width: 768px) {
-    padding: 16px;
+    padding-left: 16px;
+    padding-right: 16px;
     padding-bottom: 88px;
   }
 }
