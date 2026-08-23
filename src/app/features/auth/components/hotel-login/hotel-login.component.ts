@@ -31,7 +31,7 @@ export class HotelLoginComponent {
 
   constructor(private auth: AuthService, private router: Router) {
     if (this.auth.hasRole('restaurant_owner')) {
-      this.router.navigate(['/hotel-portal']);
+      this.router.navigate(['/hotel-portal/incoming-orders']);
       return;
     }
     this.username = this.auth.loadPartnerUsername(this.ROLE);

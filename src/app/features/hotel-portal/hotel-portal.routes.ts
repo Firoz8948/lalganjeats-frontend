@@ -11,7 +11,7 @@ export const HOTEL_PORTAL_ROUTES: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'dashboard',
+        redirectTo: 'incoming-orders',
         pathMatch: 'full'
       },
       {

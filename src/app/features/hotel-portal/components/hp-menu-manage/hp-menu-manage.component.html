@@ -49,9 +49,10 @@
           <!-- Price & Availability Toggle -->
           <div class="item-actions">
             <div class="item-price-block">
-              <span class="item-price">₹{{ item.price }}</span>
-              @if (item.original_price) {
-                <span class="item-original-price">₹{{ item.original_price }}</span>
+              @if (item.actual_price != null) {
+                <span class="item-transfer-price">₹{{ item.actual_price }}</span>
+              } @else {
+                <span class="item-transfer-price">₹{{ item.price }}</span>
               }
             </div>
 

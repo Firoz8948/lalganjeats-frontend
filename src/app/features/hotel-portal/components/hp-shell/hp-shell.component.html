@@ -144,11 +144,20 @@
       <router-outlet></router-outlet>
     </div>
 
-    <nav class="hp-bottom-nav">
-      <a routerLink="/hotel-portal/incoming-orders" routerLinkActive="active">Home</a>
-      <a routerLink="/hotel-portal/order-history" routerLinkActive="active">Orders</a>
-      <a routerLink="/hotel-portal/menu" routerLinkActive="active">Menu</a>
-      <a routerLink="/hotel-portal/earnings" routerLinkActive="active">Earnings</a>
+    <nav class="hp-bottom-nav" aria-label="Hotel portal">
+      @for (item of mobileNavItems; track item.route) {
+        <a [routerLink]="item.route"
+           routerLinkActive="active"
+           class="hp-bottom-nav__link">
+          <span class="hp-bottom-nav__icon-wrap">
+            <app-hp-icon [name]="item.iconId" [size]="20" />
+            @if (item.showPendingBadge && pendingCount() > 0) {
+              <span class="hp-bottom-nav__badge">{{ pendingCount() }}</span>
+            }
+          </span>
+          <span class="hp-bottom-nav__label">{{ item.label }}</span>
+        </a>
+      }
     </nav>
 
   </div>

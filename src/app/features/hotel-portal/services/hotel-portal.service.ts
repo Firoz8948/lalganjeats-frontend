@@ -53,6 +53,7 @@ export interface MenuItem {
   name:           string;
   description:    string;
   price:          number;
+  actual_price?:  number | null;
   original_price: number | null;
   is_veg:         boolean;
   is_available:   boolean;

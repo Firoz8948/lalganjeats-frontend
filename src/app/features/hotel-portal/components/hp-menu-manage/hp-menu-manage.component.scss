@@ -204,16 +204,10 @@
   text-align: right;
 }
 
-.item-price {
+.item-transfer-price {
   font-size: 16px;
   font-weight: 800;
-  color: var(--color-text);
-}
-
-.item-original-price {
-  font-size: 12px;
-  color: var(--color-muted);
-  text-decoration: line-through;
+  color: #0f766e;
 }
 
 .item-controls {

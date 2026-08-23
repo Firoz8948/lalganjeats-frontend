@@ -18,6 +18,13 @@ interface NavItem {
   badge?:  number;
 }
 
+interface MobileNavItem {
+  label: string;
+  iconId: HpIconName;
+  route: string;
+  showPendingBadge?: boolean;
+}
+
 @Component({
   selector: 'app-hp-shell',
   standalone: true,
@@ -47,6 +54,13 @@ export class HpShellComponent implements OnInit {
     { label: 'Menu Manage',     iconId: 'utensils',        route: '/hotel-portal/menu'             },
     { label: 'Earnings',        iconId: 'wallet',          route: '/hotel-portal/earnings'         },
     { label: 'Settings',        iconId: 'settings',        route: '/hotel-portal/settings'         },
+  ];
+
+  mobileNavItems: MobileNavItem[] = [
+    { label: 'Home',     iconId: 'bell',      route: '/hotel-portal/incoming-orders', showPendingBadge: true },
+    { label: 'Orders',   iconId: 'clipboard', route: '/hotel-portal/order-history' },
+    { label: 'Menu',     iconId: 'utensils',  route: '/hotel-portal/menu' },
+    { label: 'Earnings', iconId: 'wallet',    route: '/hotel-portal/earnings' },
   ];
 
   ngOnInit() {
