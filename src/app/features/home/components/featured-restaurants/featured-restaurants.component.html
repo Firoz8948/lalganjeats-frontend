@@ -69,7 +69,7 @@
 
     <div class="restaurants-grid">
       @for (restaurant of restaurants(); track restaurant.id) {
-        <a class="restaurant-card" [class.closed]="!restaurant.is_open" [routerLink]="['/restaurants', restaurant.id]">
+        <a class="restaurant-card" [class.closed]="!restaurant.is_open" [routerLink]="['/restaurants', restaurant.slug || restaurant.id]">
 
           <div class="restaurant-card__image" [style.background]="restaurant.image_bg">
             @if (restaurant.list_banner_url) {

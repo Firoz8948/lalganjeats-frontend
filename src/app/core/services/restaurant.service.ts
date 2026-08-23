@@ -63,7 +63,7 @@ export class RestaurantService {
   }
 
   getRestaurant(
-    id: number,
+    key: string | number,
     lat?: number | null,
     lng?: number | null,
   ): Observable<Restaurant> {
@@ -71,10 +71,10 @@ export class RestaurantService {
     if (lat != null && lng != null) {
       params = params.set('lat', String(lat)).set('lng', String(lng));
     }
-    return this.http.get<Restaurant>(`${this.baseUrl}/${id}`, { params });
+    return this.http.get<Restaurant>(`${this.baseUrl}/${key}`, { params });
   }
 
-  getRestaurantMenu(id: number): Observable<PublicMenuItem[]> {
-    return this.http.get<PublicMenuItem[]>(`${this.baseUrl}/${id}/menu`);
+  getRestaurantMenu(key: string | number): Observable<PublicMenuItem[]> {
+    return this.http.get<PublicMenuItem[]>(`${this.baseUrl}/${key}/menu`);
   }
 }

@@ -9,7 +9,7 @@ export const RESTAURANT_ROUTES: Routes = [
       ),
   },
   {
-    path: ':id',
+    path: ':slug',
     loadComponent: () =>
       import('./components/restaurant-menu/restaurant-menu.component').then(
         m => m.RestaurantMenuComponent

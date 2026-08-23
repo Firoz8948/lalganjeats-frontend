@@ -1,6 +1,7 @@
 export interface Restaurant {
   id: number;
   name: string;
+  slug?: string | null;
   cuisine: string;
   rating: number;
   review_count: number;
@@ -64,6 +65,7 @@ export interface RestaurantUpdatePayload {
 export interface AdminRestaurantRow {
   id: number;
   name: string;
+  slug?: string | null;
   description?: string | null;
   owner?: string | null;
   owner_phone?: string | null;

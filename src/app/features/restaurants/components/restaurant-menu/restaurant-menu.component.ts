@@ -76,12 +76,13 @@ export class RestaurantMenuComponent implements OnInit {
   cartItemCount = computed(() => this.cartItems().reduce((s, i) => s + i.quantity, 0));
 
   ngOnInit() {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    if (!id) {
+    const routeKey = (this.route.snapshot.paramMap.get('slug')
+      || this.route.snapshot.paramMap.get('id')
+      || '').trim();
+    if (!routeKey) {
       this.router.navigate(['/restaurants']);
       return;
     }
-    this.restaurantId.set(id);
 
     const lat = this.customerLocation.latitude();
     const lng = this.customerLocation.longitude();
@@ -91,8 +92,17 @@ export class RestaurantMenuComponent implements OnInit {
       return;
     }
 
-    this.restaurantService.getRestaurant(id, lat, lng).subscribe({
+    this.restaurantService.getRestaurant(routeKey, lat, lng).subscribe({
       next: (data) => {
+        this.restaurantId.set(data.id);
+        // Canonicalize old numeric URLs to the SEO slug.
+        if (
+          data.slug
+          && /^\d+$/.test(routeKey)
+          && routeKey !== data.slug
+        ) {
+          this.router.navigate(['/restaurants', data.slug], { replaceUrl: true });
+        }
         this.seo.setPage({
           title: `${data.name} Menu & Food Delivery in Lalganj | LalganjEats`,
           description: `Order online from ${data.name} in Lalganj Ajhara. Browse the menu, select sizes and get local food delivered with LalganjEats.`,
@@ -121,7 +131,7 @@ export class RestaurantMenuComponent implements OnInit {
       },
     });
 
-    this.restaurantService.getRestaurantMenu(id).subscribe({
+    this.restaurantService.getRestaurantMenu(routeKey).subscribe({
       next: (items) => {
         this.menuItems.set(items);
         const defaults: Record<number, number> = {};
