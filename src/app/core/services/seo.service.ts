@@ -36,14 +36,16 @@ export class SeoService {
       });
   }
 
-  /** SPA page views for Google Analytics (gtag). */
+  /** SPA page views for GTM / GA4 (via dataLayer). */
   private trackPageView(rawUrl: string): void {
     const path = rawUrl.split('?')[0].split('#')[0] || '/';
-    const gtag = (this.document.defaultView as Window & {
-      gtag?: (...args: unknown[]) => void;
-    })?.gtag;
-    if (typeof gtag !== 'function') return;
-    gtag('event', 'page_view', {
+    const win = this.document.defaultView as Window & {
+      dataLayer?: Record<string, unknown>[];
+    } | null;
+    if (!win) return;
+    win.dataLayer = win.dataLayer || [];
+    win.dataLayer.push({
+      event: 'page_view',
       page_path: path,
       page_location: `${SITE_URL}${path}`,
       page_title: this.title.getTitle(),
