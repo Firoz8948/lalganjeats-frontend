@@ -33,6 +33,8 @@ const emptyPartner = (): DeliveryPartnerCreate => ({
   account_number: '',
   ifsc_code: '',
   bank_name: '',
+  username: '',
+  password: '',
 });
 
 @Component({
@@ -54,6 +56,7 @@ export class DeliveryPartnersComponent implements OnInit {
   success = signal('');
   uploading = signal<Partial<Record<DeliveryUploadPurpose, boolean>>>({});
   formData = emptyPartner();
+  credDraft: Record<number, { username: string; password: string }> = {};
   readonly maxDob = todayIso();
   readonly documents: {
     purpose: DeliveryDocumentPurpose;
@@ -154,7 +157,11 @@ export class DeliveryPartnersComponent implements OnInit {
     }
     this.saving.set(true);
     this.error.set('');
-    this.api.create(this.formData).subscribe({
+  this.api.create({
+      ...this.formData,
+      username: this.formData.username?.trim() || undefined,
+      password: this.formData.password?.trim() || undefined,
+    }).subscribe({
       next: (partner) => {
         this.partners.update((items) => [partner, ...items]);
         this.saving.set(false);
@@ -164,6 +171,43 @@ export class DeliveryPartnersComponent implements OnInit {
       error: (response) => {
         this.saving.set(false);
         this.error.set(response.error?.detail || 'Could not create delivery partner.');
+      },
+    });
+  }
+
+  setCred(partnerId: number, field: 'username' | 'password', value: string) {
+    const current = this.credDraft[partnerId] || { username: '', password: '' };
+    this.credDraft[partnerId] = { ...current, [field]: value };
+  }
+
+  saveCredentials(partner: DeliveryPartner) {
+    const draft = this.credDraft[partner.id] || {
+      username: partner.username || '',
+      password: '',
+    };
+    const username = draft.username.trim();
+    const password = draft.password.trim();
+    if (!username && !password) {
+      this.error.set('Enter a username and/or password.');
+      return;
+    }
+    this.api.updateCredentials(partner.id, {
+      username: username || null,
+      password: password || null,
+    }).subscribe({
+      next: (updated) => {
+        this.partners.update((items) =>
+          items.map((item) => (item.id === partner.id ? updated : item)),
+        );
+        this.credDraft[partner.id] = {
+          username: updated.username || '',
+          password: '',
+        };
+        this.success.set(`Login updated for ${updated.full_name}.`);
+        this.error.set('');
+      },
+      error: (response) => {
+        this.error.set(response.error?.detail || 'Could not update login.');
       },
     });
   }

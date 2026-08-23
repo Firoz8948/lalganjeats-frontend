@@ -57,7 +57,18 @@
             <div><dt>Joined</dt><dd>{{ partner.joining_date ? (partner.joining_date | date:'d MMM yyyy') : 'Pending' }}</dd></div>
             <div><dt>Email</dt><dd>{{ partner.email || 'Not provided' }}</dd></div>
             <div><dt>Emergency</dt><dd>{{ partner.emergency_contact_phone || 'Not provided' }}</dd></div>
+            <div><dt>Username</dt><dd>{{ partner.username || partner.phone }}</dd></div>
+            <div><dt>Password</dt><dd>{{ partner.has_password ? 'Set' : 'Not set' }}</dd></div>
           </dl>
+
+          <div class="bank-panel cred-panel">
+            <span>LOGIN CREDENTIALS</span>
+            <div class="form-grid">
+              <label>Username<input [ngModel]="credDraft[partner.id]?.username ?? (partner.username || '')" (ngModelChange)="setCred(partner.id, 'username', $event)" autocomplete="off"></label>
+              <label>New password<input type="password" [ngModel]="credDraft[partner.id]?.password ?? ''" (ngModelChange)="setCred(partner.id, 'password', $event)" autocomplete="new-password" placeholder="Leave blank to keep"></label>
+            </div>
+            <button type="button" class="reactivate-btn" (click)="saveCredentials(partner)">Save login</button>
+          </div>
 
           <div class="bank-panel">
             <span>BANK SETTLEMENT</span>
@@ -152,6 +163,15 @@
               <small>Visible to the restaurant and customer during pickup and delivery.</small>
             </label>
           </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Portal login (optional)</legend>
+          <div class="form-grid">
+            <label>Username<input name="username" autocomplete="off" [(ngModel)]="formData.username" placeholder="e.g. rider.ram"></label>
+            <label>Password<input name="password" type="password" autocomplete="new-password" [(ngModel)]="formData.password" placeholder="Min 4 characters"></label>
+          </div>
+          <p class="fieldset-note">Partners can also log in with OTP on their phone. Username may be their phone number.</p>
         </fieldset>
 
         <fieldset>

@@ -10,11 +10,55 @@
     <h1 class="auth-title">Delivery Login</h1>
     <p class="auth-subtitle">Login to accept and deliver orders in Lalganj</p>
 
+    <div class="auth-mode-tabs" role="tablist">
+      <button type="button" role="tab" [class.active]="mode() === 'password'" (click)="usePassword()">Username &amp; password</button>
+      <button type="button" role="tab" [class.active]="mode() === 'otp'" (click)="useOtp()">Login with OTP</button>
+    </div>
+
     @if (error()) {
       <div class="auth-error">⚠️ {{ error() }}</div>
     }
 
-    @if (step() === 'phone') {
+    @if (mode() === 'password') {
+      <div class="auth-form">
+        <div class="input-group">
+          <input
+            type="text"
+            name="username"
+            autocomplete="username"
+            placeholder="Username or mobile number"
+            [(ngModel)]="username"
+            (keyup.enter)="loginWithPassword()"
+          />
+        </div>
+        <div class="input-group">
+          <input
+            type="password"
+            name="password"
+            autocomplete="current-password"
+            placeholder="Password"
+            [(ngModel)]="password"
+            (keyup.enter)="loginWithPassword()"
+          />
+        </div>
+        <label class="legal-consent" [class.legal-consent--sealed]="acceptedLegal">
+          <input type="checkbox" [(ngModel)]="acceptedLegal">
+          <span class="legal-seal" aria-hidden="true">✓</span>
+          <span>
+            I accept the
+            <a routerLink="/legal/terms" target="_blank">Delivery Partner Terms</a>,
+            <a routerLink="/legal/privacy" target="_blank">Privacy Policy</a> and
+            <a routerLink="/legal/refund" target="_blank">Refund Policy</a>.
+          </span>
+        </label>
+        <button class="auth-btn" (click)="loginWithPassword()" [disabled]="loading()">
+          @if (loading()) { Signing in… } @else { Login }
+        </button>
+        <p class="auth-hint">Stay signed in for up to 30 days until you log out.</p>
+      </div>
+    }
+
+    @if (mode() === 'otp' && step() === 'phone') {
       <div class="auth-form">
         <div class="input-group">
           <span class="input-prefix">+91</span>
@@ -36,7 +80,7 @@
       </div>
     }
 
-    @if (step() === 'otp') {
+    @if (mode() === 'otp' && step() === 'otp') {
       <div class="auth-form">
         <p class="otp-sent-msg">
           OTP sent to <strong>+91 {{ phone }}</strong>

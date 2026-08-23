@@ -74,6 +74,33 @@ export class AuthService {
     ).pipe(tap(user => this.saveSession(user)));
   }
 
+  // ── Partner password login (hotel / delivery) ─────────
+  partnerLogin(
+    username: string,
+    password: string,
+    role: 'restaurant_owner' | 'delivery_partner',
+    accepted_legal: boolean,
+  ) {
+    return this.http.post<AuthUser>(
+      `${this.apiUrl}/partner-login`,
+      {
+        username,
+        password,
+        role,
+        accepted_legal,
+        legal_version: '2026-08-17',
+      },
+    ).pipe(tap(user => this.saveSession(user)));
+  }
+
+  rememberPartnerUsername(role: string, username: string) {
+    localStorage.setItem(`le_partner_user_${role}`, username.trim());
+  }
+
+  loadPartnerUsername(role: string): string {
+    return localStorage.getItem(`le_partner_user_${role}`) || '';
+  }
+
   // ── Admin Login ───────────────────────────────────────
   adminLogin(username: string, password: string) {
     return this.http.post<AuthUser>(

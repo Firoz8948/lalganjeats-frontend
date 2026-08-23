@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { PartnerContactDialogComponent } from '../partner-contact-dialog/partner-contact-dialog.component';
 
+type Mode = 'password' | 'otp';
 type Step = 'phone' | 'otp';
 
 @Component({
@@ -15,7 +16,10 @@ type Step = 'phone' | 'otp';
   styleUrl: '../customer-login/customer-login.component.scss',
 })
 export class DeliveryLoginComponent {
+  mode = signal<Mode>('password');
   step = signal<Step>('phone');
+  username = '';
+  password = '';
   phone = '';
   otp = '';
   acceptedLegal = false;
@@ -23,12 +27,54 @@ export class DeliveryLoginComponent {
   error = signal('');
   contactDialogOpen = signal(false);
 
-  readonly ROLE = 'delivery_partner';
+  readonly ROLE = 'delivery_partner' as const;
 
   constructor(private auth: AuthService, private router: Router) {
     if (this.auth.hasRole('delivery_partner')) {
       this.router.navigate(['/deliverypartner']);
+      return;
     }
+    this.username = this.auth.loadPartnerUsername(this.ROLE);
+  }
+
+  usePassword() {
+    this.mode.set('password');
+    this.error.set('');
+  }
+
+  useOtp() {
+    this.mode.set('otp');
+    this.step.set('phone');
+    this.error.set('');
+  }
+
+  loginWithPassword() {
+    if (!this.username.trim() || !this.password) {
+      this.error.set('Enter username and password');
+      return;
+    }
+    if (!this.acceptedLegal) {
+      this.error.set('Accept the partner Terms, Privacy Policy and Refund Policy to continue');
+      return;
+    }
+    this.error.set('');
+    this.loading.set(true);
+    this.auth.partnerLogin(
+      this.username.trim(),
+      this.password,
+      this.ROLE,
+      this.acceptedLegal,
+    ).subscribe({
+      next: (user) => {
+        this.loading.set(false);
+        this.auth.rememberPartnerUsername(this.ROLE, this.username);
+        this.router.navigate([user.redirect_to]);
+      },
+      error: (e) => {
+        this.loading.set(false);
+        this.error.set(e.error?.detail || 'Invalid username or password');
+      },
+    });
   }
 
   sendOTP() {

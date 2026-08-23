@@ -13,6 +13,8 @@ export interface DeliveryPartner {
   full_name: string;
   phone: string;
   email: string | null;
+  username?: string | null;
+  has_password?: boolean;
   is_active: boolean;
   profile_complete: boolean;
   date_of_birth: string | null;
@@ -52,6 +54,8 @@ export interface DeliveryPartnerCreate {
   account_number: string;
   ifsc_code: string;
   bank_name: string;
+  username?: string;
+  password?: string;
 }
 
 export interface DeliveryUploadResult {

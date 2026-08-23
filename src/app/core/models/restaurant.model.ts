@@ -38,6 +38,8 @@ export interface RestaurantCreatePayload {
   banner_mobile_url?: string;
   owner_phone: string;
   owner_name?: string;
+  owner_username?: string;
+  owner_password?: string;
   business_category_id?: number | null;
   is_approved?: boolean;
 }
@@ -59,6 +61,8 @@ export interface RestaurantUpdatePayload {
   is_approved?: boolean;
   is_active?: boolean;
   owner_name?: string | null;
+  owner_username?: string | null;
+  owner_password?: string | null;
   business_category_id?: number | null;
 }
 
@@ -69,6 +73,8 @@ export interface AdminRestaurantRow {
   description?: string | null;
   owner?: string | null;
   owner_phone?: string | null;
+  owner_username?: string | null;
+  has_password?: boolean;
   phone?: string | null;
   address?: string | null;
   city?: string | null;

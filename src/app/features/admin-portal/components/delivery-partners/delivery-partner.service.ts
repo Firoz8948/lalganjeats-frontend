@@ -36,6 +36,16 @@ export class DeliveryPartnerAdminService {
     );
   }
 
+  updateCredentials(
+    partnerId: number,
+    payload: { username?: string | null; password?: string | null },
+  ): Observable<DeliveryPartner> {
+    return this.http.patch<DeliveryPartner>(
+      `${this.base}/${partnerId}/credentials`,
+      payload,
+    );
+  }
+
   upload(
     file: File,
     purpose: DeliveryUploadPurpose,
