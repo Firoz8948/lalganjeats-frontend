@@ -10,9 +10,7 @@
         class="filter-tab"
         [class.active]="activeFilter() === f.key"
         (click)="loadOrders(f.key)">
-        @if (f.key !== 'all') {
-          <app-hp-icon [name]="f.key === 'delivered' ? 'check' : 'x'" [size]="13" />
-        }
+        <app-hp-icon [name]="f.key === 'delivered' ? 'check' : 'x'" [size]="13" />
         {{ f.label }}
       </button>
     }
@@ -31,13 +29,7 @@
     <div class="empty-full">
       <app-hp-icon class="empty-icon" name="clipboard" [size]="56" />
       <h3>No orders found</h3>
-      <p>
-        @if (activeFilter() === 'all') {
-          Your completed orders will appear here
-        } @else {
-          No {{ activeFilter() }} orders found
-        }
-      </p>
+      <p>No {{ activeFilter() }} orders found</p>
     </div>
   }
 
