@@ -133,15 +133,22 @@
   }
 
   .portal-page-header__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     justify-content: stretch;
-    flex-wrap: wrap;
+    width: 100%;
+    gap: 8px;
   }
 
   :host ::ng-deep .portal-page-header__actions {
     > button,
     > a {
-      flex: 1 1 auto;
-      min-width: min(100%, 150px);
+      flex: none;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
     }
   }
 }

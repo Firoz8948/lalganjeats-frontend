@@ -4,6 +4,9 @@
 // ── Page ──────────────────────────────────────────────────
 .hp-page {
   max-width: 1200px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .page-loading {
@@ -14,31 +17,6 @@
   color: var(--color-muted);
   font-size: 15px;
 }
-
-.page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.page-title {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--color-text);
-  margin-bottom: 4px;
-
-  @media (max-width: 600px) { font-size: 20px; }
-}
-
-.page-subtitle {
-  font-size: 14px;
-  color: var(--color-muted);
-}
-
-.header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
 .quick-action-btn {
   display: inline-flex;
@@ -51,6 +29,13 @@
   transition: var(--transition);
   border: 1px solid transparent;
   cursor: pointer;
+  box-sizing: border-box;
+  max-width: 100%;
+
+  @media (max-width: 680px) {
+    width: 100%;
+    justify-content: center;
+  }
 
   &.primary {
     background: var(--color-primary);
