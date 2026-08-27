@@ -158,7 +158,7 @@
 .stat-card--revenue { background: linear-gradient(135deg, #ecfdf5, #a7f3d0); }
 .stat-card--offers { background: linear-gradient(135deg, #fffbeb, #fde68a); }
 
-.recent-panel {
+.live-orders-panel {
   overflow: hidden;
   border: 1px solid rgba(148, 163, 184, .2);
   border-radius: 18px;
@@ -167,7 +167,7 @@
   animation: panel-enter 340ms 160ms ease-out both;
 }
 
-.recent-panel__header {
+.live-orders-panel__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -239,18 +239,38 @@
   display: inline-flex;
   border-radius: 999px;
   padding: 5px 8px;
-  background: #f1f5f9;
-  color: #475569;
   font-size: 10px;
   font-weight: 900;
-  text-transform: capitalize;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+
+  &--muted {
+    background: #f1f5f9;
+    color: #64748b;
+  }
+
+  &--done {
+    background: #dcfce7;
+    color: #166534;
+  }
 }
 
-.status-delivered { background: #dcfce7; color: #166534; }
-.status-cancelled { background: #fee2e2; color: #991b1b; }
-.status-pending { background: #fef3c7; color: #92400e; }
-.status-confirmed, .status-preparing { background: #dbeafe; color: #1d4ed8; }
-.status-assigned, .status-picked_up, .status-on_the_way { background: #e0e7ff; color: #4338ca; }
+.party-cell {
+  strong {
+    display: block;
+    color: #0f172a;
+    font-size: 12px;
+  }
+
+  .party-phone {
+    display: block;
+    margin-top: 2px;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 600;
+  }
+}
+
 .empty-orders { padding: 30px !important; color: #94a3b8 !important; text-align: center; }
 
 .overview-skeleton {
@@ -294,10 +314,10 @@
   .overview-hero time { text-align: left; }
   .stats-grid, .skeleton-grid { grid-template-columns: 1fr; }
   .stat-card { min-height: 150px; }
-  .recent-panel__header { align-items: flex-start; flex-direction: column; }
+  .live-orders-panel__header { align-items: flex-start; flex-direction: column; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stat-card, .recent-panel, .overview-skeleton::after { animation: none; }
+  .stat-card, .live-orders-panel, .overview-skeleton::after { animation: none; }
   .stat-card, .stat-card img, .orders-table tbody tr { transition: none; }
 }

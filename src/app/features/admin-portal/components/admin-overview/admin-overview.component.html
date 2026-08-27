@@ -84,30 +84,68 @@
       </article>
     </div>
 
-    <section class="recent-panel">
-      <div class="recent-panel__header">
+    <section class="live-orders-panel">
+      <div class="live-orders-panel__header">
         <div>
-          <p class="overview-kicker">LATEST ACTIVITY</p>
-          <h2>Recent Orders</h2>
+          <p class="overview-kicker">LIVE ORDERS</p>
+          <h2>Live Orders</h2>
         </div>
-        <span>{{ recentOrders().length }} most recent</span>
+        <span>{{ liveOrders().length }} active</span>
       </div>
       <div class="table-wrap">
         <table class="orders-table">
-          <thead><tr><th>Order</th><th>Status</th><th>Amount</th><th>Placed at</th></tr></thead>
-        <tbody>
-          @for (order of recentOrders(); track order.id) {
+          <thead>
             <tr>
-              <td><span class="order-mark">#</span><strong>{{ order.order_number }}</strong></td>
-              <td><span class="status-chip status-{{ order.status }}">{{ order.status.replace('_', ' ') }}</span></td>
-              <td class="order-amount">₹{{ order.total_amount | number:'1.2-2' }}</td>
-              <td class="order-date">{{ order.created_at | date:'d MMM, h:mm a' }}</td>
+              <th>Order</th>
+              <th>Status</th>
+              <th>Amount</th>
+              <th>Time</th>
+              <th>Restaurant</th>
+              <th>Delivery partner</th>
             </tr>
-          } @empty {
-            <tr><td colspan="4" class="empty-orders">No orders yet.</td></tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (order of liveOrders(); track order.id) {
+              <tr>
+                <td>
+                  <span class="order-mark">#</span>
+                  <strong>{{ order.order_number }}</strong>
+                </td>
+                <td>
+                  <span
+                    class="status-chip"
+                    [class.status-chip--done]="statusTone(order.status) === 'done'"
+                    [class.status-chip--muted]="statusTone(order.status) === 'muted'"
+                    [title]="order.status">
+                    {{ statusShort(order.status) }}
+                  </span>
+                </td>
+                <td class="order-amount">₹{{ order.total_amount | number:'1.2-2' }}</td>
+                <td class="order-date">{{ order.created_at | date:'d MMM, h:mm a' }}</td>
+                <td class="party-cell">
+                  @if (order.restaurant_name) {
+                    <strong>{{ order.restaurant_name }}</strong>
+                    @if (order.restaurant_phone) {
+                      <span class="party-phone">{{ order.restaurant_phone }}</span>
+                    }
+                  } @else {
+                    —
+                  }
+                </td>
+                <td class="party-cell">
+                  @if (order.delivery_partner_name) {
+                    <strong>{{ order.delivery_partner_name }}</strong>
+                    @if (order.delivery_partner_phone) {
+                      <span class="party-phone">{{ order.delivery_partner_phone }}</span>
+                    }
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="empty-orders">No live orders right now.</td></tr>
+            }
+          </tbody>
+        </table>
       </div>
     </section>
   </div>

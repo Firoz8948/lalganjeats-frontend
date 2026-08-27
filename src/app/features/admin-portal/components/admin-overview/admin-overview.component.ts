@@ -11,13 +11,29 @@ interface DashboardStats {
   active_promos: number;
 }
 
-interface RecentOrder {
+interface LiveOrder {
   id: number;
   order_number: string;
   status: string;
   total_amount: number;
-  created_at: string;
+  created_at: string | null;
+  restaurant_name: string | null;
+  restaurant_phone: string | null;
+  delivery_partner_name: string | null;
+  delivery_partner_phone: string | null;
 }
+
+const STATUS_SHORT: Record<string, string> = {
+  pending: 'Pend',
+  confirmed: 'Conf',
+  preparing: 'Prep',
+  ready_for_pickup: 'Ready',
+  assigned: 'Asgn',
+  picked_up: 'Pick',
+  on_the_way: 'OTW',
+  delivered: 'Done',
+  cancelled: 'Canc',
+};
 
 @Component({
   selector: 'app-admin-overview',
@@ -28,7 +44,7 @@ interface RecentOrder {
 })
 export class AdminOverviewComponent implements OnInit {
   stats = signal<DashboardStats | null>(null);
-  recentOrders = signal<RecentOrder[]>([]);
+  liveOrders = signal<LiveOrder[]>([]);
   loading = signal(true);
   today = new Date();
 
@@ -38,10 +54,20 @@ export class AdminOverviewComponent implements OnInit {
     this.admin.getDashboard().subscribe({
       next: (data) => {
         this.stats.set(data.stats);
-        this.recentOrders.set(data.recent_orders);
+        this.liveOrders.set(data.live_orders ?? data.recent_orders ?? []);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
     });
+  }
+
+  statusShort(status: string | null | undefined): string {
+    const key = (status || '').toLowerCase();
+    return STATUS_SHORT[key] || (status || '—').replace(/_/g, ' ');
+  }
+
+  /** Completed (delivered) is colorful; all other statuses stay grey. */
+  statusTone(status: string | null | undefined): 'done' | 'muted' {
+    return (status || '').toLowerCase() === 'delivered' ? 'done' : 'muted';
   }
 }
