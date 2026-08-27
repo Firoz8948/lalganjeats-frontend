@@ -344,6 +344,10 @@ export class AdminService {
     return this.http.get<OrderBreakdown>(`${this.baseUrl}/orders/${orderId}/breakdown`);
   }
 
+  getPaymentsReceived(): Observable<PaymentsReceivedResponse> {
+    return this.http.get<PaymentsReceivedResponse>(`${this.baseUrl}/payments/received`);
+  }
+
   // ── Partner settlements ──────────────────────────────────────────────────
 
   getRestaurantSettlements(): Observable<SettlementRow[]> {
@@ -498,6 +502,26 @@ export interface OrderBreakdown {
     admin_profit: number;
     is_loss: boolean;
   };
+}
+
+export interface PaymentReceivedRow {
+  id: string | number;
+  source_type: 'customer' | 'delivery_partner' | string;
+  payer_name: string | null;
+  via: string | null;
+  amount: number;
+  method: string;
+  label: string;
+  order_number: string | null;
+  restaurant: string | null;
+  order_status: string | null;
+  created_at: string | null;
+}
+
+export interface PaymentsReceivedResponse {
+  total_received: number;
+  count: number;
+  payments: PaymentReceivedRow[];
 }
 
 export interface SettlementRow {

@@ -14,6 +14,23 @@
         </svg>
         Overview
       </button>
+      <button class="nav-item" [class.active]="activeTab()==='orders'" (click)="setTab('orders')">
+        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        Orders
+      </button>
+      <button class="nav-item" [class.active]="activeTab()==='payments'" (click)="setTab('payments')">
+        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="20" height="14" rx="2"/>
+          <line x1="2" y1="10" x2="22" y2="10"/>
+        </svg>
+        Revenue
+      </button>
       <button class="nav-item" [class.active]="activeTab()==='restaurants'" (click)="setTab('restaurants')">
         <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -33,6 +50,31 @@
         </svg>
         Delivery Partners
       </button>
+      <button class="nav-item" [class.active]="activeTab()==='settlements'" (click)="setTab('settlements')">
+        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="20" height="14" rx="2"/>
+          <path d="M16 12h4"/>
+          <path d="M2 9h20"/>
+        </svg>
+        Settlements
+      </button>
+      <button class="nav-item" [class.active]="activeTab()==='customers'" (click)="setTab('customers')">
+        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        Customers
+      </button>
+      <button class="nav-item" [class.active]="activeTab()==='promos'" (click)="setTab('promos')">
+        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+          <line x1="7" y1="7" x2="7.01" y2="7"/>
+        </svg>
+        Promos
+      </button>
       <button class="nav-item" [class.active]="activeTab()==='categories'" (click)="setTab('categories')">
         <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -51,15 +93,6 @@
         </svg>
         Subcategories
       </button>
-      <button class="nav-item" [class.active]="activeTab()==='zones'" (click)="setTab('zones')">
-        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <circle cx="12" cy="12" r="6"/>
-          <circle cx="12" cy="12" r="2"/>
-        </svg>
-        Zones
-      </button>
       <button class="nav-item" [class.active]="activeTab()==='banners'" (click)="setTab('banners')">
         <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -69,22 +102,14 @@
         </svg>
         Banners
       </button>
-      <button class="nav-item" [class.active]="activeTab()==='payment'" (click)="setTab('payment')">
+      <button class="nav-item" [class.active]="activeTab()==='zones'" (click)="setTab('zones')">
         <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="1" y="4" width="22" height="16" rx="2"/>
-          <line x1="1" y1="10" x2="23" y2="10"/>
+          <circle cx="12" cy="12" r="10"/>
+          <circle cx="12" cy="12" r="6"/>
+          <circle cx="12" cy="12" r="2"/>
         </svg>
-        Payment
-      </button>
-      <button class="nav-item" [class.active]="activeTab()==='settlements'" (click)="setTab('settlements')">
-        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="5" width="20" height="14" rx="2"/>
-          <path d="M16 12h4"/>
-          <path d="M2 9h20"/>
-        </svg>
-        Settlements
+        Zones
       </button>
       <button class="nav-item" [class.active]="activeTab()==='reports'" (click)="setTab('reports')">
         <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -96,30 +121,13 @@
         </svg>
         Reports
       </button>
-      <button class="nav-item" [class.active]="activeTab()==='customers'" (click)="setTab('customers')">
+      <button class="nav-item" [class.active]="activeTab()==='payment-settings'" (click)="setTab('payment-settings')">
         <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-          <circle cx="12" cy="7" r="4"/>
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
         </svg>
-        Customers
-      </button>
-      <button class="nav-item" [class.active]="activeTab()==='orders'" (click)="setTab('orders')">
-        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <path d="M16 10a4 4 0 0 1-8 0"/>
-        </svg>
-        Orders
-      </button>
-      <button class="nav-item" [class.active]="activeTab()==='promos'" (click)="setTab('promos')">
-        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-          <line x1="7" y1="7" x2="7.01" y2="7"/>
-        </svg>
-        Promos
+        Payment Settings
       </button>
     </nav>
 
@@ -152,19 +160,20 @@
     }
 
     @if (activeTab() === 'overview') { <app-admin-overview /> }
+    @if (activeTab() === 'orders') { <app-admin-orders /> }
+    @if (activeTab() === 'payments') { <app-admin-payments /> }
     @if (activeTab() === 'restaurants') { <app-admin-restaurants /> }
     @if (activeTab() === 'delivery-partners') { <app-delivery-partners /> }
+    @if (activeTab() === 'settlements') { <app-admin-settlements /> }
+    @if (activeTab() === 'customers') { <app-admin-customers /> }
+    @if (activeTab() === 'promos') { <app-admin-promos /> }
     @if (activeTab() === 'categories') { <app-admin-categories /> }
     @if (activeTab() === 'subcategories') { <app-admin-subcategories /> }
-    @if (activeTab() === 'zones') { <app-admin-zones /> }
     @if (activeTab() === 'banners') { <app-admin-banners /> }
-    @if (activeTab() === 'payment') {
+    @if (activeTab() === 'zones') { <app-admin-zones /> }
+    @if (activeTab() === 'reports') { <app-admin-reports /> }
+    @if (activeTab() === 'payment-settings') {
       <div class="payment-wrap"><app-payment-settings /></div>
     }
-    @if (activeTab() === 'settlements') { <app-admin-settlements /> }
-    @if (activeTab() === 'reports') { <app-admin-reports /> }
-    @if (activeTab() === 'customers') { <app-admin-customers /> }
-    @if (activeTab() === 'orders') { <app-admin-orders /> }
-    @if (activeTab() === 'promos') { <app-admin-promos /> }
   </main>
 </div>

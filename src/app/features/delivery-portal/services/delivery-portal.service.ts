@@ -149,6 +149,46 @@ export class DeliveryPortalService {
     return this.http.get(`${this.api}/earnings?filter=${filter}`);
   }
 
+  cashOnHand() {
+    return this.http.get<{
+      cash_on_hand: number;
+      order_count: number;
+      orders: {
+        id: number;
+        order_number: string;
+        cash_collected: number;
+        customer_total: number;
+      }[];
+    }>(`${this.api}/cash-on-hand`);
+  }
+
+  initiateCashRemit() {
+    return this.http.post<{
+      payment_url: string;
+      fields: Record<string, string>;
+      remittance_id: number;
+      amount: number;
+      order_count: number;
+    }>(`${this.api}/cash-remit/initiate`, {});
+  }
+
+  /** Auto-submit a hidden form to PayU hosted checkout. */
+  redirectToPayU(paymentUrl: string, fields: Record<string, string>): void {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = paymentUrl;
+    form.style.display = 'none';
+    Object.entries(fields).forEach(([name, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = value ?? '';
+      form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
+  }
+
   pingLocation(lat: number, lng: number) {
     return this.http.post(this.locApi, { latitude: lat, longitude: lng });
   }

@@ -120,6 +120,40 @@
     }
   }
 
+  .cash-clear-section {
+    .cash-clear-help {
+      margin: 0 0 1rem;
+      color: #666;
+      font-size: 0.875rem;
+    }
+
+    .cash-clear-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+
+      .label {
+        display: block;
+        font-size: 0.8rem;
+        color: #888;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+      }
+
+      strong {
+        font-size: 1.35rem;
+        color: #2d2d2d;
+      }
+
+      .muted {
+        color: #888;
+        font-size: 0.85rem;
+      }
+    }
+  }
+
   .bank-form {
     background: #faf5ef;
     border-radius: 8px;

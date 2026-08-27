@@ -11,24 +11,26 @@ import { AdminRestaurantsComponent } from '../admin-restaurants/admin-restaurant
 import { AdminSettlementsComponent } from '../admin-settlements/admin-settlements.component';
 import { AdminSubcategoriesComponent } from '../admin-subcategories/admin-subcategories.component';
 import { AdminZonesComponent } from '../admin-zones/admin-zones.component';
+import { AdminPaymentsComponent } from '../admin-payments/admin-payments.component';
 import { PaymentSettingsComponent } from '../payment-settings/payment-settings.component';
 import { AdminReportsComponent } from '../reports/admin-reports.component';
 import { DeliveryPartnersComponent } from '../delivery-partners/delivery-partners.component';
 
 type AdminTab =
   | 'overview'
+  | 'orders'
+  | 'payments'
   | 'restaurants'
   | 'delivery-partners'
+  | 'settlements'
+  | 'customers'
+  | 'promos'
   | 'categories'
   | 'subcategories'
-  | 'customers'
-  | 'orders'
   | 'banners'
-  | 'payment'
-  | 'settlements'
-  | 'reports'
   | 'zones'
-  | 'promos';
+  | 'reports'
+  | 'payment-settings';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -41,6 +43,7 @@ type AdminTab =
     AdminSubcategoriesComponent,
     AdminCustomersComponent,
     AdminOrdersComponent,
+    AdminPaymentsComponent,
     AdminBannersComponent,
     PaymentSettingsComponent,
     AdminSettlementsComponent,
