@@ -18,9 +18,8 @@ export class HpActiveOrdersComponent implements OnInit {
   loading = signal(true);
 
   statusSteps = [
-    { key: 'confirmed',        label: 'Accepted'        },
-    { key: 'preparing',        label: 'Preparing'       },
-    { key: 'ready_for_pickup', label: 'Prepared'        },
+    { key: 'accepted', label: 'Accepted' },
+    { key: 'ready',    label: 'Ready' },
   ];
 
   constructor(private service: HotelPortalService) {}
@@ -35,29 +34,21 @@ export class HpActiveOrdersComponent implements OnInit {
   }
 
   nextStatus(current: string): string {
-    const flow: Record<string,string> = {
-      confirmed:        'preparing',
-      preparing:        'ready_for_pickup',
-      ready_for_pickup: 'ready_for_pickup'
-    };
-    return flow[current] || current;
+    return current === 'accepted' ? 'ready' : current;
   }
 
   nextStatusLabel(current: string): string {
-    const labels: Record<string,string> = {
-      confirmed:        'Start Preparing',
-      preparing:        'Mark Prepared',
-      ready_for_pickup: 'Awaiting Pickup'
-    };
-    return labels[current] || current;
+    if (current === 'accepted') return 'Mark Ready';
+    if (current === 'ready') return 'Awaiting Pickup';
+    return current;
   }
 
-  nextStatusIcon(current: string): HpIconName {
-    return current === 'confirmed' ? 'flame' : 'package';
+  nextStatusIcon(_current: string): HpIconName {
+    return 'package';
   }
 
   canAdvance(status: string): boolean {
-    return ['confirmed', 'preparing'].includes(status);
+    return status === 'accepted';
   }
 
   advanceStatus(order: Order) {

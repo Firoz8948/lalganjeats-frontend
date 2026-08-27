@@ -235,23 +235,62 @@
 .order-amount { color: #0f172a !important; font-weight: 900; }
 .order-date { color: #64748b !important; }
 
-.status-chip {
-  display: inline-flex;
-  border-radius: 999px;
-  padding: 5px 8px;
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: .04em;
-  text-transform: uppercase;
+.status-cell {
+  min-width: 340px;
+}
 
-  &--muted {
+.status-pipeline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  max-width: 100%;
+}
+
+.status-step {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 4px 7px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1.2;
+
+  &--muted,
+  &--reached:not(.status-step--current) {
     background: #f1f5f9;
-    color: #64748b;
+    color: #94a3b8;
   }
 
-  &--done {
+  &--current {
     background: #dcfce7;
     color: #166534;
+    box-shadow: 0 0 0 1px rgba(22, 101, 52, .18);
+  }
+
+  &--tick {
+    min-width: 22px;
+    justify-content: center;
+    padding-inline: 6px;
+  }
+}
+
+.status-tick {
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.status-line {
+  flex: 0 0 10px;
+  height: 2px;
+  margin: 0 2px;
+  border-radius: 999px;
+  background: #e2e8f0;
+
+  &--reached {
+    background: #86efac;
   }
 }
 

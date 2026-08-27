@@ -98,7 +98,7 @@
                   }
                 </button>
               }
-              @if (['pending','confirmed'].includes(order()!.status)) {
+              @if (['pending','accepted'].includes(order()!.status)) {
                 <button class="cancel-action-btn"
                         [disabled]="saving()"
                         (click)="cancel()">

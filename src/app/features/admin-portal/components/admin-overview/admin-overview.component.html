@@ -111,14 +111,29 @@
                   <span class="order-mark">#</span>
                   <strong>{{ order.order_number }}</strong>
                 </td>
-                <td>
-                  <span
-                    class="status-chip"
-                    [class.status-chip--done]="statusTone(order.status) === 'done'"
-                    [class.status-chip--muted]="statusTone(order.status) === 'muted'"
-                    [title]="order.status">
-                    {{ statusShort(order.status) }}
-                  </span>
+                <td class="status-cell">
+                  <div class="status-pipeline" [title]="order.status">
+                    @for (step of statusFlow; track step; let last = $last) {
+                      <span
+                        class="status-step"
+                        [class.status-step--reached]="isStepReached(order.status, step)"
+                        [class.status-step--current]="isCurrentStep(order.status, step)"
+                        [class.status-step--muted]="!isStepReached(order.status, step)"
+                        [class.status-step--tick]="isDeliveredStep(step)">
+                        @if (isDeliveredStep(step)) {
+                          <span class="status-tick" aria-hidden="true">✓</span>
+                        } @else {
+                          {{ statusShort(step) }}
+                        }
+                      </span>
+                      @if (!last) {
+                        <span
+                          class="status-line"
+                          [class.status-line--reached]="isStepReached(order.status, step)">
+                        </span>
+                      }
+                    }
+                  </div>
                 </td>
                 <td class="order-amount">₹{{ order.total_amount | number:'1.2-2' }}</td>
                 <td class="order-date">{{ order.created_at | date:'d MMM, h:mm a' }}</td>

@@ -49,12 +49,12 @@ export class HpDashboardComponent implements OnInit {
 
   getStatusColor(status: string): string {
     const map: Record<string,string> = {
-      pending:          'warning',
-      confirmed:        'info',
-      preparing:        'purple',
-      ready_for_pickup: 'orange',
-      delivered:        'success',
-      cancelled:        'danger'
+      pending:   'warning',
+      accepted:  'info',
+      ready:     'orange',
+      picked_up: 'info',
+      delivered: 'success',
+      cancelled: 'danger'
     };
     return map[status] || 'default';
   }

@@ -40,7 +40,7 @@ export class HpIncomingOrdersComponent implements OnInit, OnDestroy {
   }
 
   accept(id: number) {
-    this.service.updateOrderStatus(id, 'confirmed').subscribe(
+    this.service.updateOrderStatus(id, 'accepted').subscribe(
       () => this.loadOrders()
     );
   }

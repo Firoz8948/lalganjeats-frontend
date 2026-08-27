@@ -23,16 +23,22 @@ interface LiveOrder {
   delivery_partner_phone: string | null;
 }
 
+/** Customer POV pipeline shown in Live Orders. */
+const LIVE_STATUS_FLOW = [
+  'pending',
+  'accepted',
+  'ready',
+  'picked_up',
+  'delivered',
+] as const;
+
 const STATUS_SHORT: Record<string, string> = {
-  pending: 'Pend',
-  confirmed: 'Conf',
-  preparing: 'Prep',
-  ready_for_pickup: 'Ready',
-  assigned: 'Asgn',
-  picked_up: 'Pick',
-  on_the_way: 'OTW',
-  delivered: 'Done',
-  cancelled: 'Canc',
+  pending: 'PEND',
+  accepted: 'ACCEPT',
+  ready: 'READY',
+  picked_up: 'PICKED',
+  delivered: '✓',
+  cancelled: 'CANC',
 };
 
 @Component({
@@ -47,6 +53,7 @@ export class AdminOverviewComponent implements OnInit {
   liveOrders = signal<LiveOrder[]>([]);
   loading = signal(true);
   today = new Date();
+  readonly statusFlow = LIVE_STATUS_FLOW;
 
   constructor(private admin: AdminService) {}
 
@@ -66,8 +73,26 @@ export class AdminOverviewComponent implements OnInit {
     return STATUS_SHORT[key] || (status || '—').replace(/_/g, ' ');
   }
 
-  /** Completed (delivered) is colorful; all other statuses stay grey. */
-  statusTone(status: string | null | undefined): 'done' | 'muted' {
-    return (status || '').toLowerCase() === 'delivered' ? 'done' : 'muted';
+  statusIndex(status: string | null | undefined): number {
+    return LIVE_STATUS_FLOW.indexOf(
+      (status || '').toLowerCase() as (typeof LIVE_STATUS_FLOW)[number],
+    );
+  }
+
+  isStepReached(orderStatus: string | null | undefined, step: string): boolean {
+    const current = this.statusIndex(orderStatus);
+    const stepIdx = LIVE_STATUS_FLOW.indexOf(
+      step as (typeof LIVE_STATUS_FLOW)[number],
+    );
+    if (current < 0 || stepIdx < 0) return false;
+    return stepIdx <= current;
+  }
+
+  isCurrentStep(orderStatus: string | null | undefined, step: string): boolean {
+    return (orderStatus || '').toLowerCase() === step;
+  }
+
+  isDeliveredStep(step: string): boolean {
+    return step === 'delivered';
   }
 }

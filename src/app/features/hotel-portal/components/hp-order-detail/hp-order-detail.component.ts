@@ -21,13 +21,11 @@ export class HpOrderDetailComponent implements OnInit {
   saving  = signal(false);
 
   readonly STATUS_FLOW = [
-    { key: 'pending',          label: 'Waiting',          icon: 'clipboard' as HpIconName },
-    { key: 'confirmed',        label: 'Accepted',         icon: 'check' as HpIconName },
-    { key: 'preparing',        label: 'Preparing',        icon: 'flame' as HpIconName },
-    { key: 'ready_for_pickup', label: 'Prepared',         icon: 'package' as HpIconName },
-    { key: 'picked_up',        label: 'Picked Up',        icon: 'bike' as HpIconName },
-    { key: 'on_the_way',       label: 'On the Way',       icon: 'bike' as HpIconName },
-    { key: 'delivered',        label: 'Delivered',         icon: 'check' as HpIconName },
+    { key: 'pending',   label: 'Pending',   icon: 'clipboard' as HpIconName },
+    { key: 'accepted',  label: 'Accepted',  icon: 'check' as HpIconName },
+    { key: 'ready',     label: 'Ready',     icon: 'package' as HpIconName },
+    { key: 'picked_up', label: 'Picked Up', icon: 'bike' as HpIconName },
+    { key: 'delivered', label: 'Delivered',  icon: 'check' as HpIconName },
   ];
 
   constructor(
@@ -42,7 +40,6 @@ export class HpOrderDetailComponent implements OnInit {
   }
 
   loadOrder(id: number) {
-    // fetch all orders and find by id
     this.service.getOrders().subscribe({
       next: (orders) => {
         const found = orders.find(o => o.id === id) || null;
@@ -68,9 +65,8 @@ export class HpOrderDetailComponent implements OnInit {
 
   getNextStatus(current: string): { status: string; label: string; icon: HpIconName } | null {
     const flow: Record<string, { status: string; label: string; icon: HpIconName }> = {
-      pending:          { status: 'confirmed',        label: 'Confirm Order',         icon: 'check' },
-      confirmed:        { status: 'preparing',        label: 'Start Preparing',       icon: 'flame' },
-      preparing:        { status: 'ready_for_pickup', label: 'Mark Prepared', icon: 'package' },
+      pending:  { status: 'accepted', label: 'Accept Order', icon: 'check' },
+      accepted: { status: 'ready',    label: 'Mark Ready',   icon: 'package' },
     };
     return flow[current] || null;
   }
@@ -81,13 +77,12 @@ export class HpOrderDetailComponent implements OnInit {
 
   getStatusColor(status: string): string {
     const map: Record<string, string> = {
-      pending:          'warning',
-      confirmed:        'info',
-      preparing:        'purple',
-      ready_for_pickup: 'orange',
-      picked_up:        'info',
-      delivered:        'success',
-      cancelled:        'danger'
+      pending:   'warning',
+      accepted:  'info',
+      ready:     'orange',
+      picked_up: 'info',
+      delivered: 'success',
+      cancelled: 'danger'
     };
     return map[status] || 'default';
   }

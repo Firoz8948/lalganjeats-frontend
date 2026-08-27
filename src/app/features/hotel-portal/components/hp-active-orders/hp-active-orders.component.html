@@ -114,7 +114,7 @@
               {{ nextStatusLabel(order.status) }}
             </button>
           </div>
-        } @else if (order.status === 'ready_for_pickup') {
+        } @else if (order.status === 'ready') {
           <div class="active-card__footer">
             <div class="awaiting-pickup">
               <app-hp-icon name="bike" [size]="16" />

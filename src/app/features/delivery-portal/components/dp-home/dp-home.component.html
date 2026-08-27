@@ -29,8 +29,15 @@
           @else { Collect at door · {{ a.payment_method || 'cash' }} }
         </p>
 
-        @if (a.status === 'assigned' && a.map_to_restaurant) {
+        @if ((a.status === 'accepted' || a.status === 'ready') && a.map_to_restaurant) {
           <a class="map-link" [href]="a.map_to_restaurant" target="_blank" rel="noopener">Open map to restaurant</a>
+        }
+
+        @if (a.status === 'accepted') {
+          <p class="hint">Waiting for restaurant to mark Ready before pickup.</p>
+        }
+
+        @if (a.status === 'ready') {
           <button type="button" class="primary" (click)="pickedUp(a)">Mark picked up</button>
         }
 
@@ -38,10 +45,6 @@
           @if (a.map_to_customer) {
             <a class="map-link" [href]="a.map_to_customer" target="_blank" rel="noopener">Open map to customer</a>
           }
-          <button type="button" class="primary" (click)="onTheWay(a)">Order on the way</button>
-        }
-
-        @if (a.status === 'on_the_way') {
           <div class="complete-box">
             <h3>Hand over &amp; collect</h3>
             <button type="button" class="secondary" (click)="sendOtp(a)">Send OTP to customer</button>

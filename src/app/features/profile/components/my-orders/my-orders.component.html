@@ -143,43 +143,20 @@
                         <polyline points="12 7 12 12 15 14"/>
                       </svg>
                     }
-                    @case ('confirmed') {
+                    @case ('accepted') {
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
                            stroke="currentColor" stroke-width="2.4" aria-hidden="true">
                         <polyline points="20 6 9 17 4 12"/>
                       </svg>
                     }
-                    @case ('preparing') {
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                           stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-                        <path d="M12 2v4M8.5 4.5l2 2M15.5 4.5l-2 2"/>
-                        <path d="M8 10c0 2.2 1.2 3.8 2.5 5.2.7.7 1.5 1.5 1.5 2.8 0 1.1-.9 2-2 2s-2-.9-2-2"/>
-                      </svg>
-                    }
-                    @case ('ready_for_pickup') {
+                    @case ('ready') {
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
                            stroke="currentColor" stroke-width="2.2" aria-hidden="true">
                         <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
                         <line x1="3" y1="6" x2="21" y2="6"/>
                       </svg>
                     }
-                    @case ('assigned') {
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                           stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-                        <circle cx="5" cy="18" r="2.5"/><circle cx="17" cy="18" r="2.5"/>
-                        <path d="M7.5 18h6l2-6h3l1.5 4H19"/>
-                        <path d="M3 18H2V9h8l2 5"/>
-                      </svg>
-                    }
                     @case ('picked_up') {
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                           stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-                        <circle cx="5" cy="18" r="2.5"/><circle cx="17" cy="18" r="2.5"/>
-                        <path d="M7.5 18h6l2-6h3l1.5 4H19"/>
-                        <path d="M3 18H2V9h8l2 5"/>
-                      </svg>
-                    }
-                    @case ('on_the_way') {
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
                            stroke="currentColor" stroke-width="2.2" aria-hidden="true">
                         <circle cx="5" cy="18" r="2.5"/><circle cx="17" cy="18" r="2.5"/>
@@ -300,9 +277,7 @@
               </div>
 
               <!-- Active Order Tracking -->
-              @if (['pending','confirmed','preparing',
-                    'ready_for_pickup','assigned','picked_up',
-                    'on_the_way'].includes(order.status)) {
+              @if (['pending','accepted','ready','picked_up'].includes(order.status)) {
                 <div class="order-tracking">
                   <p class="tracking-label">Order Status</p>
                   <div class="tracking-steps">

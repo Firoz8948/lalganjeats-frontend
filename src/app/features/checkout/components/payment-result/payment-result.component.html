@@ -5,7 +5,7 @@
     @if (status() === 'success') {
       <div class="pay-result__icon" aria-hidden="true">✓</div>
       <h1>Payment successful</h1>
-      <p>Your prepaid order is confirmed and sent to the restaurant.</p>
+      <p>Your prepaid order is paid and waiting for the restaurant to accept.</p>
       @if (orderNumber()) {
         <p class="oid">Order ID: <strong>{{ orderNumber() }}</strong></p>
       }

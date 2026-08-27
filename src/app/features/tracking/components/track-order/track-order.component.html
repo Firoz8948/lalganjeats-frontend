@@ -65,12 +65,15 @@
       @if (s.phase === 'to_restaurant') {
         <p class="hint">Rider is heading to the restaurant to pick up your order.</p>
       }
-      @if (s.phase === 'to_customer' && s.order_status === 'on_the_way' && s.delivery_partner; as rider) {
+      @if (s.phase === 'to_customer' && s.order_status === 'picked_up' && s.delivery_partner; as rider) {
         <p class="hint">
-          Our delivery partner, {{ rider.name }}, is on the way with your order
-          @if (rider.registered_vehicle_number) {
-            on bike {{ rider.registered_vehicle_number }}
-          }.
+          {{ rider.name }}
+          @if (rider.bike_info || rider.registered_vehicle_number) {
+            with his
+            @if (rider.bike_info) { {{ rider.bike_info }} }
+            @if (rider.registered_vehicle_number) { {{ rider.registered_vehicle_number }} }
+          }
+          on the way to deliver the order.
         </p>
       }
       @if (usingNativeMap()) {
