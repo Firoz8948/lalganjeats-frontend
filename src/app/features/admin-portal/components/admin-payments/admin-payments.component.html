@@ -7,51 +7,53 @@
 
   @if (loading()) {
     <p class="page-sub">Loading revenue…</p>
-  } @else if (data(); as d) {
-    <div class="pay-summary">
-      <div class="pay-summary__card">
-        <span>Total received</span>
-        <strong>₹{{ d.total_received | number:'1.2-2' }}</strong>
+  } @else {
+    @if (data(); as d) {
+      <div class="pay-summary">
+        <div class="pay-summary__card">
+          <span>Total received</span>
+          <strong>₹{{ d.total_received | number:'1.2-2' }}</strong>
+        </div>
+        <div class="pay-summary__card">
+          <span>Entries</span>
+          <strong>{{ d.count }}</strong>
+        </div>
       </div>
-      <div class="pay-summary__card">
-        <span>Entries</span>
-        <strong>{{ d.count }}</strong>
-      </div>
-    </div>
 
-    <div class="table-wrap">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Type</th>
-            <th>Name</th>
-            <th>Label</th>
-            <th>Order</th>
-            <th>Restaurant</th>
-            <th>Amount</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (p of d.payments; track p.id) {
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
             <tr>
-              <td>
-                <span class="source-pill" [class.source-pill--dp]="p.source_type === 'delivery_partner'">
-                  {{ sourceLabel(p.source_type) }}
-                </span>
-              </td>
-              <td>{{ p.payer_name || '—' }}</td>
-              <td>{{ p.label || methodLabel(p.method) }}</td>
-              <td>{{ p.order_number || '—' }}</td>
-              <td>{{ p.restaurant || '—' }}</td>
-              <td>₹{{ p.amount | number:'1.2-2' }}</td>
-              <td>{{ p.created_at | date:'d MMM yyyy, h:mm a' }}</td>
+              <th>Type</th>
+              <th>Name</th>
+              <th>Label</th>
+              <th>Order</th>
+              <th>Restaurant</th>
+              <th>Amount</th>
+              <th>Date</th>
             </tr>
-          } @empty {
-            <tr><td colspan="7" class="empty-table-cell">No revenue received yet.</td></tr>
-          }
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            @for (p of d.payments; track p.id) {
+              <tr>
+                <td>
+                  <span class="source-pill" [class.source-pill--dp]="p.source_type === 'delivery_partner'">
+                    {{ sourceLabel(p.source_type) }}
+                  </span>
+                </td>
+                <td>{{ p.payer_name || '—' }}</td>
+                <td>{{ p.label || methodLabel(p.method) }}</td>
+                <td>{{ p.order_number || '—' }}</td>
+                <td>{{ p.restaurant || '—' }}</td>
+                <td>₹{{ p.amount | number:'1.2-2' }}</td>
+                <td>{{ p.created_at | date:'d MMM yyyy, h:mm a' }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="7" class="empty-table-cell">No revenue received yet.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
   }
 </div>
