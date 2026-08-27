@@ -472,17 +472,32 @@ export interface OrderBreakdown {
   restaurant: string | null;
   customer: string | null;
   status: string;
+  /** Customer view */
+  display_price?: number;
   order_price: number;
+  platform_fee: number;
   delivery_charge: number;
+  discount: number;
   customer_total: number;
+  /** Admin view */
   hotel_price: number;
   delivery_price: number;
-  platform_fee: number;
-  platform_charge: number;
   admin_profit: number;
   is_loss: boolean;
-  discount: number;
   promo_code: string | null;
+  customer_view?: {
+    display_price: number;
+    platform_fee: number;
+    delivery_charge: number;
+    discount: number;
+    customer_total: number;
+  };
+  admin_view?: {
+    hotel_payout: number;
+    delivery_payout: number;
+    admin_profit: number;
+    is_loss: boolean;
+  };
 }
 
 export interface SettlementRow {

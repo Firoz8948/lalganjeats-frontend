@@ -62,8 +62,9 @@
       } @else {
       @if (breakdown(); as details) {
         <div class="breakdown-section">
-          <h3>Customer pays</h3>
-          <div class="breakdown-row"><span>Order price</span><strong>₹{{ details.order_price | number:'1.2-2' }}</strong></div>
+          <h3>Customer view</h3>
+          <div class="breakdown-row"><span>Display price</span><strong>₹{{ (details.display_price ?? details.order_price) | number:'1.2-2' }}</strong></div>
+          <div class="breakdown-row"><span>Platform fee</span><strong>₹{{ details.platform_fee | number:'1.2-2' }}</strong></div>
           <div class="breakdown-row"><span>Delivery charge</span><strong>₹{{ details.delivery_charge | number:'1.2-2' }}</strong></div>
           @if (details.discount > 0) {
             <div class="breakdown-row muted">
@@ -72,17 +73,20 @@
             </div>
           }
           <div class="breakdown-row total"><span>Customer total</span><strong>₹{{ details.customer_total | number:'1.2-2' }}</strong></div>
+          <p class="breakdown-note">
+            Display price + platform fee + delivery charge − discount.
+          </p>
         </div>
         <div class="breakdown-section">
-          <h3>Payout split</h3>
-          <div class="breakdown-row"><span>Hotel portal price</span><strong>₹{{ details.hotel_price | number:'1.2-2' }}</strong></div>
-          <div class="breakdown-row"><span>Delivery price</span><strong>₹{{ details.delivery_price | number:'1.2-2' }}</strong></div>
+          <h3>Admin view</h3>
+          <div class="breakdown-row"><span>Hotel payout</span><strong>₹{{ details.hotel_price | number:'1.2-2' }}</strong></div>
+          <div class="breakdown-row"><span>Delivery payout</span><strong>₹{{ details.delivery_price | number:'1.2-2' }}</strong></div>
           <div class="breakdown-row highlight" [class.loss]="details.is_loss">
             <span>{{ details.is_loss ? 'Admin loss' : 'Admin profit' }}</span>
             <strong>{{ details.is_loss ? '−' : '+' }}₹{{ (details.admin_profit < 0 ? -details.admin_profit : details.admin_profit) | number:'1.2-2' }}</strong>
           </div>
           <p class="breakdown-note">
-            Display price − seller transfer − delivery partner earning. MRP, delivery charge, and legacy platform fee do not affect this result.
+            Customer total − hotel payout − delivery payout.
           </p>
         </div>
       }
