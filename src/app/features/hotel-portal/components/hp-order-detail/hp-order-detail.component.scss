@@ -43,13 +43,28 @@
 // ── Layout ────────────────────────────────────────────────
 .detail-layout {
   display: grid;
-  grid-template-columns: 1fr 360px;
+  grid-template-columns: minmax(0, 1fr) 360px;
   gap: 20px;
   align-items: start;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
 
   @media (max-width: 900px) {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
+}
+
+.detail-left {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.detail-right {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 // ── Detail Card ───────────────────────────────────────────
@@ -60,6 +75,11 @@
   box-shadow: var(--shadow-sm);
   padding: 20px;
   margin-bottom: 16px;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 
   &:last-child { margin-bottom: 0; }
 }
@@ -130,9 +150,13 @@
   display: flex;
   align-items: flex-start;
   overflow-x: auto;
-  padding-bottom: 4px;
-  scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
+  width: 100%;
+  max-width: 100%;
+  padding-bottom: 8px;
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  &::-webkit-scrollbar { height: 4px; }
+  &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 }
 
 .pt-step {
@@ -141,7 +165,7 @@
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
-  min-width: 70px;
+  min-width: 60px;
 
   &__dot {
     width: 32px; height: 32px;
@@ -204,7 +228,8 @@
   background: var(--color-border);
   margin: 0 4px;
   margin-bottom: 40px;
-  min-width: 16px;
+  min-width: 8px;
+  flex-shrink: 1;
   transition: var(--transition);
 
   &.filled { background: var(--color-primary); }

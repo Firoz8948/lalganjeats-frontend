@@ -49,15 +49,12 @@
             <div class="progress-tracker">
               @for (step of STATUS_FLOW; track step.key; let i = $index) {
                 <div class="pt-step"
-                     [class.done]="getCurrentStepIndex(order()!.status) > i"
-                     [class.current]="getCurrentStepIndex(order()!.status) === i"
+                     [class.done]="getCurrentStepIndex(order()!.status) >= i"
                      [class.future]="getCurrentStepIndex(order()!.status) < i">
 
                   <div class="pt-step__dot">
-                    @if (getCurrentStepIndex(order()!.status) > i) {
+                    @if (getCurrentStepIndex(order()!.status) >= i) {
                       <app-hp-icon name="check" [size]="12" />
-                    } @else if (getCurrentStepIndex(order()!.status) === i) {
-                      <div class="pt-step__current-dot"></div>
                     }
                   </div>
 
@@ -169,7 +166,7 @@
               <span>₹0</span>
             </div>
             <div class="bill-row bill-row--total">
-              <span>Grand Total</span>
+              <span>Seller Transfer Total</span>
               <span>₹{{ order()!.total_amount }}</span>
             </div>
           </div>

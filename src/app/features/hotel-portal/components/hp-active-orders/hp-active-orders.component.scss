@@ -105,6 +105,8 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
+  width: 100%;
 }
 
 .active-card {
@@ -114,6 +116,10 @@
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition: var(--transition);
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 
   &:hover {
     box-shadow: var(--shadow-md);
@@ -224,8 +230,12 @@
   padding: 18px 24px;
   border-bottom: 1px solid #F5F5F5;
   overflow-x: auto;
-  scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  &::-webkit-scrollbar { height: 4px; }
+  &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 }
 
 .progress-step {
@@ -234,7 +244,7 @@
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
-  min-width: 80px;
+  min-width: 70px;
 
   .step-dot {
     width: 28px; height: 28px;
@@ -285,7 +295,8 @@
   background: var(--color-border);
   margin: 0 3px;
   margin-bottom: 22px;
-  min-width: 20px;
+  min-width: 10px;
+  flex-shrink: 1;
   transition: var(--transition);
 
   &.filled { background: var(--color-primary); }

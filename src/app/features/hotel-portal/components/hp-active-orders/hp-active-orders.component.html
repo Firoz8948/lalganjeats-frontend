@@ -50,13 +50,12 @@
         <div class="progress-track">
           @for (step of statusSteps; track step.key; let i = $index) {
             <div class="progress-step"
-                 [class.done]="getStepIndex(order.status) > i"
-                 [class.current]="getStepIndex(order.status) === i"
+                 [class.done]="getStepIndex(order.status) >= i"
                  [class.future]="getStepIndex(order.status) < i">
 
               <div class="step-dot">
-                @if (getStepIndex(order.status) > i) {
-                  <app-hp-icon name="check" [size]="10" />
+                @if (getStepIndex(order.status) >= i) {
+                  <app-hp-icon name="check" [size]="12" />
                 }
               </div>
               <span class="step-label">{{ step.label }}</span>
