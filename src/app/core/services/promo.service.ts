@@ -14,7 +14,10 @@ export interface PromoValidateResult {
   download_required: boolean;
   code?: string | null;
   channel?: string | null;
+  discount_type?: string | null;
   percent_off?: number | null;
+  flat_off?: number | null;
+  min_cart_value?: number | null;
   free_delivery: boolean;
   discount_amount?: number | null;
   delivery_fee_after?: number | null;
@@ -24,7 +27,10 @@ export interface PromoValidateResult {
 export interface PublicPromo {
   code: string;
   channel: string;
+  discount_type?: string;
   percent_off: number | null;
+  flat_off?: number | null;
+  min_cart_value?: number | null;
   free_delivery: boolean;
   description: string | null;
   expires_at?: string | null;

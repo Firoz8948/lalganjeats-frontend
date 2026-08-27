@@ -16,7 +16,22 @@
           <option value="mobile_app">Mobile app only</option>
         </select>
       </label>
-      <label>Percent off (%)<input type="number" min="0" max="100" step="0.01" [(ngModel)]="newPromo.percent_off"/></label>
+      <label>
+        Discount type
+        <select [(ngModel)]="newPromo.discount_type" (ngModelChange)="onDiscountTypeChange()">
+          <option value="percent">Percent off (%)</option>
+          <option value="flat">Flat off (₹)</option>
+        </select>
+      </label>
+      @if (newPromo.discount_type === 'flat') {
+        <label>Flat off (₹)<input type="number" min="1" step="1" [(ngModel)]="newPromo.flat_off" placeholder="50"/></label>
+      } @else {
+        <label>Percent off (%)<input type="number" min="0" max="100" step="0.01" [(ngModel)]="newPromo.percent_off"/></label>
+      }
+      <label>
+        Applicable on cart value above (₹)
+        <input type="number" min="0" step="1" [(ngModel)]="newPromo.min_cart_value" placeholder="129"/>
+      </label>
       <label>
         Max uses
         <select [(ngModel)]="promoMaxUsesMode">
@@ -63,11 +78,7 @@
             </td>
             <td>{{ promo.channel === 'mobile_app' ? 'Mobile app only' : 'All' }}</td>
             <td>{{ promo.is_public ? 'Public' : 'Secret' }}</td>
-            <td>
-              @if (promo.percent_off) { {{ promo.percent_off }}% off }
-              @if (promo.percent_off && promo.free_delivery) { + }
-              @if (promo.free_delivery) { Free delivery }
-            </td>
+            <td>{{ benefitLabel(promo) }}</td>
             <td>{{ promo.max_uses === 0 ? 'Unlimited' : (promo.remaining_uses + ' / ' + promo.max_uses) }}</td>
             <td>{{ promo.expires_at ? (promo.expires_at | date:'d MMM yyyy, h:mm a') : '—' }}</td>
             <td>

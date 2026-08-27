@@ -545,7 +545,10 @@ export interface PromoCode {
   id: number;
   code: string;
   channel: 'all' | 'mobile_app';
+  discount_type?: 'percent' | 'flat';
   percent_off: number | null;
+  flat_off?: number | null;
+  min_cart_value?: number | null;
   free_delivery: boolean;
   expires_at: string | null;
   max_uses: number;
@@ -561,7 +564,10 @@ export interface PromoCode {
 export interface PromoCodeCreate {
   code: string;
   channel: 'all' | 'mobile_app';
+  discount_type?: 'percent' | 'flat';
   percent_off?: number | null;
+  flat_off?: number | null;
+  min_cart_value?: number | null;
   free_delivery: boolean;
   expires_at?: string | null;
   max_uses: number;
