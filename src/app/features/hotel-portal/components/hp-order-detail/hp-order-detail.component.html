@@ -85,6 +85,7 @@
             <div class="action-buttons">
               @if (getNextStatus(order()!.status)) {
                 <button class="primary-action-btn"
+                        [class.primary-action-btn--cooked]="order()!.status === 'accepted'"
                         [disabled]="saving()"
                         (click)="updateStatus(
                           getNextStatus(order()!.status)!.status

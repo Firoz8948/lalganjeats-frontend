@@ -237,6 +237,19 @@
 
   &:hover:not(:disabled) { background: var(--color-primary-dark); }
   &:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  &--cooked {
+    background: #27AE60 !important;
+    font-size: 15px;
+    font-weight: 800;
+    box-shadow: 0 2px 8px rgba(39, 174, 96, 0.25);
+
+    &:hover:not(:disabled) {
+      background: #219653 !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(39, 174, 96, 0.35);
+    }
+  }
 }
 
 .cancel-action-btn {

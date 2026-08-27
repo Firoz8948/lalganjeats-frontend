@@ -38,13 +38,13 @@ export class HpActiveOrdersComponent implements OnInit {
   }
 
   nextStatusLabel(current: string): string {
-    if (current === 'accepted') return 'Mark Ready';
+    if (current === 'accepted') return 'Food Cooked (Mark Ready)';
     if (current === 'ready') return 'Awaiting Pickup';
     return current;
   }
 
   nextStatusIcon(_current: string): HpIconName {
-    return 'package';
+    return 'check';
   }
 
   canAdvance(status: string): boolean {

@@ -65,8 +65,8 @@ export class HpOrderDetailComponent implements OnInit {
 
   getNextStatus(current: string): { status: string; label: string; icon: HpIconName } | null {
     const flow: Record<string, { status: string; label: string; icon: HpIconName }> = {
-      pending:  { status: 'accepted', label: 'Accept Order', icon: 'check' },
-      accepted: { status: 'ready',    label: 'Mark Ready',   icon: 'package' },
+      pending:  { status: 'accepted', label: 'Accept Order',             icon: 'check' },
+      accepted: { status: 'ready',    label: 'Food Cooked (Mark Ready)', icon: 'check' },
     };
     return flow[current] || null;
   }

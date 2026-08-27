@@ -108,9 +108,9 @@
         <!-- Advance / Awaiting Button -->
         @if (canAdvance(order.status)) {
           <div class="active-card__footer">
-            <button class="advance-btn"
+            <button class="advance-btn advance-btn--cooked"
                     (click)="advanceStatus(order)">
-              <app-hp-icon [name]="nextStatusIcon(order.status)" [size]="15" />
+              <app-hp-icon [name]="nextStatusIcon(order.status)" [size]="16" />
               {{ nextStatusLabel(order.status) }}
             </button>
           </div>
