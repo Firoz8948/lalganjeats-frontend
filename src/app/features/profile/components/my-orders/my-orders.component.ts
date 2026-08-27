@@ -1,11 +1,12 @@
 // features/profile/components/my-orders/my-orders.component.ts
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   ProfileService,
   CustomerOrder
 } from '../../services/profile.service';
+import { OrderLiveMapComponent } from '../../../tracking/components/order-live-map/order-live-map.component';
 
 type OrderFilter = 'all' | 'active' | 'completed' | 'cancelled';
 
@@ -19,7 +20,7 @@ interface TrackingStep {
 @Component({
   selector: 'app-my-orders',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, OrderLiveMapComponent],
   templateUrl: './my-orders.component.html',
   styleUrl:    './my-orders.component.scss'
 })
@@ -69,7 +70,7 @@ export class MyOrdersComponent implements OnInit {
   }
 
   canTrack(status: string): boolean {
-    return ['accepted', 'ready', 'picked_up'].includes(status);
+    return ['pending', 'accepted', 'ready', 'picked_up'].includes(status);
   }
 
   getTrackingSteps(currentStatus: string): TrackingStep[] {

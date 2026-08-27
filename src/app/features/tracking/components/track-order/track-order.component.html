@@ -3,82 +3,11 @@
     <a routerLink="/profile/orders" class="back">← Orders</a>
     <div>
       <h1>Live tracking</h1>
-      @if (snap(); as s) {
-        <p class="sub">{{ s.order_number }} · {{ s.status_meta || s.order_status }}</p>
-      }
+      <p class="sub">Order #{{ orderId() }}</p>
     </div>
-    <span class="live-pill" [class.ws]="liveMode() === 'websocket'" [class.fallback]="liveMode() === 'rest-fallback'">
-      @if (liveMode() === 'websocket') { Live }
-      @else if (liveMode() === 'rest-fallback') { Sync }
-      @else { Connecting… }
-    </span>
   </header>
 
-  @if (snap()?.eta_label) {
-    <div class="eta-bubble" [class.done]="snap()?.phase === 'delivered'">
-      <strong>{{ snap()?.eta_label }}</strong>
-      @if (snap()?.distance_km != null && snap()?.phase !== 'delivered') {
-        <span>{{ snap()?.distance_km }} km</span>
-      }
-    </div>
-  }
-
-  @if (snap()?.delivery_partner; as rider) {
-    <section class="rider-card">
-      @if (rider.selfie_url) {
-        <img [src]="rider.selfie_url" [alt]="rider.name">
-      }
-      <div>
-        <span>YOUR DELIVERY PARTNER</span>
-        <strong>{{ rider.name }}</strong>
-        <p>
-          {{ rider.registered_vehicle_number || 'Registered vehicle' }}
-          @if (rider.bike_info) { · {{ rider.bike_info }} }
-        </p>
-      </div>
-    </section>
-  }
-
-  <div class="map-wrap">
-    <!-- Capacitor native Google Maps host (Android / iOS) -->
-    <div id="le-native-map" class="map native" [class.hidden]="!usingNativeMap()"></div>
-    <!-- Web / WebView JS Maps host -->
-    <div #mapHost class="map web" [class.hidden]="usingNativeMap()"></div>
-
-    @if (mapsMissingKey()) {
-      <div class="map-overlay">
-        <p>Add <code>GOOGLE_MAPS_API_KEY</code> in backend <code>.env</code> to show the live map.</p>
-        <p class="hint">Tracking still updates over WebSocket without the map.</p>
-      </div>
-    } @else if (!mapsReady() && !error()) {
-      <div class="map-overlay"><p>Loading map…</p></div>
-    }
-  </div>
-
-  @if (error()) {
-    <p class="err">{{ error() }}</p>
-  }
-
-  @if (snap(); as s) {
-    <section class="meta">
-      <p>{{ s.status_meta || s.message || 'Updating…' }}</p>
-      @if (s.phase === 'to_restaurant') {
-        <p class="hint">Rider is heading to the restaurant to pick up your order.</p>
-      }
-      @if (s.phase === 'to_customer' && s.order_status === 'picked_up' && s.delivery_partner; as rider) {
-        <p class="hint">
-          {{ rider.name }}
-          @if (rider.bike_info || rider.registered_vehicle_number) {
-            with his
-            @if (rider.bike_info) { {{ rider.bike_info }} }
-            @if (rider.registered_vehicle_number) { {{ rider.registered_vehicle_number }} }
-          }
-          on the way to deliver the order.
-        </p>
-      }
-      @if (usingNativeMap()) {
-        <p class="hint">Using native Google Maps on this device.</p>
-      }
-    </section>
+  @if (orderId()) {
+    <app-order-live-map [orderId]="orderId()" />
   }
 </div>

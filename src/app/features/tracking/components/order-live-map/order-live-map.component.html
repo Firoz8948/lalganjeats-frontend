@@ -1,0 +1,87 @@
+<div class="live-map" [class.live-map--compact]="compact">
+  <div class="live-map__bar">
+    <div>
+      <p class="live-map__kicker">Live tracking</p>
+      @if (snap(); as s) {
+        <p class="live-map__status">{{ s.status_meta || s.order_status }}</p>
+      }
+    </div>
+    <span
+      class="live-pill"
+      [class.ws]="liveMode() === 'websocket'"
+      [class.fallback]="liveMode() === 'rest-fallback'">
+      @if (liveMode() === 'websocket') { Live }
+      @else if (liveMode() === 'rest-fallback') { Sync }
+      @else { Connecting… }
+    </span>
+  </div>
+
+  @if (snap()?.eta_label) {
+    <div class="eta-bubble" [class.done]="snap()?.phase === 'delivered'">
+      <strong>{{ snap()?.eta_label }}</strong>
+      @if (snap()?.distance_km != null && snap()?.phase !== 'delivered') {
+        <span>{{ snap()?.distance_km }} km</span>
+      }
+    </div>
+  }
+
+  @if (snap()?.delivery_partner; as rider) {
+    <section class="rider-card">
+      @if (rider.selfie_url) {
+        <img [src]="rider.selfie_url" [alt]="rider.name">
+      }
+      <div>
+        <span>YOUR DELIVERY PARTNER</span>
+        <strong>{{ rider.name }}</strong>
+        <p>
+          {{ rider.registered_vehicle_number || 'Registered vehicle' }}
+          @if (rider.bike_info) { · {{ rider.bike_info }} }
+        </p>
+      </div>
+    </section>
+  }
+
+  <div class="map-wrap">
+    <div
+      [id]="nativeMapElementId"
+      class="map native"
+      [class.hidden]="!usingNativeMap()"></div>
+    <div #mapHost class="map web" [class.hidden]="usingNativeMap()"></div>
+
+    @if (mapsMissingKey()) {
+      <div class="map-overlay">
+        <p>Map key not configured yet. Tracking still updates live.</p>
+      </div>
+    } @else if (!mapsReady() && !error()) {
+      <div class="map-overlay"><p>Loading map…</p></div>
+    } @else if (!snap()?.rider && !error() && mapsReady()) {
+      <div class="map-overlay">
+        <p>Waiting for delivery partner location…</p>
+      </div>
+    }
+  </div>
+
+  @if (error()) {
+    <p class="err">{{ error() }}</p>
+  }
+
+  @if (snap(); as s) {
+    <section class="meta">
+      <p>{{ s.status_meta || s.message || 'Updating…' }}</p>
+      @if (s.phase === 'to_restaurant') {
+        <p class="hint">Rider is heading to the restaurant to pick up your order.</p>
+      }
+      @if (s.phase === 'to_customer' && s.order_status === 'picked_up' && s.delivery_partner; as rider) {
+        <p class="hint">
+          {{ rider.name }}
+          @if (rider.bike_info || rider.registered_vehicle_number) {
+            with his
+            @if (rider.bike_info) { {{ rider.bike_info }} }
+            @if (rider.registered_vehicle_number) { {{ rider.registered_vehicle_number }} }
+          }
+          on the way to deliver the order.
+        </p>
+      }
+    </section>
+  }
+</div>
