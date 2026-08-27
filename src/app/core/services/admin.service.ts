@@ -336,8 +336,9 @@ export class AdminService {
 
   // ── Orders ───────────────────────────────────────────────────────────────
 
-  getOrders(): Observable<AdminOrderRow[]> {
-    return this.http.get<AdminOrderRow[]>(`${this.baseUrl}/orders`);
+  getOrders(status?: string): Observable<AdminOrderRow[]> {
+    const params = status && status !== 'all' ? `?status=${encodeURIComponent(status)}` : '';
+    return this.http.get<AdminOrderRow[]>(`${this.baseUrl}/orders${params}`);
   }
 
   getOrderBreakdown(orderId: number): Observable<OrderBreakdown> {
@@ -529,6 +530,7 @@ export interface SettlementRow {
   name: string;
   phone?: string | null;
   is_active?: boolean;
+  cash_collected?: number;
   unsettled_amount: number;
   unsettled_orders: number;
   settled_amount_lifetime: number;

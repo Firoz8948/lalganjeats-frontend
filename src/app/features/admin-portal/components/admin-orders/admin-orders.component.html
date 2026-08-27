@@ -1,5 +1,18 @@
 <div class="content-area">
   <app-portal-page-header eyebrow="ORDER OPERATIONS" title="Orders" subtitle="Monitor every order, coupon benefit and platform profit breakdown." tone="admin" />
+
+  <div class="status-filters" role="tablist" aria-label="Order status filter">
+    @for (f of statusFilters; track f.key) {
+      <button
+        type="button"
+        class="status-filter"
+        [class.active]="statusFilter() === f.key"
+        (click)="setStatusFilter(f.key)">
+        {{ f.label }}
+      </button>
+    }
+  </div>
+
   @if (ordersLoading()) { <p class="page-sub">Loading orders…</p> }
   <div class="table-wrap">
     <table class="data-table">
@@ -15,7 +28,7 @@
             <td><strong>{{ order.order_number }}</strong></td>
             <td>{{ order.customer || '—' }}</td>
             <td>{{ order.restaurant || '—' }}</td>
-            <td>{{ order.status }}</td>
+            <td>{{ statusLabel(order.status) }}</td>
             <td>
               @if (order.promo_code) {
                 <span class="coupon-pill">{{ couponLabel(order) }}</span>
@@ -35,7 +48,7 @@
             </td>
           </tr>
         } @empty {
-          <tr><td colspan="9" class="empty-table-cell">No orders yet.</td></tr>
+          <tr><td colspan="9" class="empty-table-cell">No orders for this filter.</td></tr>
         }
       </tbody>
     </table>
