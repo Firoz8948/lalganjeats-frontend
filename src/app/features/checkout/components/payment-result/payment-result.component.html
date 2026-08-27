@@ -1,0 +1,35 @@
+<app-navbar />
+
+<div class="pay-result page-content">
+  <div class="pay-result__card" [class.ok]="status() === 'success'" [class.bad]="status() === 'failed'">
+    @if (status() === 'success') {
+      <div class="pay-result__icon" aria-hidden="true">✓</div>
+      <h1>Payment successful</h1>
+      <p>Your prepaid order is confirmed and sent to the restaurant.</p>
+      @if (orderNumber()) {
+        <p class="oid">Order ID: <strong>{{ orderNumber() }}</strong></p>
+      }
+      <div class="pay-result__actions">
+        <a routerLink="/profile/orders" class="btn-primary">View my orders</a>
+        <a routerLink="/home" class="btn-ghost">Back to home</a>
+      </div>
+    } @else if (status() === 'failed') {
+      <div class="pay-result__icon" aria-hidden="true">!</div>
+      <h1>Payment failed</h1>
+      <p>Your payment was not completed. The order is unpaid — try again from checkout or choose cash on delivery.</p>
+      @if (orderNumber()) {
+        <p class="oid">Order ID: <strong>{{ orderNumber() }}</strong></p>
+      }
+      <div class="pay-result__actions">
+        <a routerLink="/checkout" class="btn-primary">Back to checkout</a>
+        <a routerLink="/profile/orders" class="btn-ghost">My orders</a>
+      </div>
+    } @else {
+      <h1>Payment status</h1>
+      <p>We could not confirm this payment yet. Check My orders in a moment.</p>
+      <div class="pay-result__actions">
+        <a routerLink="/profile/orders" class="btn-primary">View my orders</a>
+      </div>
+    }
+  </div>
+</div>

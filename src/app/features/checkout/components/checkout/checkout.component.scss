@@ -166,7 +166,7 @@ textarea {
 }
 
 .payment-policy-note {
-  margin: 6px 0 0;
+  margin: 12px 0 0;
   padding: 10px 12px;
   border: 1px solid #bbf7d0;
   border-radius: 9px;
@@ -174,6 +174,144 @@ textarea {
   color: #166534;
   font-size: 12px;
   line-height: 1.45;
+}
+
+.payment-panel {
+  h2 { margin-bottom: 14px; }
+}
+
+.pay-options {
+  display: grid;
+  gap: 10px;
+}
+
+.pay-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 14px 14px;
+  border: 1.5px solid #e8e4e1;
+  border-radius: 14px;
+  background:
+    linear-gradient(145deg, #ffffff 0%, #faf9f8 100%);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  font: inherit;
+  color: inherit;
+
+  &:hover:not(:disabled) {
+    border-color: #ffb3a8;
+    box-shadow: 0 8px 22px rgba(255, 0, 0, 0.07);
+  }
+
+  &.selected {
+    border-color: #ff0000;
+    background:
+      linear-gradient(145deg, #fff7f5 0%, #ffffff 70%);
+    box-shadow: 0 0 0 1px rgba(255, 0, 0, 0.12), 0 10px 24px rgba(255, 0, 0, 0.08);
+
+    .pay-card__check {
+      background: #ff0000;
+      border-color: #ff0000;
+
+      &::after {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .pay-card__icon {
+      color: #ff0000;
+      background: rgba(255, 0, 0, 0.08);
+    }
+  }
+
+  &.disabled,
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+.pay-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #f3f1ef;
+  color: #555;
+  flex-shrink: 0;
+}
+
+.pay-card__body {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+
+  strong {
+    font-size: 14px;
+    font-weight: 750;
+    color: #1a1a1a;
+  }
+
+  small {
+    font-size: 12px;
+    line-height: 1.35;
+    color: #777;
+  }
+}
+
+.pay-card__check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  position: relative;
+  flex-shrink: 0;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: #fff;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: opacity .15s ease, transform .15s ease;
+  }
+}
+
+.notes-label {
+  display: block;
+  margin: 16px 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #666;
+  letter-spacing: 0.02em;
+}
+
+.payment-panel textarea {
+  margin-top: 0;
+}
+
+@media (min-width: 640px) {
+  .pay-options {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pay-card {
+    min-height: 96px;
+    align-items: start;
+  }
+
+  .pay-card__check {
+    margin-top: 2px;
+  }
 }
 
 .app-promo {

@@ -35,6 +35,7 @@ export interface PlaceOrderResult {
   distance_km: number | null;
   eta_minutes: number | null;
   online_payment_stub?: { stub: boolean; message: string } | null;
+  needs_payment?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

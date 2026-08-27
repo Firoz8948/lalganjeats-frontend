@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CartService, CartItem } from '../../../../core/services/cart.service';
 import { OrderService, PlaceOrderPayload, PlaceOrderResult } from '../../../../core/services/order.service';
+import { CheckoutService } from '../../../../core/services/checkout.service';
 import { CustomerLocationService } from '../../../../core/services/customer-location.service';
 import { RestaurantService } from '../../../../core/services/restaurant.service';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -26,6 +27,7 @@ import { NavbarComponent } from '../../../home/components/navbar/navbar.componen
 export class CheckoutComponent implements OnInit {
   private cart = inject(CartService);
   private orders = inject(OrderService);
+  private checkoutPay = inject(CheckoutService);
   private profile = inject(ProfileService);
   private customerLocation = inject(CustomerLocationService);
   private restaurants = inject(RestaurantService);
@@ -71,6 +73,12 @@ export class CheckoutComponent implements OnInit {
     this.allowCod() && this.grandTotal() < this.codMaxAmount(),
   );
   isLoggedIn = this.auth.isLoggedIn;
+
+  selectPayment(method: 'cash' | 'online') {
+    if (method === 'cash' && !this.codAvailable()) return;
+    if (method === 'online' && !this.allowPrepaid()) return;
+    this.paymentMethod = method;
+  }
 
   ngOnInit() {
     if (!this.cartData()) {
@@ -186,6 +194,25 @@ export class CheckoutComponent implements OnInit {
     this.placeOrder();
   }
 
+  private startPayU(orderId: number) {
+    this.checkoutPay.initiatePayU(orderId).subscribe({
+      next: (pay) => {
+        try {
+          sessionStorage.setItem('le_pending_payu_order', String(orderId));
+        } catch {
+          /* ignore */
+        }
+        this.checkoutPay.redirectToPayU(pay.payment_url, pay.fields);
+      },
+      error: (err: { error?: { detail?: string } }) => {
+        this.placing.set(false);
+        this.error.set(
+          err.error?.detail || 'Could not start PayU payment. Try again.',
+        );
+      },
+    });
+  }
+
   placeOrder() {
     const c = this.cartData();
     if (!c) return;
@@ -236,6 +263,10 @@ export class CheckoutComponent implements OnInit {
 
     this.orders.placeOrder(payload).subscribe({
       next: (res: PlaceOrderResult) => {
+        if (res.needs_payment || (res.payment_method === 'online' && res.payment_status !== 'paid')) {
+          this.startPayU(res.id);
+          return;
+        }
         this.placing.set(false);
         this.cart.clearCart();
         this.success.set({
