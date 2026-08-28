@@ -2,124 +2,349 @@
 
 <div class="checkout page-content">
   <div class="checkout__wrap">
-    <h1>Checkout</h1>
+
+    <!-- Header -->
+    <header class="checkout__header">
+      <div class="checkout__header-left">
+        <a routerLink="/restaurants" class="checkout__back-btn" aria-label="Back to restaurants">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </a>
+        <div>
+          <span class="checkout__eyebrow">FINAL STEP</span>
+          <h1>Checkout</h1>
+        </div>
+      </div>
+      <div class="checkout__badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <span>100% Secure</span>
+      </div>
+    </header>
 
     @if (success(); as s) {
       <div class="checkout__success">
-        <h2>Order placed</h2>
-        <p>Order ID: <strong>{{ s.order_number }}</strong></p>
+        <div class="success-icon-wrap">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <h2>Order Placed Successfully!</h2>
+        <p class="success-order-num">Order ID: <strong>{{ s.order_number }}</strong></p>
         @if (s.eta_minutes) {
-          <p>Expected in about <strong>{{ s.eta_minutes }} min</strong></p>
+          <div class="eta-pill">
+            <span>⏱️ Expected delivery in about <strong>{{ s.eta_minutes }} mins</strong></span>
+          </div>
         }
         @if (s.distance_km != null) {
-          <p>Distance: {{ s.distance_km }} km</p>
+          <p class="distance-text">Distance to delivery: {{ s.distance_km }} km</p>
         }
-        <a routerLink="/profile/orders" class="btn-primary">View my orders</a>
+        <div class="success-actions">
+          <a routerLink="/profile/orders" class="btn-primary">View My Orders</a>
+          <a routerLink="/restaurants" class="btn-ghost">Back to Home</a>
+        </div>
       </div>
     } @else {
       @if (cartData(); as c) {
-        <section class="panel">
-          <h2>Items</h2>
-          @for (item of c.items; track item.id + '-' + (item.variant_id ?? 'x')) {
-            <div class="line checkout-item">
-              <div class="checkout-item__details">
-                @if (item.image_url) {
-                  <img [src]="item.image_url" [alt]="item.name" loading="lazy" />
-                } @else {
-                  <span class="checkout-item__placeholder" aria-hidden="true">🍽️</span>
-                }
-                <span>
-                  {{ item.name }}
-                  @if (item.variant_label) { ({{ item.variant_label }}) }
-                  × {{ item.quantity }}
-                </span>
+
+        <!-- 1. Order Items & Bill Summary -->
+        <section class="checkout-card order-summary-card">
+          <div class="card-title-row">
+            <div class="card-icon-tag">🛍️</div>
+            <div>
+              <h2>Order Summary</h2>
+              <span class="card-sub">{{ c.items.length }} {{ c.items.length === 1 ? 'item' : 'items' }} from {{ c.restaurantName || 'Restaurant' }}</span>
+            </div>
+          </div>
+
+          <div class="items-list">
+            @for (item of c.items; track item.id + '-' + (item.variant_id ?? 'x')) {
+              <div class="item-row">
+                <div class="item-details">
+                  <div class="item-thumb">
+                    @if (item.image_url) {
+                      <img [src]="item.image_url" [alt]="item.name" loading="lazy" />
+                    } @else {
+                      <span class="food-emoji" aria-hidden="true">🍽️</span>
+                    }
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">{{ item.name }}</span>
+                    @if (item.variant_label) {
+                      <span class="variant-tag">{{ item.variant_label }}</span>
+                    }
+                    <div class="qty-pill">Qty: {{ item.quantity }}</div>
+                  </div>
+                </div>
+                <strong class="item-price">₹{{ item.price * item.quantity | number:'1.2-2' }}</strong>
               </div>
-              <strong>₹{{ item.price * item.quantity }}</strong>
+            }
+          </div>
+
+          <div class="bill-breakdown">
+            <div class="bill-row">
+              <span>Item Total (Subtotal)</span>
+              <strong>₹{{ totalAmount() | number:'1.2-2' }}</strong>
             </div>
-          }
-          <div class="line total">
-            <span>Subtotal</span>
-            <strong>₹{{ totalAmount() }}</strong>
-          </div>
-          <div class="line">
-            <span>Delivery Charge</span>
-            <strong>₹{{ effectiveDelivery() }}</strong>
-          </div>
-          <div class="line">
-            <span>Platform Charge</span>
-            <strong>₹{{ platformCharge() }}</strong>
-          </div>
-          @if (discountAmount() > 0) {
-            <div class="line">
-              <span>Discount</span>
-              <strong>−₹{{ discountAmount() }}</strong>
+
+            <div class="bill-row">
+              <span>Delivery Fee</span>
+              @if (freeDeliveryApplied() || effectiveDelivery() === 0) {
+                <strong class="free-tag">FREE</strong>
+              } @else {
+                <strong>₹{{ effectiveDelivery() | number:'1.2-2' }}</strong>
+              }
             </div>
-          }
-          <div class="line total">
-            <span>Total</span>
-            <strong>₹{{ grandTotal() }}</strong>
+
+            <div class="bill-row">
+              <span>Platform Fee</span>
+              <strong>₹{{ platformCharge() | number:'1.2-2' }}</strong>
+            </div>
+
+            @if (discountAmount() > 0) {
+              <div class="bill-row bill-row--discount">
+                <span>Coupon Discount</span>
+                <strong class="discount-val">−₹{{ discountAmount() | number:'1.2-2' }}</strong>
+              </div>
+            }
+
+            <div class="bill-divider"></div>
+
+            <div class="bill-row bill-row--total">
+              <div>
+                <span class="total-label">Grand Total</span>
+                <span class="tax-note">Inclusive of all taxes</span>
+              </div>
+              <strong class="grand-total-amount">₹{{ grandTotal() | number:'1.2-2' }}</strong>
+            </div>
           </div>
         </section>
 
-        <section class="panel">
-          <h2>Coupons</h2>
+        <!-- 2. Coupons Section -->
+        <section class="checkout-card coupon-card">
+          <div class="card-title-row">
+            <div class="card-icon-tag">🎟️</div>
+            <div>
+              <h2>Coupons & Offers</h2>
+              <span class="card-sub">Save more on your food order</span>
+            </div>
+          </div>
+
           @if (publicPromos().length) {
             <div class="active-coupons">
-              <p>Active coupons</p>
-              @for (promo of publicPromos(); track promo.code) {
-                <button type="button" class="coupon-chip" (click)="usePublicPromo(promo.code)">
-                  <strong>{{ promo.code }}</strong>
-                  <span>{{ promo.description || 'Tap to apply' }}</span>
-                </button>
-              }
+              <span class="coupons-eyebrow">Available Coupons:</span>
+              <div class="coupon-chips-scroll">
+                @for (promo of publicPromos(); track promo.code) {
+                  <button type="button" class="coupon-chip" (click)="usePublicPromo(promo.code)">
+                    <div class="coupon-chip__code">
+                      <span class="scissors-icon">✂️</span>
+                      <strong>{{ promo.code }}</strong>
+                    </div>
+                    <span class="coupon-chip__desc">{{ promo.description || 'Tap to apply' }}</span>
+                  </button>
+                }
+              </div>
             </div>
           }
-          <div class="promo-row">
+
+          <div class="promo-input-box">
             <input
               type="text"
-              placeholder="Promo code"
+              placeholder="Enter coupon code"
               [(ngModel)]="promoCode"
               (keyup.enter)="applyPromo()"
             />
-            <button type="button" class="btn-secondary" [disabled]="applyingPromo()" (click)="applyPromo()">
-              {{ applyingPromo() ? 'Checking…' : 'Apply' }}
+            <button type="button" class="btn-apply-promo" [disabled]="applyingPromo()" (click)="applyPromo()">
+              {{ applyingPromo() ? 'Verifying…' : 'Apply' }}
             </button>
           </div>
-          @if (promoMessage()) {
-            <p class="promo-msg">{{ promoMessage() }}</p>
+
+          @if (promoMessage() && !appliedPromoCode()) {
+            <p class="promo-msg promo-msg--error">{{ promoMessage() }}</p>
           }
+
           @if (appliedPromoCode()) {
-            <p class="promo-msg promo-msg--ok">Applied: {{ appliedPromoCode() }}</p>
+            <div class="applied-coupon-banner">
+              <div class="applied-top">
+                <span class="applied-tick">✓</span>
+                <span class="applied-text">APPLIED: <strong>{{ appliedPromoCode() }}</strong></span>
+                <button type="button" class="btn-remove-promo" (click)="clearPromoBenefits()">Remove</button>
+              </div>
+              <div class="reduced-price-pill">
+                <span>🎉 Now Price Reduced to <strong>₹{{ grandTotal() | number:'1.2-2' }}</strong> (Saved ₹{{ discountAmount() | number:'1.2-2' }})</span>
+              </div>
+            </div>
           }
         </section>
 
-        <section class="panel">
-          <h2>Delivery address</h2>
-          @for (a of addresses(); track a.id) {
-            <label class="addr">
-              <input type="radio" name="addr"
-                     [checked]="selectedAddressId() === a.id"
-                     (change)="selectedAddressId.set(a.id); newAddress = ''" />
-              <span>
-                <strong>{{ a.label }}</strong> — {{ a.full_address }}
-                @if (a.city) {, {{ a.city }}}
-              </span>
-            </label>
-          }
-          <label class="addr">
-            <input type="radio" name="addr"
-                   [checked]="!selectedAddressId()"
-                   (change)="selectedAddressId.set(null)" />
-            <span>New address</span>
-          </label>
-          @if (!selectedAddressId()) {
-            <textarea rows="3" placeholder="Full delivery address"
-                      [(ngModel)]="newAddress"></textarea>
+        <!-- 3. Delivery Details Section -->
+        <section class="checkout-card address-card">
+          <div class="card-title-row">
+            <div class="card-icon-tag">📍</div>
+            <div>
+              <h2>Delivery Address</h2>
+              <span class="card-sub">Where should we deliver your delicious meal?</span>
+            </div>
+          </div>
+
+          <!-- Recipient Mode Switcher -->
+          <div class="recipient-switcher">
+            <button
+              type="button"
+              class="switch-btn"
+              [class.active]="recipientMode === 'self'"
+              (click)="recipientMode = 'self'">
+              <span class="switch-icon">👤</span>
+              Deliver to Me
+            </button>
+            <button
+              type="button"
+              class="switch-btn"
+              [class.active]="recipientMode === 'someone_else'"
+              (click)="recipientMode = 'someone_else'">
+              <span class="switch-icon">🎁</span>
+              Order for Someone Else
+            </button>
+          </div>
+
+          @if (recipientMode === 'self') {
+            <!-- Self Delivery Form -->
+            @if (addresses().length > 0) {
+              <div class="saved-addresses-selector">
+                <span class="selector-label">Choose from saved addresses:</span>
+                <div class="addr-options-grid">
+                  @for (a of addresses(); track a.id) {
+                    <div
+                      class="addr-chip"
+                      [class.selected]="selectedAddressId() === a.id"
+                      (click)="onSelectSavedAddress(a)">
+                      <div class="addr-chip__head">
+                        <strong>{{ a.label }}</strong>
+                        @if (a.is_default) {
+                          <span class="def-badge">Default</span>
+                        }
+                      </div>
+                      <p class="addr-chip__text">{{ a.full_address }}</p>
+                    </div>
+                  }
+                  <div
+                    class="addr-chip addr-chip--new"
+                    [class.selected]="selectedAddressId() === null"
+                    (click)="onChooseNewAddress()">
+                    <strong>+ Other Address</strong>
+                    <p>Enter a different address below</p>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <div class="form-fields-grid">
+              <div class="form-group">
+                <label>Full Name <span class="required-star">*</span></label>
+                <input
+                  type="text"
+                  placeholder="Enter your full name"
+                  [(ngModel)]="fullName"
+                  autocomplete="name"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Mobile Number <span class="required-star">*</span></label>
+                <input
+                  type="tel"
+                  placeholder="10-digit mobile number"
+                  [(ngModel)]="phone"
+                  autocomplete="tel"
+                />
+              </div>
+
+              <div class="form-group form-group--full">
+                <label>Email Address <span class="optional-tag">(Optional)</span></label>
+                <input
+                  type="email"
+                  placeholder="e.g. yourname@gmail.com"
+                  [(ngModel)]="email"
+                  autocomplete="email"
+                />
+              </div>
+
+              <div class="form-group form-group--full">
+                <label>Delivery Address <span class="required-star">*</span></label>
+                <textarea
+                  rows="2"
+                  placeholder="House/Flat No., Street, Building, Area"
+                  [(ngModel)]="deliveryAddressText"></textarea>
+              </div>
+
+              <div class="form-group form-group--full">
+                <label>Landmark <span class="optional-tag">(Optional)</span></label>
+                <input
+                  type="text"
+                  placeholder="Nearby school, temple, or landmark"
+                  [(ngModel)]="landmark"
+                />
+              </div>
+            </div>
+          } @else {
+            <!-- Someone Else Form -->
+            <div class="someone-else-notice">
+              <span class="notice-icon">ℹ️</span>
+              <p>Rider will deliver directly to the recipient and contact this mobile number upon arrival.</p>
+            </div>
+
+            <div class="form-fields-grid">
+              <div class="form-group">
+                <label>Recipient's Full Name <span class="required-star">*</span></label>
+                <input
+                  type="text"
+                  placeholder="Person receiving the food"
+                  [(ngModel)]="recipientName"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Recipient's Mobile Number <span class="required-star">*</span></label>
+                <input
+                  type="tel"
+                  placeholder="10-digit mobile number"
+                  [(ngModel)]="recipientPhone"
+                />
+              </div>
+
+              <div class="form-group form-group--full">
+                <label>Delivery Address <span class="required-star">*</span></label>
+                <textarea
+                  rows="2"
+                  placeholder="Recipient's complete delivery address"
+                  [(ngModel)]="deliveryAddressText"></textarea>
+              </div>
+
+              <div class="form-group form-group--full">
+                <label>Landmark <span class="optional-tag">(Optional)</span></label>
+                <input
+                  type="text"
+                  placeholder="Nearby landmark for easy delivery"
+                  [(ngModel)]="landmark"
+                />
+              </div>
+            </div>
           }
         </section>
 
-        <section class="panel payment-panel">
-          <h2>Payment</h2>
+        <!-- 4. Payment Method Section -->
+        <section class="checkout-card payment-panel">
+          <div class="card-title-row">
+            <div class="card-icon-tag">💳</div>
+            <div>
+              <h2>Payment Method</h2>
+              <span class="card-sub">Choose how you want to pay</span>
+            </div>
+          </div>
+
           <div class="pay-options" role="radiogroup" aria-label="Payment method">
             <button
               type="button"
@@ -131,17 +356,17 @@
               [disabled]="!codAvailable()"
               (click)="selectPayment('cash')">
               <span class="pay-card__icon pay-card__icon--cash" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="2" y="6" width="20" height="12" rx="2"/>
                   <circle cx="12" cy="12" r="2.5"/>
                   <path d="M6 10h.01M18 14h.01"/>
                 </svg>
               </span>
               <span class="pay-card__body">
-                <strong>Cash on delivery</strong>
+                <strong>Cash on Delivery (COD)</strong>
                 <small>
                   @if (codAvailable()) {
-                    Pay the rider when your order arrives
+                    Pay cash to delivery partner on delivery
                   } @else {
                     Available only below ₹{{ codMaxAmount() }}
                   }
@@ -160,17 +385,17 @@
               [disabled]="!allowPrepaid()"
               (click)="selectPayment('online')">
               <span class="pay-card__icon pay-card__icon--online" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="3" y="5" width="18" height="14" rx="2"/>
                   <path d="M3 10h18"/>
                   <path d="M7 15h4"/>
                 </svg>
               </span>
               <span class="pay-card__body">
-                <strong>Pay online</strong>
+                <strong>Pay Online via UPI / Card</strong>
                 <small>
                   @if (allowPrepaid()) {
-                    UPI · cards · netbanking via PayU
+                    Google Pay · PhonePe · Paytm · Cards · Netbanking
                   } @else {
                     Prepaid is temporarily unavailable
                   }
@@ -182,44 +407,34 @@
 
           @if (!codAvailable() && allowPrepaid()) {
             <p class="payment-policy-note">
-              This order is ₹{{ grandTotal() | number:'1.2-2' }}. Orders of
-              ₹{{ codMaxAmount() }} or more must be prepaid.
+              This order is ₹{{ grandTotal() | number:'1.2-2' }}. Orders of ₹{{ codMaxAmount() }} or more must be paid online.
             </p>
           }
 
-          <label class="notes-label" for="order-notes">Notes for restaurant</label>
-          <textarea id="order-notes" rows="2" placeholder="Optional — spice level, landmark, etc."
-                    [(ngModel)]="notes"></textarea>
+          <div class="order-notes-wrap">
+            <label class="notes-label" for="order-notes">Notes for Restaurant & Delivery Partner <span class="optional-tag">(Optional)</span></label>
+            <textarea id="order-notes" rows="2" placeholder="e.g. Less spicy, call on arrival, avoid bell"
+                      [(ngModel)]="notes"></textarea>
+          </div>
         </section>
 
         @if (error()) {
-          <p class="err">{{ error() }}</p>
+          <div class="error-banner">
+            <span class="err-icon">⚠️</span>
+            <p>{{ error() }}</p>
+          </div>
         }
 
-        <button class="btn-primary" type="button"
+        <!-- Primary Action Button -->
+        <button class="btn-primary btn-place-order" type="button"
                 [disabled]="placing()" (click)="onPrimaryAction()">
-          @if (!isLoggedIn()) {
-            Login to place order
-          } @else if (placing()) {
-            {{ paymentMethod === 'online' ? 'Redirecting to PayU…' : 'Placing…' }}
-          } @else if (paymentMethod === 'online') {
-            Pay ₹{{ grandTotal() | number:'1.0-0' }} &amp; place order
-          } @else {
-            Place order
-          }
+          <span class="btn-order-text">
+            {{ placing() ? 'Placing Order…' : (paymentMethod === 'online' ? 'Proceed to Pay ₹' + (grandTotal() | number:'1.2-2') : 'Place Cash on Delivery Order (₹' + (grandTotal() | number:'1.2-2') + ')') }}
+          </span>
+          <span class="btn-order-arrow">→</span>
         </button>
+
       }
     }
   </div>
 </div>
-
-@if (showAppPromoPopup()) {
-  <div class="app-promo" role="dialog" aria-modal="true">
-    <button class="app-promo__backdrop" type="button" aria-label="Close" (click)="showAppPromoPopup.set(false)"></button>
-    <section class="app-promo__panel">
-      <h2>Coupon code applicable for app only</h2>
-      <p>Download the LalganjEats app to use this promocode. App link will be added soon.</p>
-      <button type="button" class="btn-primary" (click)="showAppPromoPopup.set(false)">Got it</button>
-    </section>
-  </div>
-}

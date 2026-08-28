@@ -15,6 +15,7 @@ import { AdminPaymentsComponent } from '../admin-payments/admin-payments.compone
 import { PaymentSettingsComponent } from '../payment-settings/payment-settings.component';
 import { AdminReportsComponent } from '../reports/admin-reports.component';
 import { DeliveryPartnersComponent } from '../delivery-partners/delivery-partners.component';
+import { BroadcastNotificationsComponent } from '../broadcast-notifications/broadcast-notifications.component';
 
 type AdminTab =
   | 'overview'
@@ -29,6 +30,7 @@ type AdminTab =
   | 'subcategories'
   | 'banners'
   | 'zones'
+  | 'notifications'
   | 'reports'
   | 'payment-settings';
 
@@ -50,6 +52,7 @@ type AdminTab =
     AdminReportsComponent,
     AdminZonesComponent,
     AdminPromosComponent,
+    BroadcastNotificationsComponent,
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.scss',

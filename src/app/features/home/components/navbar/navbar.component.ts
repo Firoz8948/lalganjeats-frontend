@@ -265,27 +265,40 @@ export class NavbarComponent implements AfterViewInit, OnInit, OnDestroy {
     }
     this.locationBusy.set(true);
     this.locationError.set('');
+
+    const applyPos = (lat: number, lng: number) => {
+      this.ngZone.run(() => {
+        this.draftSource = 'gps';
+        this.setDraft(lat, lng, '');
+        this.placeDraftMarker(lat, lng, 16);
+        this.resolveLabel(lat, lng, 'Current location');
+        this.locationBusy.set(false);
+      });
+    };
+
+    // Fast attempt 1: High accuracy with cached tolerance & short timeout
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        this.ngZone.run(() => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          this.draftSource = 'gps';
-          this.setDraft(lat, lng, '');
-          this.placeDraftMarker(lat, lng, 16);
-          this.resolveLabel(lat, lng, 'Current location');
-          this.locationBusy.set(false);
-        });
+        applyPos(pos.coords.latitude, pos.coords.longitude);
       },
       () => {
-        this.ngZone.run(() => {
-          this.locationBusy.set(false);
-          this.locationError.set(
-            'Could not get your exact location. Allow location access, search, or pick on the map.',
-          );
-        });
+        // Fast attempt 2: Immediate fallback to coarse cellular/wifi positioning
+        navigator.geolocation.getCurrentPosition(
+          (p2) => {
+            applyPos(p2.coords.latitude, p2.coords.longitude);
+          },
+          () => {
+            this.ngZone.run(() => {
+              this.locationBusy.set(false);
+              this.locationError.set(
+                'Could not get your exact location. Allow location access, search, or pick on the map.',
+              );
+            });
+          },
+          { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+        );
       },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 30000 },
     );
   }
 

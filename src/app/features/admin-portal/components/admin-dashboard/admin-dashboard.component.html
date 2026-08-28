@@ -111,6 +111,14 @@
         </svg>
         Zones
       </button>
+      <button class="nav-item" [class.active]="activeTab()==='notifications'" (click)="setTab('notifications')">
+        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        Push Alerts
+      </button>
       <button class="nav-item" [class.active]="activeTab()==='reports'" (click)="setTab('reports')">
         <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -171,6 +179,7 @@
     @if (activeTab() === 'subcategories') { <app-admin-subcategories /> }
     @if (activeTab() === 'banners') { <app-admin-banners /> }
     @if (activeTab() === 'zones') { <app-admin-zones /> }
+    @if (activeTab() === 'notifications') { <app-broadcast-notifications /> }
     @if (activeTab() === 'reports') { <app-admin-reports /> }
     @if (activeTab() === 'payment-settings') {
       <div class="payment-wrap"><app-payment-settings /></div>

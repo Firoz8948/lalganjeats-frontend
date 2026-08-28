@@ -1,0 +1,156 @@
+<div class="broadcast-page">
+  <div class="broadcast-header">
+    <div class="broadcast-header__icon">📢</div>
+    <div>
+      <h2>Send Custom Push Notification</h2>
+      <p>Send instant background alerts and promotional messages to customers, restaurants, or riders.</p>
+    </div>
+  </div>
+
+  <!-- Quick Templates -->
+  <div class="templates-section">
+    <span class="section-label">⚡ Quick Templates (1-Click Fill):</span>
+    <div class="template-chips">
+      @for (t of templates; track t.label) {
+        <button type="button" class="template-chip" (click)="applyTemplate(t)">
+          {{ t.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="broadcast-layout">
+    <!-- Form Card -->
+    <div class="broadcast-card form-card">
+      <h3>Compose Notification</h3>
+
+      <div class="form-group">
+        <label>Target Audience</label>
+        <div class="audience-selector">
+          <button
+            type="button"
+            class="aud-btn"
+            [class.active]="targetAudience === 'customers'"
+            (click)="targetAudience = 'customers'">
+            👤 Customers
+          </button>
+          <button
+            type="button"
+            class="aud-btn"
+            [class.active]="targetAudience === 'restaurant_owners'"
+            (click)="targetAudience = 'restaurant_owners'">
+            🏨 Restaurants
+          </button>
+          <button
+            type="button"
+            class="aud-btn"
+            [class.active]="targetAudience === 'delivery_partners'"
+            (click)="targetAudience = 'delivery_partners'">
+            🛵 Delivery Riders
+          </button>
+          <button
+            type="button"
+            class="aud-btn"
+            [class.active]="targetAudience === 'all'"
+            (click)="targetAudience = 'all'">
+            🌐 Everyone
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="notif-title">Notification Title <span class="req">*</span></label>
+        <input
+          id="notif-title"
+          type="text"
+          placeholder="e.g. Khana Khaoge? 🍲 or Special 20% OFF"
+          [(ngModel)]="title"
+          maxlength="100"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="notif-body">Message Body <span class="req">*</span></label>
+        <textarea
+          id="notif-body"
+          rows="3"
+          placeholder="e.g. Lalganj ke top restaurants se garma garam khana mangwao! Use code LALGANJ20."
+          [(ngModel)]="body"
+          maxlength="500"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="notif-link">App Page / Deep Link <span class="opt">(Optional)</span></label>
+        <input
+          id="notif-link"
+          type="text"
+          placeholder="e.g. /home or /restaurants or /profile/orders"
+          [(ngModel)]="deepLink"
+        />
+      </div>
+
+      @if (error()) {
+        <div class="alert-error">
+          <span>⚠️</span>
+          <p>{{ error() }}</p>
+        </div>
+      }
+
+      @if (successResult(); as s) {
+        <div class="alert-success">
+          <span class="tick">✓</span>
+          <div>
+            <strong>{{ s.message }}</strong>
+            <p>Target: {{ s.target_audience }} · Eligible registered devices: {{ s.total_eligible_users }}</p>
+          </div>
+        </div>
+      }
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn-send-notif"
+          [disabled]="sending() || !title.trim() || !body.trim()"
+          (click)="sendNotification()">
+          @if (sending()) {
+            <span class="btn-spinner"></span>
+            <span>Broadcasting Notification…</span>
+          } @else {
+            <span>🚀 Send Notification Now</span>
+          }
+        </button>
+
+        <button type="button" class="btn-reset" (click)="resetForm()">
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Preview Card -->
+    <div class="broadcast-card preview-card">
+      <h3>Mobile Lockscreen Preview</h3>
+      <div class="phone-mockup">
+        <div class="phone-status-bar">
+          <span>9:41</span>
+          <span class="status-icons">📶 🔋</span>
+        </div>
+
+        <div class="lockscreen-notification">
+          <div class="notif-header">
+            <div class="notif-app-info">
+              <span class="notif-app-icon">🥘</span>
+              <span class="notif-app-name">LalganjEats</span>
+            </div>
+            <span class="notif-time">now</span>
+          </div>
+          <div class="notif-content">
+            <strong class="preview-title">{{ title || 'Notification Title' }}</strong>
+            <p class="preview-body">{{ body || 'Your custom message will appear here on customer phones even when the app is closed.' }}</p>
+          </div>
+        </div>
+
+        <div class="phone-home-indicator"></div>
+      </div>
+    </div>
+  </div>
+</div>

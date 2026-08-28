@@ -14,7 +14,7 @@ import {
   PromoValidateResult,
   PublicPromo,
 } from '../../../../core/services/promo.service';
-import { ProfileService, Address } from '../../../profile/services/profile.service';
+import { ProfileService, Address, CustomerProfile } from '../../../profile/services/profile.service';
 import { NavbarComponent } from '../../../home/components/navbar/navbar.component';
 
 @Component({
@@ -36,11 +36,25 @@ export class CheckoutComponent implements OnInit {
   private promos = inject(PromoService);
   private router = inject(Router);
 
+  // Address & Recipient State
   addresses = signal<Address[]>([]);
   selectedAddressId = signal<number | null>(null);
+  recipientMode: 'self' | 'someone_else' = 'self';
+  hasSavedProfile = signal(false);
+
+  // Delivery details form
+  fullName = '';
+  phone = '';
+  email = '';
+  deliveryAddressText = '';
+  landmark = '';
+
+  // Someone else form
+  recipientName = '';
+  recipientPhone = '';
+
   paymentMethod: 'cash' | 'online' = 'cash';
   notes = '';
-  newAddress = '';
   promoCode = '';
   placing = signal(false);
   applyingPromo = signal(false);
@@ -113,18 +127,62 @@ export class CheckoutComponent implements OnInit {
       next: rows => this.publicPromos.set(rows),
     });
     if (this.isLoggedIn()) {
-      this.loadAddresses();
+      this.loadProfileAndAddresses();
     }
   }
 
-  private loadAddresses() {
+  private isPlaceholderName(name: string): boolean {
+    if (!name || !name.trim()) return true;
+    return /^cust\s*\d+$/i.test(name.trim()) || /^user\s*\d+$/i.test(name.trim());
+  }
+
+  private isPlaceholderEmail(email: string): boolean {
+    if (!email || !email.trim()) return true;
+    return email.includes('@temp') || email.includes('@placeholder') || email.startsWith('cust_');
+  }
+
+  private loadProfileAndAddresses() {
+    // Load profile
+    this.profile.getProfile().subscribe({
+      next: (prof: CustomerProfile) => {
+        if (prof) {
+          const validName = prof.full_name && !this.isPlaceholderName(prof.full_name);
+          if (validName) {
+            this.fullName = prof.full_name;
+            this.hasSavedProfile.set(true);
+          }
+          if (prof.email && !this.isPlaceholderEmail(prof.email)) {
+            this.email = prof.email;
+          }
+          this.phone = prof.phone || this.auth.currentUser()?.phone || '';
+        }
+      },
+    });
+
+    // Load addresses
     this.profile.getAddresses().subscribe({
       next: (list: Address[]) => {
         this.addresses.set(list);
         const def = list.find((a: Address) => a.is_default) || list[0];
-        if (def) this.selectedAddressId.set(def.id);
+        if (def) {
+          this.selectedAddressId.set(def.id);
+          this.deliveryAddressText = def.full_address || '';
+          this.landmark = def.landmark || '';
+        }
       },
     });
+  }
+
+  onSelectSavedAddress(a: Address) {
+    this.selectedAddressId.set(a.id);
+    this.deliveryAddressText = a.full_address || '';
+    this.landmark = a.landmark || '';
+  }
+
+  onChooseNewAddress() {
+    this.selectedAddressId.set(null);
+    this.deliveryAddressText = '';
+    this.landmark = '';
   }
 
   usePublicPromo(code: string) {
@@ -217,6 +275,32 @@ export class CheckoutComponent implements OnInit {
     const c = this.cartData();
     if (!c) return;
     this.error.set('');
+
+    // Validation
+    if (this.recipientMode === 'self') {
+      if (!this.fullName.trim()) {
+        this.error.set('Please enter your full name.');
+        return;
+      }
+      if (!this.deliveryAddressText.trim()) {
+        this.error.set('Please enter your complete delivery address.');
+        return;
+      }
+    } else {
+      if (!this.recipientName.trim()) {
+        this.error.set("Please enter recipient's name.");
+        return;
+      }
+      if (!this.recipientPhone.trim() || this.recipientPhone.replace(/\D/g, '').length < 10) {
+        this.error.set("Please enter a valid 10-digit recipient mobile number.");
+        return;
+      }
+      if (!this.deliveryAddressText.trim()) {
+        this.error.set('Please enter the delivery address.');
+        return;
+      }
+    }
+
     if (this.paymentMethod === 'cash' && !this.codAvailable()) {
       this.error.set(
         `Cash on delivery is available only below ₹${this.codMaxAmount()}. Choose prepaid payment.`,
@@ -227,9 +311,40 @@ export class CheckoutComponent implements OnInit {
       this.error.set('Prepaid orders are currently unavailable.');
       return;
     }
+
     this.placing.set(true);
 
+    // Auto-update profile in background if self mode and not saved
+    if (this.recipientMode === 'self') {
+      this.profile.updateProfile({
+        full_name: this.fullName.trim(),
+        email: this.email.trim() || null,
+      }).subscribe({
+        error: (err: any) => {
+          if (err.error?.detail && typeof err.error.detail === 'string') {
+            console.warn('Profile update note:', err.error.detail);
+          }
+        }
+      });
+    }
+
     const loc = this.customerLocation.location();
+    let finalDeliveryAddress = this.deliveryAddressText.trim();
+    if (this.landmark.trim()) {
+      finalDeliveryAddress += ` (Landmark: ${this.landmark.trim()})`;
+    }
+    if (this.recipientMode === 'someone_else') {
+      finalDeliveryAddress = `[For: ${this.recipientName.trim()} | Mob: ${this.recipientPhone.trim()}] ${finalDeliveryAddress}`;
+      // Save under My Addresses for someone else
+      this.profile.addAddress({
+        label: `For ${this.recipientName.trim()}`,
+        full_address: this.deliveryAddressText.trim(),
+        landmark: this.landmark.trim() || null,
+        city: 'Lalganj',
+        is_default: false,
+      }).subscribe({ error: () => {} });
+    }
+
     const payload: PlaceOrderPayload = {
       restaurant_id: c.restaurantId,
       payment_method: this.paymentMethod,
@@ -241,19 +356,10 @@ export class CheckoutComponent implements OnInit {
         quantity: i.quantity,
         variant_id: i.variant_id ?? null,
       })),
+      delivery_address: finalDeliveryAddress,
       delivery_latitude: loc?.lat ?? null,
       delivery_longitude: loc?.lng ?? null,
     };
-
-    if (this.selectedAddressId()) {
-      payload.address_id = this.selectedAddressId();
-    } else if (this.newAddress.trim()) {
-      payload.delivery_address = this.newAddress.trim();
-    } else {
-      this.placing.set(false);
-      this.error.set('Choose or add a delivery address.');
-      return;
-    }
 
     if (payload.delivery_latitude == null || payload.delivery_longitude == null) {
       this.placing.set(false);

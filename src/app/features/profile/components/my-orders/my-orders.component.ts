@@ -1,5 +1,5 @@
 // features/profile/components/my-orders/my-orders.component.ts
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -24,11 +24,12 @@ interface TrackingStep {
   templateUrl: './my-orders.component.html',
   styleUrl:    './my-orders.component.scss'
 })
-export class MyOrdersComponent implements OnInit {
+export class MyOrdersComponent implements OnInit, OnDestroy {
   orders       = signal<CustomerOrder[]>([]);
   activeFilter = signal<OrderFilter>('all');
   loading      = signal(true);
   expandedId   = signal<number | null>(null);
+  private pollTimer?: any;
 
   filters: { key: OrderFilter; label: string }[] = [
     { key: 'all',       label: 'All Orders' },
@@ -50,7 +51,27 @@ export class MyOrdersComponent implements OnInit {
     private router: Router
   ) {}
 
-  ngOnInit() { this.loadOrders('all'); }
+  ngOnInit() {
+    this.loadOrders('all');
+    this.startAutoPolling();
+  }
+
+  ngOnDestroy() {
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = undefined;
+    }
+  }
+
+  private startAutoPolling() {
+    this.pollTimer = setInterval(() => {
+      // Quiet background refresh without flashing loading spinner
+      this.profileService.getOrders(this.activeFilter()).subscribe({
+        next: (data) => this.orders.set(data),
+        error: () => {}
+      });
+    }, 4000);
+  }
 
   loadOrders(filter: OrderFilter) {
     this.activeFilter.set(filter);
