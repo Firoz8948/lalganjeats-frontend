@@ -68,9 +68,19 @@
       </section>
 
       <section class="user-sidebar__section">
-        <h2 class="user-sidebar__section-title">Partners</h2>
-        <button type="button" class="user-sidebar__item" (click)="onNav('/auth/hotel-login')">Restaurant partner</button>
-        <button type="button" class="user-sidebar__item" (click)="onNav('/auth/delivery-login')">Delivery partner</button>
+        <h2 class="user-sidebar__section-title">Download Apps</h2>
+        <a class="user-sidebar__item" href="https://lalganjeats-cdn.b-cdn.net/apks/LalganjEats.apk" target="_blank" rel="noopener noreferrer" download="LalganjEats.apk" (click)="close()">
+          <span>📱 LalganjEats App</span>
+          <span class="user-sidebar__external" aria-hidden="true">⬇</span>
+        </a>
+        <a class="user-sidebar__item" href="https://lalganjeats-cdn.b-cdn.net/apks/HotelPartner.apk" target="_blank" rel="noopener noreferrer" download="HotelPartner.apk" (click)="close()">
+          <span>🏨 Hotel Partner App</span>
+          <span class="user-sidebar__external" aria-hidden="true">⬇</span>
+        </a>
+        <a class="user-sidebar__item" href="https://lalganjeats-cdn.b-cdn.net/apks/DeliveryPartner.apk" target="_blank" rel="noopener noreferrer" download="DeliveryPartner.apk" (click)="close()">
+          <span>🛵 Delivery Partner App</span>
+          <span class="user-sidebar__external" aria-hidden="true">⬇</span>
+        </a>
       </section>
 
       <section class="user-sidebar__section">

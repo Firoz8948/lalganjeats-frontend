@@ -81,7 +81,8 @@ export class AdminSettlementsComponent implements OnInit {
         });
         this.impersonatingPartnerId.set(null);
         if (started) {
-          this.router.navigateByUrl(session.redirect_to || '/deliverypartner/home');
+          const deliveryUrl = `https://delivery.lalganjeats.com/auth/delivery-login?impersonate_token=${encodeURIComponent(session.access_token)}`;
+          window.open(deliveryUrl, '_blank') || (window.location.href = deliveryUrl);
         } else {
           this.settlementError.set('Only a tenant admin can impersonate a delivery partner.');
         }

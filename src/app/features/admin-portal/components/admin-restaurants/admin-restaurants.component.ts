@@ -69,8 +69,10 @@ export class AdminRestaurantsComponent implements OnInit {
           redirect_to:session.redirect_to,
         });
         this.impersonatingId.set(null);
-        if(started)this.router.navigateByUrl(session.redirect_to||'/hotel-portal/dashboard');
-        else this.error.set('Only a tenant admin can impersonate a restaurant.');
+        if(started) {
+          const hotelUrl = `https://hotel.lalganjeats.com/auth/hotel-login?impersonate_token=${encodeURIComponent(session.access_token)}`;
+          window.open(hotelUrl, '_blank') || (window.location.href = hotelUrl);
+        } else this.error.set('Only a tenant admin can impersonate a restaurant.');
       },
       error:e=>{
         this.impersonatingId.set(null);
