@@ -192,9 +192,33 @@
   &:hover {
     color: var(--color-primary);
     padding-left: 4px;
+
+    .user-sidebar__download-icon {
+      color: var(--color-primary);
+      transform: translateY(2px);
+    }
   }
 
   &:last-child { border-bottom: 0; }
+}
+
+.user-sidebar__item-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.user-sidebar__item-icon {
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.user-sidebar__download-icon {
+  flex-shrink: 0;
+  color: var(--color-muted);
+  transition: transform 0.15s ease, color 0.15s ease;
 }
 
 .user-sidebar__external {
