@@ -140,6 +140,30 @@ export class NotificationService {
   }
 
   private playChimeSound() {
+    // 1. Try playing custom audio sound file (e.g. assets/sounds/order_alert.mp3)
+    try {
+      const audio = new Audio('assets/sounds/order_alert.mp3');
+      audio.volume = 1.0;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Fallback to WebAudio synth chime if MP3 file is not loaded/blocked
+          this.playSynthChime();
+        });
+      }
+    } catch (_) {
+      this.playSynthChime();
+    }
+
+    // 2. Hardware vibration pattern [vibrate, pause, vibrate]
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try {
+        navigator.vibrate([400, 200, 400, 200, 600]);
+      } catch (_) {}
+    }
+  }
+
+  private playSynthChime() {
     try {
       const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioCtxClass) return;
@@ -154,7 +178,7 @@ export class NotificationService {
         osc.frequency.setValueAtTime(freq1, startTime);
         osc.frequency.exponentialRampToValueAtTime(freq2, startTime + duration * 0.8);
 
-        gain.gain.setValueAtTime(0.75, startTime);
+        gain.gain.setValueAtTime(0.85, startTime);
         gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
 
         osc.connect(gain);

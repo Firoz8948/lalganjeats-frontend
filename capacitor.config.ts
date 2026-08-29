@@ -15,6 +15,17 @@ const config: CapacitorConfig = {
     backgroundColor: '#ffffff',
   },
   plugins: {
+    SplashScreen: {
+      launchShowDuration: 1500,
+      launchAutoHide: true,
+      backgroundColor: '#ffffff',
+      androidSplashResourceName: 'splash',
+      androidScaleType: 'CENTER_CROP',
+      showSpinner: false,
+    },
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert', 'list'],
+    },
     SystemBars: {
       // `index.html` declares `viewport-fit=cover`, which makes Capacitor pass
       // the status/gesture bar insets into CSS and let the page draw under them.
