@@ -43,9 +43,15 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/notification_color" />
+        <!--
+            Customer app uses the SYSTEM DEFAULT notification sound, so we
+            do NOT set default_notification_sound.  The channel below is the
+            fallback used only when a push doesn't specify its own channel;
+            the customer NotificationService creates it at first launch.
+        -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="lalganjeats_orders" />
+            android:value="lalganjeats_alerts" />
     </application>
 
     <!-- Permissions -->

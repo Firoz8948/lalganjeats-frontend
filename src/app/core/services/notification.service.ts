@@ -33,7 +33,7 @@ export class NotificationService {
             description: 'Instant notifications for incoming orders and deliveries',
             importance: 5,
             visibility: 1,
-            sound: 'notification_sound.wav',
+            sound: 'order_alert',
             vibration: true,
             lights: true,
             lightColor: '#FF0000',
@@ -44,7 +44,7 @@ export class NotificationService {
             description: 'Loud notifications for incoming delivery offers',
             importance: 5,
             visibility: 1,
-            sound: 'notification_sound.wav',
+            sound: 'order_alert',
             vibration: true,
             lights: true,
             lightColor: '#FF0000',
@@ -125,7 +125,7 @@ export class NotificationService {
               title,
               body,
               channelId: 'lalganjeats_urgent_orders',
-              sound: 'res://raw/notification_sound',
+              sound: 'order_alert',
               actionTypeId: '',
               extra: null
             }
