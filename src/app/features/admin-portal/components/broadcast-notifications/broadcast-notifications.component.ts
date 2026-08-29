@@ -27,30 +27,30 @@ export class BroadcastNotificationsComponent {
   error = signal('');
   successResult = signal<BroadcastResult | null>(null);
 
-  // Quick Preset Templates
+  // Clean Quick Preset Templates without emojis
   templates = [
     {
-      label: '🍲 Khana Khaoge?',
-      title: 'Khana Khaoge? 🍲',
-      body: 'Lalganj ke famous restaurants se garma garam khana mangwao! Flat 20% OFF.',
+      label: 'Khana Khaoge Promo',
+      title: 'Khana Khaoge? Special Food Offers',
+      body: 'Order delicious food from Lalganj top restaurants! Use code LALGANJ20 for flat 20% off.',
       target: 'customers' as const
     },
     {
-      label: '🍱 Lunch Rush Special',
-      title: 'Hungry? Lunch Time Specials! 🍱',
-      body: 'Get your favorite lunch delivered hot & fresh to your doorstep in 30 mins.',
+      label: 'Lunch Rush Special',
+      title: 'Hungry? Fresh Lunch Specials!',
+      body: 'Get your favorite lunch delivered hot and fresh to your doorstep in 30 minutes.',
       target: 'customers' as const
     },
     {
-      label: '🛵 Delivery Partner Alert',
-      title: 'High Demand in Lalganj! 🚀',
-      body: 'Orders are surging! Go online now and earn extra payouts.',
+      label: 'Delivery Surge Alert',
+      title: 'High Order Demand in Lalganj',
+      body: 'Orders are surging across Lalganj. Go online now to receive orders and earn extra payouts.',
       target: 'delivery_partners' as const
     },
     {
-      label: '🍳 Restaurant Partner Alert',
-      title: 'Keep Your Kitchen Active 🍳',
-      body: 'Orders are increasing this evening. Ensure all your popular dishes are marked in stock!',
+      label: 'Restaurant Kitchen Reminder',
+      title: 'Keep Your Menu & Kitchen Active',
+      body: 'Orders are peaking this evening. Ensure all your popular items are marked in stock and ready.',
       target: 'restaurant_owners' as const
     }
   ];

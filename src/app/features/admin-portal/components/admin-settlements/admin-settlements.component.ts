@@ -69,23 +69,9 @@ export class AdminSettlementsComponent implements OnInit {
     this.settlementError.set('');
     this.admin.impersonateDeliveryPartner(row.id).subscribe({
       next: (session) => {
-        const started = this.auth.startDeliveryPartnerImpersonation({
-          access_token: session.access_token,
-          role: session.role,
-          user_id: session.user_id,
-          full_name: session.full_name || row.name,
-          phone: session.phone || undefined,
-          impersonated_by: session.impersonated_by,
-          impersonation_session_id: session.impersonation_session_id,
-          redirect_to: session.redirect_to,
-        });
         this.impersonatingPartnerId.set(null);
-        if (started) {
-          const deliveryUrl = `https://delivery.lalganjeats.com/auth/delivery-login?impersonate_token=${encodeURIComponent(session.access_token)}`;
-          window.open(deliveryUrl, '_blank') || (window.location.href = deliveryUrl);
-        } else {
-          this.settlementError.set('Only a tenant admin can impersonate a delivery partner.');
-        }
+        const deliveryUrl = `https://delivery.lalganjeats.com/auth/delivery-login?impersonate_token=${encodeURIComponent(session.access_token)}`;
+        window.open(deliveryUrl, '_blank');
       },
       error: (error) => {
         this.impersonatingPartnerId.set(null);

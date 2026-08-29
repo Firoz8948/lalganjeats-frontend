@@ -9,7 +9,11 @@ export interface DpOrder {
   status: string;
   restaurant: string | null;
   restaurant_address?: string | null;
+  restaurant_lat?: number | null;
+  restaurant_lng?: number | null;
   delivery_address: string | null;
+  customer_lat?: number | null;
+  customer_lng?: number | null;
   customer_total: number;
   payout: number;
   distance_km_to_restaurant: number | null;

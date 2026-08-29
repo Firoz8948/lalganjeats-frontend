@@ -56,23 +56,9 @@ export class AdminRestaurantsComponent implements OnInit {
     this.impersonatingId.set(r.id);
     this.admin.impersonateRestaurant(r.id).subscribe({
       next:session=>{
-        const started=this.auth.startRestaurantImpersonation({
-          access_token:session.access_token,
-          role:session.role,
-          user_id:session.user_id,
-          full_name:session.full_name||r.name,
-          phone:session.phone||undefined,
-          restaurant_id:session.restaurant_id,
-          restaurant_name:session.restaurant_name,
-          impersonated_by:session.impersonated_by,
-          impersonation_session_id:session.impersonation_session_id,
-          redirect_to:session.redirect_to,
-        });
         this.impersonatingId.set(null);
-        if(started) {
-          const hotelUrl = `https://hotel.lalganjeats.com/auth/hotel-login?impersonate_token=${encodeURIComponent(session.access_token)}`;
-          window.open(hotelUrl, '_blank') || (window.location.href = hotelUrl);
-        } else this.error.set('Only a tenant admin can impersonate a restaurant.');
+        const hotelUrl = `https://hotel.lalganjeats.com/auth/hotel-login?impersonate_token=${encodeURIComponent(session.access_token)}`;
+        window.open(hotelUrl, '_blank');
       },
       error:e=>{
         this.impersonatingId.set(null);
