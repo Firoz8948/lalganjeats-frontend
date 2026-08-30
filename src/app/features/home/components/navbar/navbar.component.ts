@@ -129,10 +129,15 @@ export class NavbarComponent implements AfterViewInit, OnInit, OnDestroy {
 
   ngAfterViewInit() {
     this.updateMobileHeaderHeight();
-    if (this.customerLocation.shouldPromptAutomatically()) {
-      this.customerLocation.markAutoPrompted();
-      setTimeout(() => this.openLocationModal());
-    }
+    // Wait for any in-flight auto-detection to settle so we don't flash the
+    // modal when GPS is about to succeed silently.  On repeat mounts (route
+    // changes) with no detection in flight this resolves immediately.
+    this.customerLocation.waitForDetection().then(() => {
+      if (this.customerLocation.shouldPromptAutomatically()) {
+        this.customerLocation.markAutoPrompted();
+        setTimeout(() => this.openLocationModal());
+      }
+    });
     this.ngZone.runOutsideAngular(() => {
       const ro = new ResizeObserver(() => {
         this.ngZone.run(() => this.updateMobileHeaderHeight());
