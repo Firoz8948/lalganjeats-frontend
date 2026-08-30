@@ -64,8 +64,8 @@
           <div class="bank-panel cred-panel">
             <span>LOGIN CREDENTIALS</span>
             <div class="form-grid">
-              <label>Username<input [ngModel]="credDraft[partner.id]?.username ?? (partner.username || '')" (ngModelChange)="setCred(partner.id, 'username', $event)" autocomplete="off"></label>
-              <label>New password<input type="password" [ngModel]="credDraft[partner.id]?.password ?? ''" (ngModelChange)="setCred(partner.id, 'password', $event)" autocomplete="new-password" placeholder="Leave blank to keep"></label>
+              <label>Username<input [ngModel]="credDraft[partner.id] ? credDraft[partner.id].username : (partner.username || '')" (ngModelChange)="setCred(partner.id, 'username', $event)" autocomplete="off"></label>
+              <label>New password<input type="password" [ngModel]="credDraft[partner.id] ? credDraft[partner.id].password : ''" (ngModelChange)="setCred(partner.id, 'password', $event)" autocomplete="new-password" placeholder="Leave blank to keep"></label>
             </div>
             <button type="button" class="reactivate-btn" (click)="saveCredentials(partner)">Save login</button>
           </div>
