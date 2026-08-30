@@ -148,7 +148,35 @@ export class DeliveryPartnersComponent implements OnInit {
   create(form: NgForm) {
     if (form.invalid) {
       form.control.markAllAsTouched();
-      this.error.set('Complete all required partner details.');
+      const labels: Record<string, string> = {
+        full_name: 'Full name',
+        phone: 'Phone',
+        email: 'Email',
+        date_of_birth: 'Date of birth',
+        joining_date: 'Joining date',
+        emergency_contact_name: 'Emergency contact name',
+        emergency_contact_phone: 'Emergency contact phone',
+        address: 'Address',
+        registered_vehicle_number: 'Registered vehicle number',
+        bike_info: 'Bike information',
+        account_holder_name: 'Account holder',
+        account_number: 'Account number',
+        ifsc_code: 'IFSC code',
+        bank_name: 'Bank name',
+        username: 'Username',
+        password: 'Password',
+      };
+      const invalidFields: string[] = [];
+      for (const name of Object.keys(form.controls)) {
+        if (form.controls[name].invalid) {
+          invalidFields.push(labels[name] || name.replace(/_/g, ' '));
+        }
+      }
+      this.error.set(
+        invalidFields.length
+          ? `Please check the following field(s): ${invalidFields.join(', ')}.`
+          : 'Complete all required partner details.'
+      );
       return;
     }
     if (!this.formData.selfie_url) {

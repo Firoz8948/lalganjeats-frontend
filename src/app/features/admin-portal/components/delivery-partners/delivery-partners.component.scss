@@ -187,6 +187,11 @@ label {
     width: 100%; padding: 10px 11px; border: 1px solid #d7dfd9; border-radius: 9px; background: #fbfcfb; color: #1d2921; font: inherit; font-weight: 500;
     outline: none; transition: border-color 80ms ease-out, box-shadow 80ms ease-out;
     &:focus { border-color: #56a672; box-shadow: 0 0 0 3px rgba(44, 145, 81, .1); background: #fff; }
+    &.ng-invalid.ng-touched {
+      border-color: #ef4444 !important;
+      background-color: #fef2f2 !important;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12) !important;
+    }
   }
   textarea { resize: vertical; }
 }
