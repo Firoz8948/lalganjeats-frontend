@@ -246,8 +246,16 @@ export class AdminRestaurantsComponent implements OnInit {
       ? this.admin.updateMenuItem(this.menuRestaurantId(),editingId,payload)
       : this.admin.addMenuItem(this.menuRestaurantId(),payload);
     request.subscribe({
-      next:i=>{this.menuItems.update(v=>editingId?v.map(x=>x.id===editingId?i:x):[...v,i]);this.resetMenu();this.menuSaving.set(false)},
-      error:e=>{this.menuError.set(e.error?.detail||'Failed to add item.');this.menuSaving.set(false)}
+      next:()=>{
+        this.resetMenu();
+        this.menuSaving.set(false);
+        this.loadMenu();
+      },
+      error:e=>{
+        const detail=e.error?.detail;
+        this.menuError.set(typeof detail==='string'?detail:'Failed to save item.');
+        this.menuSaving.set(false);
+      }
     });
   }
   toggleItem(i:AdminMenuItem){this.admin.toggleMenuItem(this.menuRestaurantId(),i.id).subscribe(r=>this.menuItems.update(v=>v.map(x=>x.id===i.id?{...x,is_available:r.is_available}:x)));}
