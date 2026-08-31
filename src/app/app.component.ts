@@ -1,5 +1,8 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, NgZone } from '@angular/core';
+import { Location } from '@angular/common';
+import { Router, RouterOutlet } from '@angular/router';
+import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import { RouteLoaderComponent } from './shared/route-loader/route-loader.component';
 import { SeoService } from './core/services/seo.service';
 import { CustomerNotificationService } from './core/services/customer-notification.service';
@@ -21,6 +24,9 @@ export class AppComponent {
     notif: CustomerNotificationService,
     location: CustomerLocationService,
     liveUpdate: LiveUpdateService,
+    private ngLocation: Location,
+    private router: Router,
+    private zone: NgZone,
   ) {
     seo.start();
     notif.init();
@@ -29,5 +35,23 @@ export class AppComponent {
     // showing itself, so most customers never see it.
     void location.initAutoDetect();
     liveUpdate.checkForUpdates();
+    this.initHardwareBackButton();
+  }
+
+  private initHardwareBackButton() {
+    if (!Capacitor.isNativePlatform()) return;
+
+    App.addListener('backButton', () => {
+      this.zone.run(() => {
+        const currentUrl = this.router.url.split('?')[0];
+        const isRoot = currentUrl === '/' || currentUrl === '/home' || currentUrl === '';
+
+        if (!isRoot) {
+          this.ngLocation.back();
+        } else {
+          App.exitApp();
+        }
+      });
+    });
   }
 }

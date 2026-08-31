@@ -63,8 +63,9 @@ export interface MenuItem {
 }
 
 export interface MenuCategory {
-  id:   number;
-  name: string;
+  id:          number;
+  name:        string;
+  sort_order?: number;
 }
 
 export interface EarningsData {
@@ -118,6 +119,12 @@ export class HotelPortalService {
 
   getCategories(): Observable<MenuCategory[]> {
     return this.http.get<MenuCategory[]>(`${this.api}/categories`);
+  }
+
+  reorderCategories(categoryIds: number[]): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(`${this.api}/categories/reorder`, {
+      category_ids: categoryIds,
+    });
   }
 
   addMenuItem(data: any): Observable<any> {

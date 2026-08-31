@@ -95,6 +95,7 @@ export class CheckoutComponent implements OnInit {
   }
 
   ngOnInit() {
+    window.scrollTo(0, 0);
     if (!this.cartData()) {
       this.router.navigateByUrl('/home');
       return;

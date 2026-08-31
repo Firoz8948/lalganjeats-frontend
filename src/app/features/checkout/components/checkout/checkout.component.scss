@@ -124,7 +124,18 @@
   border: 1px solid #eee8e2;
   display: grid;
   place-items: center;
-  font-size: 18px;
+  color: #ea580c;
+  flex-shrink: 0;
+
+  svg {
+    stroke: #ea580c;
+  }
+}
+
+.inline-svg-icon {
+  display: inline-block;
+  vertical-align: -2px;
+  margin-right: 4px;
   flex-shrink: 0;
 }
 

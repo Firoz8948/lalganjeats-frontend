@@ -6,9 +6,9 @@
         <span class="section-eyebrow">Order Now, We are live</span>
         <h2 class="section-title">
           @if (selectedSubcategoryName()) {
-            {{ restaurants().length }} Restaurants delivering {{ selectedSubcategoryName() }}
+            Restaurants delivering {{ selectedSubcategoryName() }}
           } @else {
-            {{ restaurants().length }} Restaurants Delivering to you
+            Restaurants Delivering to you
           }
         </h2>
       </div>
@@ -92,7 +92,6 @@
                 }
               </div>
               <span class="rating-value">{{ restaurant.rating }}</span>
-              <span class="rating-count">({{ restaurant.review_count }})</span>
             </div>
 
             <div class="restaurant-card__meta" aria-live="polite">

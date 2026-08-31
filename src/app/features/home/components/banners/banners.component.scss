@@ -5,7 +5,7 @@
 
   @media (max-width: 768px) {
     margin-top: 0;
-    padding: 16px 0 8px;
+    padding: 16px 0 0;
     background: #102b4d;
   }
 }
@@ -43,13 +43,13 @@
 
   @media (max-width: 768px) {
     aspect-ratio: auto;
-    height: 175px;
+    height: 182px;
     background: #102b4d;
     border-radius: 0;
   }
 
   @media (max-width: 400px) {
-    height: 160px;
+    height: 167px;
   }
 }
 
@@ -218,6 +218,10 @@
   z-index: 10;
   display: flex;
   gap: 6px;
+
+  @media (max-width: 768px) {
+    bottom: 8px;
+  }
 }
 
 .dot {

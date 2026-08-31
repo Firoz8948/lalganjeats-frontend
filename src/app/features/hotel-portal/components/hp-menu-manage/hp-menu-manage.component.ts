@@ -17,9 +17,14 @@ import { HpIconComponent } from '../shared/hp-icon/hp-icon.component';
   styleUrl:    './hp-menu-manage.component.scss'
 })
 export class HpMenuManageComponent implements OnInit {
-  items      = signal<MenuItem[]>([]);
-  categories = signal<MenuCategory[]>([]);
-  loading    = signal(true);
+  items           = signal<MenuItem[]>([]);
+  categories      = signal<MenuCategory[]>([]);
+  loading         = signal(true);
+  showOrderModal  = signal(false);
+  reorderCats     = signal<MenuCategory[]>([]);
+  savingOrder     = signal(false);
+  orderSuccess    = signal(false);
+  orderError      = signal('');
 
   constructor(private service: HotelPortalService) {}
 
@@ -35,7 +40,10 @@ export class HpMenuManageComponent implements OnInit {
       error: () => this.loading.set(false)
     });
     this.service.getCategories().subscribe({
-      next: (cats) => this.categories.set(cats)
+      next: (cats) => {
+        this.categories.set(cats);
+        this.reorderCats.set([...cats]);
+      }
     });
   }
 
@@ -55,5 +63,58 @@ export class HpMenuManageComponent implements OnInit {
   getCategoryName(id: number | null): string {
     if (!id) return 'Uncategorized';
     return this.categories().find(c => c.id === id)?.name ?? 'Uncategorized';
+  }
+
+  itemCountForCat(catId: number): number {
+    return this.items().filter(i => i.category_id === catId).length;
+  }
+
+  openOrderModal() {
+    this.reorderCats.set([...this.categories()]);
+    this.orderSuccess.set(false);
+    this.orderError.set('');
+    this.showOrderModal.set(true);
+  }
+
+  closeOrderModal() {
+    this.showOrderModal.set(false);
+  }
+
+  moveCatUp(index: number) {
+    if (index <= 0) return;
+    const list = [...this.reorderCats()];
+    const temp = list[index];
+    list[index] = list[index - 1];
+    list[index - 1] = temp;
+    this.reorderCats.set(list);
+  }
+
+  moveCatDown(index: number) {
+    const list = [...this.reorderCats()];
+    if (index >= list.length - 1) return;
+    const temp = list[index];
+    list[index] = list[index + 1];
+    list[index + 1] = temp;
+    this.reorderCats.set(list);
+  }
+
+  saveCategoryOrder() {
+    const ids = this.reorderCats().map(c => c.id);
+    this.savingOrder.set(true);
+    this.orderError.set('');
+    this.service.reorderCategories(ids).subscribe({
+      next: () => {
+        this.categories.set([...this.reorderCats()]);
+        this.savingOrder.set(false);
+        this.orderSuccess.set(true);
+        setTimeout(() => {
+          this.closeOrderModal();
+        }, 800);
+      },
+      error: () => {
+        this.orderError.set('Could not save category order. Please try again.');
+        this.savingOrder.set(false);
+      }
+    });
   }
 }

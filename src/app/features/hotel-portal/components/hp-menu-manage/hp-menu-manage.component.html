@@ -1,7 +1,11 @@
-<!-- features/hotel-portal/components/hp-menu-manage/hp-menu-manage.component.html -->
 <div class="hp-page">
 
-  <app-portal-page-header eyebrow="MENU AVAILABILITY" title="Menu Items" [subtitle]="items().length + ' items - toggle availability below'" tone="hotel" />
+  <app-portal-page-header eyebrow="MENU AVAILABILITY" title="Menu Items" [subtitle]="items().length + ' items - toggle availability below'" tone="hotel">
+    <button class="btn-reorder" type="button" (click)="openOrderModal()">
+      <app-hp-icon name="folder" [size]="16" />
+      Reorder Categories
+    </button>
+  </app-portal-page-header>
 
   @if (loading()) {
     <div class="page-loading">
@@ -75,6 +79,54 @@
 
         </div>
       }
+    </div>
+  }
+
+  @if (showOrderModal()) {
+    <div class="modal-backdrop" (click)="closeOrderModal()">
+      <div class="reorder-modal" (click)="$event.stopPropagation()">
+        <div class="modal-head">
+          <div>
+            <h3>Manage Category Order</h3>
+            <p>Rearrange subcategories to customize how they appear on your menu</p>
+          </div>
+          <button class="modal-close" type="button" (click)="closeOrderModal()">✕</button>
+        </div>
+
+        @if (orderSuccess()) {
+          <div class="alert-success">Category order saved successfully!</div>
+        }
+        @if (orderError()) {
+          <div class="alert-error">{{ orderError() }}</div>
+        }
+
+        <div class="cat-reorder-list">
+          @for (cat of reorderCats(); track cat.id; let i = $index) {
+            <div class="cat-reorder-row">
+              <div class="cat-order-num">{{ i + 1 }}</div>
+              <div class="cat-reorder-info">
+                <span class="cat-reorder-name">{{ cat.name }}</span>
+                <span class="cat-reorder-count">{{ itemCountForCat(cat.id) }} items</span>
+              </div>
+              <div class="cat-reorder-actions">
+                <button type="button" class="btn-arrow" [disabled]="i === 0" (click)="moveCatUp(i)" title="Move up">
+                  ▲
+                </button>
+                <button type="button" class="btn-arrow" [disabled]="i === reorderCats().length - 1" (click)="moveCatDown(i)" title="Move down">
+                  ▼
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="modal-foot">
+          <button type="button" class="btn-cancel" (click)="closeOrderModal()">Cancel</button>
+          <button type="button" class="btn-save-order" [disabled]="savingOrder()" (click)="saveCategoryOrder()">
+            {{ savingOrder() ? 'Saving…' : 'Save Order' }}
+          </button>
+        </div>
+      </div>
     </div>
   }
 
