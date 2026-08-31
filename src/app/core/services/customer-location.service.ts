@@ -1,9 +1,11 @@
 /// <reference types="google.maps" />
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Capacitor } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { firstValueFrom } from 'rxjs';
 
+import { environment } from '../../../environments/environment';
 import { GoogleMapsLoaderService } from '../../features/tracking/services/google-maps-loader.service';
 import { TrackingService } from '../../features/tracking/services/tracking.service';
 
@@ -13,6 +15,7 @@ export interface CustomerLocation {
   label: string;
   source: 'gps' | 'map' | 'manual';
   selectedAt?: number;
+  isWithinZone?: boolean;
 }
 
 const STORAGE_KEY = 'le_customer_location_v1';
@@ -29,8 +32,12 @@ const PROMPT_COOLDOWN_MS = 12 * 60 * 60 * 1000;
 export class CustomerLocationService {
   private readonly _location = signal<CustomerLocation | null>(this._load());
   private readonly _detecting = signal(false);
+  private readonly _isOutsideZone = signal(false);
+  private readonly _isRetrying = signal(false);
   private _detectionPromise: Promise<void> | null = null;
+  private _retryTimer: any = null;
 
+  private readonly http = inject(HttpClient);
   private readonly tracking = inject(TrackingService);
   private readonly mapsLoader = inject(GoogleMapsLoaderService);
 
@@ -43,14 +50,23 @@ export class CustomerLocationService {
   readonly longitude = computed(() => this._location()?.lng ?? null);
   /** True while we're actively asking the OS for the current position. */
   readonly detecting = computed(() => this._detecting());
+  /** True when the GPS position is outside the tenant delivery zone. */
+  readonly isOutsideZone = computed(() => this._isOutsideZone());
+  /** True when auto-polling every 5 seconds until user is inside delivery zone. */
+  readonly isRetrying = computed(() => this._isRetrying());
 
   setLocation(loc: CustomerLocation): void {
+    this._stopRetryLoop();
+    this._isOutsideZone.set(false);
+    this._isRetrying.set(false);
+
     const next: CustomerLocation = {
       lat: Number(loc.lat),
       lng: Number(loc.lng),
       label: (loc.label || '').trim() || this._fallbackLabel(loc.lat, loc.lng),
       source: loc.source,
       selectedAt: Date.now(),
+      isWithinZone: loc.isWithinZone ?? true,
     };
     this._location.set(next);
     try {
@@ -61,14 +77,22 @@ export class CustomerLocationService {
   }
 
   clear(): void {
+    this._stopRetryLoop();
+    this._isOutsideZone.set(false);
+    this._isRetrying.set(false);
     this._location.set(null);
     localStorage.removeItem(STORAGE_KEY);
   }
 
+  private _stopRetryLoop(): void {
+    if (this._retryTimer) {
+      clearTimeout(this._retryTimer);
+      this._retryTimer = null;
+    }
+  }
+
   shouldPromptAutomatically(): boolean {
-    // While auto-detection is running, wait — the modal must not flash
-    // on top of a successful GPS acquisition.
-    if (this._detecting()) return false;
+    if (this._detecting() || this._isRetrying()) return false;
     const location = this._location();
     const needsChoice =
       !location || Date.now() - (location.selectedAt || 0) > LOCATION_MAX_AGE_MS;
@@ -88,60 +112,93 @@ export class CustomerLocationService {
   }
 
   /**
-   * Silently try to acquire GPS + reverse-geocode a short label, then save the
-   * result via {@link setLocation}. Called from the root {@link AppComponent}
-   * on every app boot so illiterate customers never have to open the manual
-   * location picker.
-   *
-   * Behaviour matrix:
-   *  - Fresh saved location (< 30 days) exists → skip (user already opted in
-   *    or previously picked something they trust).
-   *  - No saved location OR stale → prompt the OS/browser for permission,
-   *    fetch coords, reverse-geocode, save.
-   *  - Permission denied / GPS unavailable → silently fall through; the
-   *    navbar's manual modal will open as a fallback.
-   *  - Every fresh app boot (new session) re-attempts detection if there is
-   *    no saved location, satisfying "if they reject, ask again next visit".
-   *
-   * Safe to call multiple times — subsequent calls return the same in-flight
-   * promise while a detection is running.
+   * Acquire GPS + check if within delivery zone:
+   * - If within zone: save location and stop (never re-fetch automatically).
+   * - If outside zone: re-fetch GPS every 5s until within delivery zone.
    */
   initAutoDetect(): Promise<void> {
     if (this._detectionPromise) return this._detectionPromise;
-    // Fresh saved location → nothing to do.
-    if (this._location() && !this._isStale(this._location())) {
+    // Fresh saved location that is within zone → nothing to do.
+    const current = this._location();
+    if (current && !this._isStale(current) && current.isWithinZone !== false) {
       return Promise.resolve();
     }
     this._detecting.set(true);
     this._detectionPromise = this._runDetection().finally(() => {
       this._detecting.set(false);
-      // Keep the resolved promise so repeat callers don't re-trigger the
-      // native permission dialog in the same session.  If detection ran to
-      // completion (success or denial), the user's choice is settled for now.
     });
     return this._detectionPromise;
   }
 
-  /** Resolves when the current detection (if any) finishes.  Safe to await
-   *  even when no detection is in flight — resolves immediately. */
   waitForDetection(): Promise<void> {
     return this._detectionPromise || Promise.resolve();
+  }
+
+  private async _checkIfWithinZone(lat: number, lng: number): Promise<boolean> {
+    try {
+      const url = `${environment.apiBaseUrl}/restaurants?lat=${lat}&lng=${lng}`;
+      const restaurants = await firstValueFrom(this.http.get<any[]>(url));
+      return Array.isArray(restaurants) && restaurants.length > 0;
+    } catch {
+      return false;
+    }
   }
 
   private async _runDetection(): Promise<void> {
     try {
       const coords = await this._acquireCoords();
-      if (!coords) return;
+      if (!coords) {
+        // If GPS permission denied or failed, don't spin in a tight loop
+        this._isRetrying.set(false);
+        return;
+      }
+
+      const inZone = await this._checkIfWithinZone(coords.lat, coords.lng);
       const label = await this._reverseGeocode(coords.lat, coords.lng);
-      this.setLocation({
-        lat: coords.lat,
-        lng: coords.lng,
-        label,
-        source: 'gps',
-      });
+
+      if (inZone) {
+        // User is WITHIN delivery zone: save location and stop polling
+        this._stopRetryLoop();
+        this._isOutsideZone.set(false);
+        this._isRetrying.set(false);
+        this.setLocation({
+          lat: coords.lat,
+          lng: coords.lng,
+          label,
+          source: 'gps',
+          isWithinZone: true,
+        });
+      } else {
+        // User is OUTSIDE delivery zone: keep polling every 5s until inside zone
+        this._isOutsideZone.set(true);
+        this._isRetrying.set(true);
+        this._location.set({
+          lat: coords.lat,
+          lng: coords.lng,
+          label,
+          source: 'gps',
+          selectedAt: Date.now(),
+          isWithinZone: false,
+        });
+        this._scheduleRetry();
+      }
     } catch {
-      /* silent fail — user can still pick manually via navbar */
+      this._scheduleRetry();
     }
+  }
+
+  private _scheduleRetry(): void {
+    this._stopRetryLoop();
+    this._retryTimer = setTimeout(async () => {
+      // If user has chosen a manual location in the meantime, stop retry loop
+      const current = this._location();
+      if (current && (current.source === 'manual' || current.source === 'map')) {
+        this._isRetrying.set(false);
+        this._isOutsideZone.set(false);
+        return;
+      }
+      await this._runDetection();
+    }, 5000);
   }
 
   private async _acquireCoords(): Promise<{ lat: number; lng: number } | null> {

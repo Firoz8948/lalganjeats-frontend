@@ -124,7 +124,10 @@ export class FeaturedRestaurantsComponent implements OnInit, OnDestroy {
     this.error.set('');
     this.restaurantService.getRestaurants(lat, lng, subcategoryId).subscribe({
       next: (data) => {
-        this.restaurants.set(data);
+        const sorted = [...(data || [])].sort(
+          (a, b) => (b.is_open ? 1 : 0) - (a.is_open ? 1 : 0),
+        );
+        this.restaurants.set(sorted);
         this.loading.set(false);
       },
       error: () => {
