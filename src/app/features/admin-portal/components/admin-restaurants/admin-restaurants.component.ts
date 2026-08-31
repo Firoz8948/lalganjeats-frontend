@@ -32,7 +32,7 @@ export class AdminRestaurantsComponent implements OnInit {
   hasVariants=signal(false);
   variantDrafts:{label:string;actual_price:number|null;original_price:number|null}[]=[];
   newMenuItem:AdminMenuItemCreate={name:'',description:'',price:0,actual_price:0,category_name:'Other',subcategory_id:null,is_veg:true,is_bestseller:false};
-  readonly bannerSpec={label:'Restaurant Card',hint:'Shown on home page and restaurants list (desktop + mobile)',size:'600 × 400 px (3:2)',formats:'JPG, PNG, or WebP · max 2 MB'};
+  readonly bannerSpec={label:'Restaurant Card',hint:'Shown on home page and restaurants list (desktop + mobile)',size:'Fixed card height: 210px (e.g. 600 × 420 px / ~4:3)',formats:'JPG, PNG, or WebP · max 2 MB'};
   readonly desktopHeroSpec={label:'Hotel Hero Banner — Desktop',hint:'Shown on restaurant menu page for desktop screens',size:'1600 × 600 px (~8:3)',formats:'JPG, PNG, or WebP · max 2 MB'};
   readonly mobileHeroSpec={label:'Hotel Hero Banner — Mobile',hint:'Shown on restaurant menu page for mobile screens',size:'1080 × 720 px (3:2)',formats:'JPG, PNG, or WebP · max 2 MB'};
   constructor(

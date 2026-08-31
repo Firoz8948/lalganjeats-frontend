@@ -3,37 +3,15 @@
 
     <div class="section-header">
       <div class="section-heading-copy">
-        <span class="section-eyebrow">HANDPICKED AROUND YOU</span>
-        <div class="section-title-row">
-          <span class="section-title-icon" aria-hidden="true">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2.2">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
-          </span>
-          <h2 class="section-title">
-            {{ selectedSubcategoryName() || 'Restaurants Near You' }}
-          </h2>
-        </div>
-        <p class="section-subtitle">
+        <span class="section-eyebrow">Order Now, We are live</span>
+        <h2 class="section-title">
           @if (selectedSubcategoryName()) {
-            Restaurants serving {{ selectedSubcategoryName() }} near you
+            {{ restaurants().length }} Restaurants delivering {{ selectedSubcategoryName() }}
           } @else {
-            Order from the best places in Lalganj
+            {{ restaurants().length }} Restaurants Delivering to you
           }
-        </p>
+        </h2>
       </div>
-      @if (restaurants().length > 0) {
-        <a routerLink="/restaurants" class="see-all-link">
-          See all
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2.5">
-            <line x1="5" y1="12" x2="19" y2="12"/>
-            <polyline points="12 5 19 12 12 19"/>
-          </svg>
-        </a>
-      }
     </div>
 
     @if (loading()) {
