@@ -557,6 +557,7 @@ export interface PromoCode {
   is_active: boolean;
   is_public: boolean;
   is_expired: boolean;
+  audience?: 'all' | 'new_users';
   description: string | null;
   created_at: string | null;
 }
@@ -564,6 +565,7 @@ export interface PromoCode {
 export interface PromoCodeCreate {
   code: string;
   channel: 'all' | 'mobile_app';
+  audience?: 'all' | 'new_users';
   discount_type?: 'percent' | 'flat';
   percent_off?: number | null;
   flat_off?: number | null;

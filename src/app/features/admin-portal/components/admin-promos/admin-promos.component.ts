@@ -30,6 +30,7 @@ export class AdminPromosComponent implements OnInit {
   newPromo: PromoCodeCreate = {
     code: '',
     channel: 'all',
+    audience: 'all',
     discount_type: 'percent',
     percent_off: 10,
     flat_off: null,
@@ -128,6 +129,7 @@ export class AdminPromosComponent implements OnInit {
         this.newPromo = {
           code: '',
           channel: 'all',
+          audience: 'all',
           discount_type: 'percent',
           percent_off: 10,
           flat_off: null,
