@@ -116,6 +116,9 @@
             <span>Mode</span>
             <strong>{{ details.payment_label || (details.payment_method === 'online' ? 'Online' : 'COD') }}</strong>
           </div>
+          @if (details.payment_via) {
+            <p class="breakdown-note">{{ details.payment_via }}</p>
+          }
           <div class="breakdown-row">
             <span>Online</span>
             <strong>₹{{ (details.online_amount ?? 0) | number:'1.2-2' }}</strong>
@@ -124,6 +127,9 @@
             <span>COD · Cash collected</span>
             <strong>₹{{ (details.cash_collected ?? 0) | number:'1.2-2' }}</strong>
           </div>
+          <p class="breakdown-note">
+            Amount equals customer total. Online = prepaid PayU or delivery QR. COD = cash collected by the rider.
+          </p>
         </div>
       }
       }

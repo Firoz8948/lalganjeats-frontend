@@ -486,6 +486,7 @@ export interface OrderBreakdown {
   customer_total: number;
   payment_method?: string;
   payment_label?: string;
+  payment_via?: string | null;
   payment_status?: string;
   online_amount?: number;
   cash_collected?: number;
