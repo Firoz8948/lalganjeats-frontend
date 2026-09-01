@@ -68,12 +68,8 @@ export class PaymentSettingsComponent implements OnInit {
   get adminProfitPreview(): number {
     const platformCharge =
       Number(this.form.get('platform_charge_rupees')?.value) || 0;
-    return (
-      this.previewDisplayPrice -
-      this.previewTransferPrice -
-      this.previewZoneDeliveryCharge +
-      platformCharge
-    );
+    // Delivery is pass-through: customer pays it, rider receives it.
+    return this.previewDisplayPrice - this.previewTransferPrice + platformCharge;
   }
 
   save(): void {

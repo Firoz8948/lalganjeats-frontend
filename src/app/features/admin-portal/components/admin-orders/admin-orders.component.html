@@ -75,9 +75,24 @@
       } @else {
       @if (breakdown(); as details) {
         <div class="breakdown-section">
+          <h3>Payment</h3>
+          <div class="breakdown-row">
+            <span>Mode</span>
+            <strong>{{ details.payment_label || (details.payment_method === 'online' ? 'Online' : 'COD') }}</strong>
+          </div>
+          <div class="breakdown-row">
+            <span>Online</span>
+            <strong>₹{{ (details.online_amount ?? 0) | number:'1.2-2' }}</strong>
+          </div>
+          <div class="breakdown-row">
+            <span>COD · Cash collected</span>
+            <strong>₹{{ (details.cash_collected ?? 0) | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+        <div class="breakdown-section">
           <h3>Customer view</h3>
           <div class="breakdown-row"><span>Display price</span><strong>₹{{ (details.display_price ?? details.order_price) | number:'1.2-2' }}</strong></div>
-          <div class="breakdown-row"><span>Platform fee</span><strong>₹{{ details.platform_fee | number:'1.2-2' }}</strong></div>
+          <div class="breakdown-row"><span>Platform charge</span><strong>₹{{ (details.platform_charge ?? details.platform_fee) | number:'1.2-2' }}</strong></div>
           <div class="breakdown-row"><span>Delivery charge</span><strong>₹{{ details.delivery_charge | number:'1.2-2' }}</strong></div>
           @if (details.discount > 0) {
             <div class="breakdown-row muted">
@@ -87,19 +102,27 @@
           }
           <div class="breakdown-row total"><span>Customer total</span><strong>₹{{ details.customer_total | number:'1.2-2' }}</strong></div>
           <p class="breakdown-note">
-            Display price + platform fee + delivery charge − discount.
+            Display price + platform charge + delivery − discount.
           </p>
         </div>
         <div class="breakdown-section">
           <h3>Admin view</h3>
           <div class="breakdown-row"><span>Hotel payout</span><strong>₹{{ details.hotel_price | number:'1.2-2' }}</strong></div>
           <div class="breakdown-row"><span>Delivery payout</span><strong>₹{{ details.delivery_price | number:'1.2-2' }}</strong></div>
+          <div class="breakdown-row"><span>Platform charge</span><strong>+₹{{ (details.platform_charge ?? details.platform_fee) | number:'1.2-2' }}</strong></div>
+          <div class="breakdown-row"><span>Menu margin</span><strong>+₹{{ (details.menu_margin ?? 0) | number:'1.2-2' }}</strong></div>
+          @if ((details.promo_cost ?? details.discount) > 0) {
+            <div class="breakdown-row muted">
+              <span>Promo cost{{ details.promo_code ? ' (' + details.promo_code + ')' : '' }}</span>
+              <strong>−₹{{ (details.promo_cost ?? details.discount) | number:'1.2-2' }}</strong>
+            </div>
+          }
           <div class="breakdown-row highlight" [class.loss]="details.is_loss">
             <span>{{ details.is_loss ? 'Admin loss' : 'Admin profit' }}</span>
             <strong>{{ details.is_loss ? '−' : '+' }}₹{{ (details.admin_profit < 0 ? -details.admin_profit : details.admin_profit) | number:'1.2-2' }}</strong>
           </div>
           <p class="breakdown-note">
-            Customer total − hotel payout − delivery payout.
+            Platform charge + menu margin − promo. Delivery is pass-through. Coupon cost is not extra platform fee.
           </p>
         </div>
       }

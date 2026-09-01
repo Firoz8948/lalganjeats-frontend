@@ -484,11 +484,19 @@ export interface OrderBreakdown {
   delivery_charge: number;
   discount: number;
   customer_total: number;
+  payment_method?: string;
+  payment_label?: string;
+  payment_status?: string;
+  online_amount?: number;
+  cash_collected?: number;
   /** Admin view */
   hotel_price: number;
   delivery_price: number;
   admin_profit: number;
   is_loss: boolean;
+  platform_charge?: number;
+  menu_margin?: number;
+  promo_cost?: number;
   promo_code: string | null;
   customer_view?: {
     display_price: number;
