@@ -72,10 +72,9 @@
 
         <!-- Items Preview -->
         <div class="active-card__items">
-          @for (item of order.items; track item.name) {
+          @for (item of order.items; track item.name + (item.variant_label || '') + item.quantity) {
             <span class="item-chip">
-              <span class="item-chip__qty">{{ item.quantity }}×</span>
-              {{ item.name }}
+              {{ item.line_label || (item.quantity + '× ' + item.name) }}
             </span>
           }
         </div>

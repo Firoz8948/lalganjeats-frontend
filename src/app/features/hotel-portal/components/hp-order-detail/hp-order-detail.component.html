@@ -138,15 +138,11 @@
           </h3>
 
           <div class="items-list">
-            @for (item of order()!.items; track item.name) {
+            @for (item of order()!.items; track item.name + (item.variant_label || '') + item.quantity) {
               <div class="item-row">
                 <div class="item-row__left">
-                  <span class="item-qty-chip">{{ item.quantity }}×</span>
-                  <span class="item-row__name">{{ item.name }}</span>
+                  <span class="item-row__name">{{ item.line_label || item.name }}</span>
                 </div>
-                <span class="item-row__price">
-                  ₹{{ item.price * item.quantity }}
-                </span>
               </div>
             }
           </div>

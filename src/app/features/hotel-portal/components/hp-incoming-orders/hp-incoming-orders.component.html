@@ -51,11 +51,9 @@
 
         <!-- Items -->
         <div class="incoming-card__items">
-          @for (item of order.items; track item.name) {
+          @for (item of order.items; track item.name + (item.variant_label || '') + item.quantity) {
             <div class="order-item-row">
-              <span class="item-qty-badge">{{ item.quantity }}×</span>
-              <span class="item-name">{{ item.name }}</span>
-              <span class="item-price">₹{{ item.price * item.quantity }}</span>
+              <span class="item-name">{{ item.line_label || (item.quantity + '× ' + item.name) }}</span>
             </div>
           }
         </div>

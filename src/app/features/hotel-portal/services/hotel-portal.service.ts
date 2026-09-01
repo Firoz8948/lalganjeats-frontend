@@ -46,6 +46,9 @@ export interface OrderItem {
   name:     string;
   quantity: number;
   price:    number;
+  variant_label?: string | null;
+  line_total?: number;
+  line_label?: string;
 }
 
 export interface MenuItem {

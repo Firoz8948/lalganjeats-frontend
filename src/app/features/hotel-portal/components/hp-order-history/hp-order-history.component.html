@@ -95,13 +95,11 @@
               <div class="body-section">
                 <p class="section-label">Items Ordered</p>
                 <div class="items-box">
-                  @for (item of order.items; track item.name) {
+                  @for (item of order.items; track item.name + (item.variant_label || '') + item.quantity) {
                     <div class="item-row">
                       <div class="item-row__left">
-                        <span class="item-qty">{{ item.quantity }}×</span>
-                        <span class="item-name">{{ item.name }}</span>
+                        <span class="item-name">{{ item.line_label || (item.quantity + '× ' + item.name) }}</span>
                       </div>
-                      <span class="item-price">₹{{ item.price * item.quantity }}</span>
                     </div>
                   }
                 </div>
