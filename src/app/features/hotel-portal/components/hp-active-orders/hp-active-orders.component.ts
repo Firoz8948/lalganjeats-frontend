@@ -1,6 +1,6 @@
 import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
 // hp-active-orders.component.ts
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HotelPortalService, Order } from '../../services/hotel-portal.service';
@@ -13,9 +13,13 @@ import { HpIconComponent, HpIconName } from '../shared/hp-icon/hp-icon.component
   templateUrl: './hp-active-orders.component.html',
   styleUrl:    './hp-active-orders.component.scss'
 })
-export class HpActiveOrdersComponent implements OnInit {
+export class HpActiveOrdersComponent implements OnInit, OnDestroy {
   orders  = signal<Order[]>([]);
   loading = signal(true);
+  busyId  = signal<number | null>(null);
+  toast   = signal<string | null>(null);
+  private pollInterval?: any;
+  private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
   statusSteps = [
     { key: 'accepted', label: 'Accepted' },
@@ -24,7 +28,15 @@ export class HpActiveOrdersComponent implements OnInit {
 
   constructor(private service: HotelPortalService) {}
 
-  ngOnInit() { this.loadOrders(); }
+  ngOnInit() {
+    this.loadOrders();
+    this.pollInterval = setInterval(() => this.loadOrders(), 5000);
+  }
+
+  ngOnDestroy() {
+    if (this.pollInterval) clearInterval(this.pollInterval);
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+  }
 
   loadOrders() {
     this.service.getOrders('active').subscribe({
@@ -52,10 +64,28 @@ export class HpActiveOrdersComponent implements OnInit {
   }
 
   advanceStatus(order: Order) {
+    if (this.busyId()) return;
     const next = this.nextStatus(order.status);
-    this.service.updateOrderStatus(order.id, next).subscribe(
-      () => this.loadOrders()
-    );
+    this.busyId.set(order.id);
+    this.service.updateOrderStatus(order.id, next).subscribe({
+      next: () => {
+        this.busyId.set(null);
+        this.showToast('Wait for delivery partner');
+        this.loadOrders();
+      },
+      error: () => this.busyId.set(null),
+    });
+  }
+
+  riderInitial(name?: string | null): string {
+    const t = (name || 'D').trim();
+    return t ? t.charAt(0).toUpperCase() : 'D';
+  }
+
+  private showToast(message: string) {
+    this.toast.set(message);
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => this.toast.set(null), 2000);
   }
 
   getStepIndex(status: string): number {

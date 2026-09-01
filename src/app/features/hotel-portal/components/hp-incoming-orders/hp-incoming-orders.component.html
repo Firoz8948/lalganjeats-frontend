@@ -68,11 +68,16 @@
 
         <!-- Actions -->
         <div class="incoming-card__actions">
-          <button class="accept-btn" (click)="accept(order.id)">
-            <app-hp-icon name="check" [size]="15" />
-            Accept Order
+          <button class="accept-btn" [disabled]="busyId() === order.id" (click)="accept(order.id)">
+            @if (busyId() === order.id) {
+              <span class="btn-spinner"></span>
+              Accepting…
+            } @else {
+              <app-hp-icon name="check" [size]="15" />
+              Accept Order
+            }
           </button>
-          <button class="reject-btn" (click)="reject(order.id)">
+          <button class="reject-btn" [disabled]="busyId() !== null" (click)="reject(order.id)">
             <app-hp-icon name="x" [size]="15" />
             Cancel
           </button>
@@ -81,5 +86,18 @@
       </div>
     }
   </div>
+
+  @if (busyId() || toast()) {
+    <div class="action-overlay">
+      <div class="action-overlay__box">
+        @if (busyId() && !toast()) {
+          <span class="overlay-spinner"></span>
+          <p>Accepting order…</p>
+        } @else {
+          <p class="toast-ok">{{ toast() }}</p>
+        }
+      </div>
+    </div>
+  }
 
 </div>

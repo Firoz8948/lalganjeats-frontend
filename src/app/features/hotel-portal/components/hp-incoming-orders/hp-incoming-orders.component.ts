@@ -18,18 +18,21 @@ import { HpIconComponent } from '../shared/hp-icon/hp-icon.component';
 export class HpIncomingOrdersComponent implements OnInit, OnDestroy {
   orders     = signal<Order[]>([]);
   loading    = signal(true);
+  busyId     = signal<number | null>(null);
+  toast      = signal<string | null>(null);
   private interval: any;
+  private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private service: HotelPortalService) {}
 
   ngOnInit() {
     this.loadOrders();
-    // Auto refresh every 30 seconds
     this.interval = setInterval(() => this.loadOrders(), 30000);
   }
 
   ngOnDestroy() {
     if (this.interval) clearInterval(this.interval);
+    if (this.toastTimer) clearTimeout(this.toastTimer);
   }
 
   loadOrders() {
@@ -40,9 +43,16 @@ export class HpIncomingOrdersComponent implements OnInit, OnDestroy {
   }
 
   accept(id: number) {
-    this.service.updateOrderStatus(id, 'accepted').subscribe(
-      () => this.loadOrders()
-    );
+    if (this.busyId()) return;
+    this.busyId.set(id);
+    this.service.updateOrderStatus(id, 'accepted').subscribe({
+      next: () => {
+        this.busyId.set(null);
+        this.showToast('Order accepted');
+        this.loadOrders();
+      },
+      error: () => this.busyId.set(null),
+    });
   }
 
   reject(id: number) {
@@ -51,5 +61,11 @@ export class HpIncomingOrdersComponent implements OnInit, OnDestroy {
         () => this.loadOrders()
       );
     }
+  }
+
+  private showToast(message: string) {
+    this.toast.set(message);
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => this.toast.set(null), 1800);
   }
 }

@@ -71,10 +71,33 @@
   background: #f0fdf4;
   animation: pickup-rider-in 220ms ease-out both;
 
-  img { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 12px; object-fit: cover; }
+  img, .rider-photo-fallback {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    border-radius: 12px;
+    object-fit: cover;
+  }
+  .rider-photo-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #dcfce7;
+    color: #166534;
+    font-weight: 800;
+    font-size: 18px;
+  }
   span { display: block; color: #16803c; font-size: 8px; font-weight: 900; letter-spacing: .11em; }
-  strong { display: block; margin-top: 2px; color: #174527; font-size: 11px; line-height: 1.35; }
-  p { margin: 2px 0 0; color: #587361; font-size: 9px; }
+  strong { display: block; margin-top: 2px; color: #174527; font-size: 12px; line-height: 1.35; }
+  p { margin: 2px 0 0; color: #587361; font-size: 11px; }
+
+  &--waiting {
+    border-color: #fde68a;
+    background: #fffbeb;
+    .rider-photo-fallback { background: #fef3c7; color: #92400e; }
+    span { color: #b45309; }
+    strong { color: #78350f; }
+  }
 }
 
 @keyframes pickup-rider-in {
@@ -339,6 +362,7 @@
   transition: var(--transition);
 
   &:hover { background: var(--color-primary-dark); }
+  &:disabled { opacity: 0.75; cursor: wait; transform: none; }
 
   &--cooked {
     background: #27AE60 !important;
@@ -370,4 +394,48 @@
   font-weight: 500;
   color: #c70000;
   text-align: center;
+}
+
+.btn-spinner,
+.overlay-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.overlay-spinner {
+  width: 32px;
+  height: 32px;
+  border-color: #e2e8f0;
+  border-top-color: var(--color-primary);
+}
+
+.action-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(15, 23, 42, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.action-overlay__box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 22px 26px;
+  min-width: 220px;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+
+  p { margin: 0; font-size: 14px; font-weight: 700; color: #334155; }
+  .toast-ok { color: #15803d; font-size: 16px; }
 }

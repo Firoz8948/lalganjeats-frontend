@@ -83,14 +83,23 @@
           <div class="pickup-rider">
             @if (rider.selfie_url) {
               <img [src]="rider.selfie_url" [alt]="rider.name">
+            } @else {
+              <div class="rider-photo-fallback">{{ riderInitial(rider.name) }}</div>
             }
             <div>
-              <span>PICKUP PARTNER</span>
-              <strong>{{ rider.name }} is coming to pick up this order</strong>
-              <p>
-                {{ rider.registered_vehicle_number || 'Registered vehicle' }}
-                @if (rider.bike_info) { · {{ rider.bike_info }} }
-              </p>
+              <span>DELIVERY PARTNER</span>
+              <strong>{{ rider.name }}</strong>
+              <p>Bike number: {{ rider.registered_vehicle_number || '—' }}</p>
+              <p>Bike details: {{ rider.bike_info || '—' }}</p>
+            </div>
+          </div>
+        } @else if (order.status === 'ready' || order.status === 'picked_up') {
+          <div class="pickup-rider pickup-rider--waiting">
+            <div class="rider-photo-fallback">?</div>
+            <div>
+              <span>DELIVERY PARTNER</span>
+              <strong>Wait for delivery partner</strong>
+              <p>Photo, name and bike details will show here once assigned.</p>
             </div>
           </div>
         }
@@ -107,9 +116,15 @@
         @if (canAdvance(order.status)) {
           <div class="active-card__footer">
             <button class="advance-btn advance-btn--cooked"
+                    [disabled]="busyId() === order.id"
                     (click)="advanceStatus(order)">
-              <app-hp-icon [name]="nextStatusIcon(order.status)" [size]="16" />
-              {{ nextStatusLabel(order.status) }}
+              @if (busyId() === order.id) {
+                <span class="btn-spinner"></span>
+                Marking ready…
+              } @else {
+                <app-hp-icon [name]="nextStatusIcon(order.status)" [size]="16" />
+                {{ nextStatusLabel(order.status) }}
+              }
             </button>
           </div>
         } @else if (order.status === 'ready') {
@@ -124,5 +139,18 @@
       </div>
     }
   </div>
+
+  @if (busyId() || toast()) {
+    <div class="action-overlay">
+      <div class="action-overlay__box">
+        @if (busyId() && !toast()) {
+          <span class="overlay-spinner"></span>
+          <p>Marking food ready…</p>
+        } @else {
+          <p class="toast-ok">{{ toast() }}</p>
+        }
+      </div>
+    </div>
+  }
 
 </div>
