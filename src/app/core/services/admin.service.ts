@@ -216,8 +216,11 @@ export class AdminService {
     );
   }
 
-  getCustomers(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/customers`);
+  getCustomers(page = 1, q = ''): Observable<AdminCustomersPage> {
+    const params = new URLSearchParams({ page: String(page) });
+    const term = (q || '').trim();
+    if (term) params.set('q', term);
+    return this.http.get<AdminCustomersPage>(`${this.baseUrl}/customers?${params.toString()}`);
   }
 
   setCustomerStatus(id: number, isActive: boolean): Observable<{ id: number; is_active: boolean }> {
@@ -348,8 +351,10 @@ export class AdminService {
     return this.http.get<OrderBreakdown>(`${this.baseUrl}/orders/${orderId}/breakdown`);
   }
 
-  getPaymentsReceived(): Observable<PaymentsReceivedResponse> {
-    return this.http.get<PaymentsReceivedResponse>(`${this.baseUrl}/payments/received`);
+  getPaymentsReceived(page = 1): Observable<PaymentsReceivedResponse> {
+    return this.http.get<PaymentsReceivedResponse>(
+      `${this.baseUrl}/payments/received?page=${page}`,
+    );
   }
 
   // ── Partner settlements ──────────────────────────────────────────────────
@@ -500,6 +505,7 @@ export interface AdminOrderRow {
   payment_mode?: string;
   payment_mode_label?: string;
   payment_verified?: boolean;
+  payment_via?: string | null;
   promo_code: string | null;
   promo_percent_off: number | null;
   promo_free_delivery: boolean;
@@ -570,7 +576,28 @@ export interface PaymentReceivedRow {
 export interface PaymentsReceivedResponse {
   total_received: number;
   count: number;
+  page?: number;
+  page_size?: number;
+  total?: number;
+  total_pages?: number;
   payments: PaymentReceivedRow[];
+}
+
+export interface AdminCustomersPage {
+  page: number;
+  page_size: number;
+  total: number;
+  total_pages: number;
+  items: AdminCustomerRow[];
+}
+
+export interface AdminCustomerRow {
+  id: number;
+  full_name: string | null;
+  phone: string | null;
+  email: string | null;
+  is_active: boolean;
+  created_at: string | null;
 }
 
 export interface SettlementRow {

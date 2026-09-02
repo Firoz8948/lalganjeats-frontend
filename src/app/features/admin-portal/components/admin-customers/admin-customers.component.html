@@ -1,5 +1,15 @@
 <div class="content-area">
   <app-portal-page-header eyebrow="CUSTOMER DIRECTORY" title="Customers" subtitle="Review customer accounts, contact details and access status." tone="admin" />
+
+  <input
+    type="search"
+    class="search-box"
+    placeholder="search name or number"
+    [value]="query()"
+    (input)="onSearch($any($event.target).value)"
+    (keydown.enter)="load(1)" />
+
+  @if (loading()) { <p class="page-sub">Loading customers…</p> }
   <div class="table-wrap">
     <table class="data-table">
       <thead>
@@ -26,8 +36,27 @@
               </button>
             </td>
           </tr>
+        } @empty {
+          <tr><td colspan="6" class="empty-table-cell">No customers found.</td></tr>
         }
       </tbody>
     </table>
   </div>
+  @if (total() > 0) {
+    <div class="admin-pager">
+      <span>Showing {{ showingFrom() }}–{{ showingTo() }} of {{ total() }}</span>
+      @if (totalPages() > 1) {
+        <div class="admin-pager__nav">
+          <button type="button" [disabled]="page() <= 1 || loading()" (click)="goToPage(page() - 1)">Prev</button>
+          <span>Page {{ page() }} of {{ totalPages() }}</span>
+          <button type="button" [disabled]="page() >= totalPages() || loading()" (click)="goToPage(page() + 1)">Next</button>
+          <label class="admin-pager__goto">
+            Go to page
+            <input #pageInput type="number" min="1" [attr.max]="totalPages()" [value]="page()" (keydown.enter)="goToPage(pageInput.value)" />
+          </label>
+          <button type="button" [disabled]="loading()" (click)="goToPage(pageInput.value)">Go</button>
+        </div>
+      }
+    </div>
+  }
 </div>

@@ -6,6 +6,11 @@ import {
   AdminService,
   OrderBreakdown,
 } from '../../../../core/services/admin.service';
+import {
+  PaymentModeFields,
+  adminOrderModeLabel,
+  isVerifiedPaymentMode,
+} from '../../../../core/payment-mode';
 
 type OrderStatusFilter =
   | 'all'
@@ -106,21 +111,16 @@ export class AdminOrdersComponent implements OnInit {
     return parts.join(' · ');
   }
 
-  modeFallback(order: AdminOrderRow): string {
-    if ((order.payment_status || '') === 'failed') return 'Payment failed';
-    return order.payment_method === 'online' ? 'Payment pending' : 'COD';
+  modeLabel(order: PaymentModeFields): string {
+    return adminOrderModeLabel(order);
   }
 
   showVerified(order: AdminOrderRow): boolean {
-    return !!order.payment_verified && (order.payment_mode === 'paid' || order.payment_mode === 'dp_qr');
+    return isVerifiedPaymentMode(order);
   }
 
   customerPaidLabel(details: OrderBreakdown): string {
-    const mode =
-      details.payment_mode_label ||
-      details.payment_label ||
-      (details.payment_method === 'online' ? 'Paid' : 'COD');
-    return `Customer paid · ${mode}`;
+    return `Customer paid · ${this.modeLabel(details)}`;
   }
 
   adminCashflow(details: OrderBreakdown): number {

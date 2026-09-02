@@ -31,7 +31,7 @@
             <td>{{ statusLabel(order.status) }}</td>
             <td>
               <span class="mode-pill" [class.verified]="showVerified(order)">
-                {{ order.payment_mode_label || modeFallback(order) }}
+                {{ modeLabel(order) }}
                 @if (showVerified(order)) { ✓ }
               </span>
             </td>
@@ -161,7 +161,7 @@
           <h3>Payment</h3>
           <div class="breakdown-row">
             <span>Mode</span>
-            <strong>{{ details.payment_mode_label || details.payment_label || (details.payment_method === 'online' ? 'Paid' : 'COD') }}</strong>
+            <strong>{{ modeLabel(details) }}</strong>
             @if (details.payment_verified && (details.payment_mode === 'paid' || details.payment_mode === 'dp_qr')) {
               <span class="mode-pill verified" style="margin-left:8px">Verified ✓</span>
             }

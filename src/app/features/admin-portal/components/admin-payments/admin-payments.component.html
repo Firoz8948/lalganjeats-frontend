@@ -5,11 +5,11 @@
     subtitle="Money received by the platform — prepaid, doorstep online, and cleared doorstep cash."
     tone="admin" />
 
-  @if (loading()) {
+  @if (loading() && !data()) {
     <p class="page-sub">Loading revenue…</p>
-  } @else {
-    @if (data(); as d) {
-      <div class="pay-summary">
+  }
+  @if (data(); as d) {
+    <div class="pay-summary">
         <div class="pay-summary__card">
           <span>Total received</span>
           <strong>₹{{ d.total_received | number:'1.2-2' }}</strong>
@@ -54,6 +54,22 @@
           </tbody>
         </table>
       </div>
+      @if (total() > 0) {
+        <div class="admin-pager">
+          <span>Showing {{ showingFrom() }}–{{ showingTo() }} of {{ total() }}</span>
+          @if (totalPages() > 1) {
+            <div class="admin-pager__nav">
+              <button type="button" [disabled]="page() <= 1 || loading()" (click)="goToPage(page() - 1)">Prev</button>
+              <span>Page {{ page() }} of {{ totalPages() }}</span>
+              <button type="button" [disabled]="page() >= totalPages() || loading()" (click)="goToPage(page() + 1)">Next</button>
+              <label class="admin-pager__goto">
+                Go to page
+                <input #pageInput type="number" min="1" [attr.max]="totalPages()" [value]="page()" (keydown.enter)="goToPage(pageInput.value)" />
+              </label>
+              <button type="button" [disabled]="loading()" (click)="goToPage(pageInput.value)">Go</button>
+            </div>
+          }
+        </div>
+      }
     }
-  }
 </div>

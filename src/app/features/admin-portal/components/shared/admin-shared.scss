@@ -68,6 +68,61 @@
 .danger-link { color: #c0392b; }
 .btn-link { color: #667; }
 
+.admin-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.admin-pager__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-pager__nav button {
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.admin-pager__nav button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.admin-pager__goto {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 4px;
+}
+
+.admin-pager__goto input {
+  width: 64px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+.search-box {
+  width: min(100%, 320px);
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
