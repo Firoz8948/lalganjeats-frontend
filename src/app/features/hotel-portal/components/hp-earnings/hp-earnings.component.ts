@@ -1,4 +1,5 @@
 import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
+import { PagedHistoryComponent, HistoryColumn } from '../../../../shared/paged-history/paged-history.component';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -12,7 +13,7 @@ import {
 @Component({
   selector: 'app-hp-earnings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PortalPageHeaderComponent],
+  imports: [CommonModule, ReactiveFormsModule, PortalPageHeaderComponent, PagedHistoryComponent],
   templateUrl: './hp-earnings.component.html',
   styleUrl: './hp-earnings.component.scss',
 })
@@ -32,6 +33,14 @@ export class HpEarningsComponent implements OnInit {
 
   successMsg = '';
   errorMsg = '';
+
+  readonly settlementColumns: HistoryColumn[] = [
+    { key: 'settled_at', label: 'Date', kind: 'datetime' },
+    { key: 'order_count', label: 'Orders' },
+    { key: 'amount', label: 'Amount', kind: 'money' },
+  ];
+
+  loadSettlements = (page: number) => this.earningsService.getRestaurantSettlementHistory(page);
 
   constructor(
     private fb: FormBuilder,

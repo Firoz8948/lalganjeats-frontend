@@ -1,4 +1,5 @@
 import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
+import { PagedHistoryComponent, HistoryColumn } from '../../../../shared/paged-history/paged-history.component';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
@@ -8,7 +9,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 @Component({
   selector: 'app-admin-settlements',
   standalone: true,
-  imports: [CommonModule, PortalPageHeaderComponent],
+  imports: [CommonModule, PortalPageHeaderComponent, PagedHistoryComponent],
   templateUrl: './admin-settlements.component.html',
   styleUrl: './admin-settlements.component.scss',
 })
@@ -20,6 +21,21 @@ export class AdminSettlementsComponent implements OnInit {
   settlementError = signal('');
   settlementSuccess = signal('');
   impersonatingPartnerId = signal<number | null>(null);
+  openRestaurantHistory = signal<number | null>(null);
+  openDeliveryHistory = signal<number | null>(null);
+  openDeliveryCashHistory = signal<number | null>(null);
+
+  readonly settlementColumns: HistoryColumn[] = [
+    { key: 'settled_at', label: 'Date', kind: 'datetime' },
+    { key: 'order_count', label: 'Orders' },
+    { key: 'amount', label: 'Amount', kind: 'money' },
+  ];
+  readonly cashColumns: HistoryColumn[] = [
+    { key: 'created_at', label: 'Date', kind: 'datetime' },
+    { key: 'amount', label: 'Amount', kind: 'money' },
+    { key: 'order_count', label: 'Orders' },
+    { key: 'status', label: 'Status', kind: 'status' },
+  ];
 
   constructor(
     private admin: AdminService,
@@ -62,6 +78,27 @@ export class AdminSettlementsComponent implements OnInit {
   settleDeliveryPartner(row: SettlementRow) {
     this.runSettlement('delivery', row);
   }
+
+  toggleRestaurantHistory(id: number) {
+    this.openRestaurantHistory.set(this.openRestaurantHistory() === id ? null : id);
+  }
+
+  toggleDeliveryHistory(id: number) {
+    this.openDeliveryHistory.set(this.openDeliveryHistory() === id ? null : id);
+  }
+
+  toggleDeliveryCashHistory(id: number) {
+    this.openDeliveryCashHistory.set(this.openDeliveryCashHistory() === id ? null : id);
+  }
+
+  restaurantHistoryFetcher = (id: number) => (page: number) =>
+    this.admin.getRestaurantSettlementHistory(id, page);
+
+  deliveryHistoryFetcher = (id: number) => (page: number) =>
+    this.admin.getDeliverySettlementHistory(id, page);
+
+  deliveryCashHistoryFetcher = (id: number) => (page: number) =>
+    this.admin.getDeliveryCashHistory(id, page);
 
   impersonateDeliveryPartner(row: SettlementRow) {
     if (!window.confirm(`Open the delivery dashboard as "${row.name}"?`)) return;

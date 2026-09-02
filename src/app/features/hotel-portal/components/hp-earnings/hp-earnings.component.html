@@ -28,6 +28,13 @@
         <span class="amount">₹{{ summary.settled_amount | number:'1.2-2' }}</span>
       </div>
     </div>
+    <div class="history-slot">
+      <app-paged-history
+        buttonLabel="Settlement history"
+        emptyText="No settlement history yet."
+        [columns]="settlementColumns"
+        [fetchPage]="loadSettlements" />
+    </div>
   }
 
   <div class="section">

@@ -70,6 +70,8 @@ export interface TenantDetail extends TenantBankFields {
   zones: Array<{
     id: number;
     name: string;
+    initial_km?: number;
+    final_km?: number;
     radius_km: number;
     pricing_type: string;
     rate: number;

@@ -18,14 +18,30 @@
               <td>{{ row.unsettled_orders }}</td>
               <td><strong class="unsettled-amount">₹{{ row.unsettled_amount | number:'1.2-2' }}</strong></td>
               <td>₹{{ row.settled_amount_lifetime | number:'1.2-2' }}</td>
-              <td>
+              <td class="settlement-actions">
                 <button type="button" class="approve-btn small"
                         [disabled]="row.unsettled_amount <= 0 || settlementAction() === 'restaurant-' + row.id"
                         (click)="settleRestaurant(row)">
                   {{ settlementAction() === 'restaurant-' + row.id ? 'Settling…' : 'Settle now' }}
                 </button>
+                <button type="button" class="hist-toggle"
+                        [class.on]="openRestaurantHistory() === row.id"
+                        (click)="toggleRestaurantHistory(row.id)">
+                  Settlement history
+                </button>
               </td>
             </tr>
+            @if (openRestaurantHistory() === row.id) {
+              <tr class="history-row">
+                <td colspan="5">
+                  <app-paged-history
+                    [hideButton]="true"
+                    emptyText="No settlement history yet."
+                    [columns]="settlementColumns"
+                    [fetchPage]="restaurantHistoryFetcher(row.id)" />
+                </td>
+              </tr>
+            }
           } @empty {
             <tr><td colspan="5" class="empty-table-cell">No restaurants found.</td></tr>
           }
@@ -75,8 +91,40 @@
                         (click)="settleDeliveryPartner(row)">
                   {{ settlementAction() === 'delivery-' + row.id ? 'Settling…' : 'Settle now' }}
                 </button>
+                <button type="button" class="hist-toggle"
+                        [class.on]="openDeliveryHistory() === row.id"
+                        (click)="toggleDeliveryHistory(row.id)">
+                  Settlement history
+                </button>
+                <button type="button" class="hist-toggle"
+                        [class.on]="openDeliveryCashHistory() === row.id"
+                        (click)="toggleDeliveryCashHistory(row.id)">
+                  Collected cash history
+                </button>
               </td>
             </tr>
+            @if (openDeliveryHistory() === row.id) {
+              <tr class="history-row">
+                <td colspan="6">
+                  <app-paged-history
+                    [hideButton]="true"
+                    emptyText="No settlement history yet."
+                    [columns]="settlementColumns"
+                    [fetchPage]="deliveryHistoryFetcher(row.id)" />
+                </td>
+              </tr>
+            }
+            @if (openDeliveryCashHistory() === row.id) {
+              <tr class="history-row">
+                <td colspan="6">
+                  <app-paged-history
+                    [hideButton]="true"
+                    emptyText="No cash clear payments yet."
+                    [columns]="cashColumns"
+                    [fetchPage]="deliveryCashHistoryFetcher(row.id)" />
+                </td>
+              </tr>
+            }
           } @empty {
             <tr><td colspan="6" class="empty-table-cell">No delivery partners found.</td></tr>
           }

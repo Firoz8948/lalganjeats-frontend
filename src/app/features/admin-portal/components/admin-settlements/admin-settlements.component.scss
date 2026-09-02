@@ -6,7 +6,27 @@
 }
 .unsettled-amount { color: #b91c1c; }
 .settlement-phone { margin-top: 3px; color: #888; font-size: 12px; }
-.settlement-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.settlement-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+}
+.hist-toggle {
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.hist-toggle.on { background: #111; color: #fff; border-color: #111; }
+.history-row td {
+  background: #fafafa;
+  padding: 10px 12px;
+}
 .impersonate-btn {
   padding: 6px 10px;
   border: 1px solid #111;

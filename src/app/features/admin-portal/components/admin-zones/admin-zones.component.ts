@@ -24,9 +24,9 @@ export class AdminZonesComponent implements OnInit {
   zoneSaving = signal(false);
   zoneError = signal('');
   zoneSuccess = signal('');
-  newZone: DeliveryZoneCreate = {
-    name: '', radius_km: 2, pricing_type: 'flat', rate: 30, sort_order: 0,
-  };
+  editingId = signal<number | null>(null);
+  newZone: DeliveryZoneCreate = this.blankZone(0);
+  editDraft: DeliveryZoneCreate = this.blankZone(0);
   newException: DeliveryExceptionCreate = {
     name: '',
     latitude: 26.1635,
@@ -46,10 +46,11 @@ export class AdminZonesComponent implements OnInit {
     this.admin.getTenant().subscribe({
       next: (tenant) => {
         this.tenant.set(tenant);
-        this.zones.set(tenant.zones || []);
+        this.zones.set(this.sortZones(tenant.zones || []));
         this.deliveryExceptions.set(tenant.delivery_exceptions || []);
         this.newException.latitude = Number(tenant.center_latitude);
         this.newException.longitude = Number(tenant.center_longitude);
+        this.newZone = this.blankZone();
       },
       error: (error) => this.zoneError.set(
         typeof error.error?.detail === 'string'
@@ -62,29 +63,64 @@ export class AdminZonesComponent implements OnInit {
   createZone() {
     this.zoneError.set('');
     this.zoneSuccess.set('');
-    if (!this.newZone.name.trim() || this.newZone.radius_km <= 0) {
-      this.zoneError.set('Zone name and radius are required.');
+    const error = this.rangeError(this.newZone);
+    if (error) {
+      this.zoneError.set(error);
       return;
     }
     this.zoneSaving.set(true);
     this.admin.createZone(this.newZone).subscribe({
       next: (zone) => {
-        this.zones.update((list) =>
-          [...list, zone].sort((a, b) => Number(a.radius_km) - Number(b.radius_km)),
-        );
-        this.newZone = {
-          name: '', radius_km: 2, pricing_type: 'flat', rate: 30, sort_order: 0,
-        };
+        this.zones.update((list) => this.sortZones([...list, zone]));
+        this.newZone = this.blankZone();
         this.zoneSaving.set(false);
         this.zoneSuccess.set('Zone added.');
       },
       error: (error) => {
         this.zoneSaving.set(false);
-        this.zoneError.set(
-          typeof error.error?.detail === 'string'
-            ? error.error.detail
-            : 'Failed to create zone.',
+        this.zoneError.set(this.apiError(error, 'Failed to create zone.'));
+      },
+    });
+  }
+
+  startEdit(zone: DeliveryZone) {
+    this.editingId.set(zone.id);
+    this.editDraft = {
+      name: zone.name,
+      initial_km: Number(zone.initial_km ?? 0),
+      final_km: Number(zone.final_km ?? zone.radius_km),
+      pricing_type: zone.pricing_type,
+      rate: Number(zone.rate),
+      sort_order: zone.sort_order,
+    };
+    this.zoneError.set('');
+    this.zoneSuccess.set('');
+  }
+
+  cancelEdit() {
+    this.editingId.set(null);
+  }
+
+  saveEdit(zone: DeliveryZone) {
+    const error = this.rangeError(this.editDraft);
+    if (error) {
+      this.zoneError.set(error);
+      return;
+    }
+    this.zoneSaving.set(true);
+    this.zoneError.set('');
+    this.admin.updateZone(zone.id, this.editDraft).subscribe({
+      next: (updated) => {
+        this.zones.update((list) =>
+          this.sortZones(list.map((item) => item.id === updated.id ? updated : item)),
         );
+        this.editingId.set(null);
+        this.zoneSaving.set(false);
+        this.zoneSuccess.set('Zone updated.');
+      },
+      error: (err) => {
+        this.zoneSaving.set(false);
+        this.zoneError.set(this.apiError(err, 'Failed to update zone.'));
       },
     });
   }
@@ -92,7 +128,11 @@ export class AdminZonesComponent implements OnInit {
   deleteZone(zone: DeliveryZone) {
     if (!confirm(`Delete zone "${zone.name}"?`)) return;
     this.admin.deleteZone(zone.id).subscribe({
-      next: () => this.zones.update((list) => list.filter((item) => item.id !== zone.id)),
+      next: () => {
+        this.zones.update((list) => list.filter((item) => item.id !== zone.id));
+        if (this.editingId() === zone.id) this.editingId.set(null);
+        this.newZone = this.blankZone();
+      },
     });
   }
 
@@ -139,5 +179,42 @@ export class AdminZonesComponent implements OnInit {
         (list) => list.filter((entry) => entry.id !== item.id),
       ),
     });
+  }
+
+  private blankZone(start?: number): DeliveryZoneCreate {
+    const nextStart = start ?? this.zones().reduce(
+      (max, zone) => Math.max(max, Number(zone.final_km ?? zone.radius_km) || 0),
+      0,
+    );
+    return {
+      name: '',
+      initial_km: nextStart,
+      final_km: nextStart + 2,
+      pricing_type: 'flat',
+      rate: 30,
+      sort_order: 0,
+    };
+  }
+
+  private sortZones(list: DeliveryZone[]): DeliveryZone[] {
+    return [...list].sort(
+      (a, b) => Number(a.initial_km ?? 0) - Number(b.initial_km ?? 0),
+    );
+  }
+
+  private rangeError(zone: DeliveryZoneCreate): string | null {
+    if (!zone.name.trim()) return 'Zone name is required.';
+    if (zone.initial_km < 0) return 'Initial range cannot be negative.';
+    if (Number(zone.final_km) <= Number(zone.initial_km)) {
+      return 'Final range must be greater than initial range.';
+    }
+    return null;
+  }
+
+  private apiError(error: { error?: { detail?: unknown } }, fallback: string): string {
+    const detail = error.error?.detail;
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail) && detail[0]?.msg) return String(detail[0].msg);
+    return fallback;
   }
 }

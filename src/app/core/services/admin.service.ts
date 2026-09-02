@@ -9,6 +9,7 @@ import {
   RestaurantUpdatePayload,
 } from '../models/restaurant.model';
 import { HomeBannerSlide } from './banner.service';
+import { HistoryPage } from './earnings.service';
 
 export interface AdminMenuVariant {
   id?: number;
@@ -384,6 +385,24 @@ export class AdminService {
     );
   }
 
+  getRestaurantSettlementHistory(id: number, page = 1) {
+    return this.http.get<HistoryPage>(
+      `${this.baseUrl}/settlements/restaurants/${id}/history?page=${page}`,
+    );
+  }
+
+  getDeliverySettlementHistory(id: number, page = 1) {
+    return this.http.get<HistoryPage>(
+      `${this.baseUrl}/settlements/delivery-partners/${id}/history?page=${page}`,
+    );
+  }
+
+  getDeliveryCashHistory(id: number, page = 1) {
+    return this.http.get<HistoryPage>(
+      `${this.baseUrl}/settlements/delivery-partners/${id}/cash-history?page=${page}`,
+    );
+  }
+
   // ── Promocodes ───────────────────────────────────────────────────────────
 
   getPromos(): Observable<PromoCode[]> {
@@ -410,6 +429,8 @@ export class AdminService {
 export interface DeliveryZone {
   id: number;
   name: string;
+  initial_km: number;
+  final_km: number;
   radius_km: number;
   pricing_type: 'flat' | 'per_km';
   rate: number;
@@ -419,7 +440,8 @@ export interface DeliveryZone {
 
 export interface DeliveryZoneCreate {
   name: string;
-  radius_km: number;
+  initial_km: number;
+  final_km: number;
   pricing_type: 'flat' | 'per_km';
   rate: number;
   sort_order?: number;
