@@ -337,9 +337,11 @@ export class AdminService {
 
   // ── Orders ───────────────────────────────────────────────────────────────
 
-  getOrders(status?: string): Observable<AdminOrderRow[]> {
-    const params = status && status !== 'all' ? `?status=${encodeURIComponent(status)}` : '';
-    return this.http.get<AdminOrderRow[]>(`${this.baseUrl}/orders${params}`);
+  getOrders(status?: string, page = 1): Observable<AdminOrdersPage> {
+    const params = new URLSearchParams();
+    if (status && status !== 'all') params.set('status', status);
+    params.set('page', String(page));
+    return this.http.get<AdminOrdersPage>(`${this.baseUrl}/orders?${params.toString()}`);
   }
 
   getOrderBreakdown(orderId: number): Observable<OrderBreakdown> {
@@ -475,6 +477,14 @@ export interface TenantCentre {
   platform_charge_percent: number;
   zones: DeliveryZone[];
   delivery_exceptions: DeliveryException[];
+}
+
+export interface AdminOrdersPage {
+  page: number;
+  page_size: number;
+  total: number;
+  total_pages: number;
+  items: AdminOrderRow[];
 }
 
 export interface AdminOrderRow {

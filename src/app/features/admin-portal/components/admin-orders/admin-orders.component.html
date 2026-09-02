@@ -59,6 +59,40 @@
       </tbody>
     </table>
   </div>
+  @if (total() > 0) {
+    <div class="orders-pager">
+      <span class="orders-pager__meta">
+        Showing {{ showingFrom() }}–{{ showingTo() }} of {{ total() }}
+      </span>
+      @if (totalPages() > 1) {
+        <div class="orders-pager__nav">
+          <button type="button" [disabled]="page() <= 1 || ordersLoading()" (click)="goToPage(page() - 1)">
+            Prev
+          </button>
+          <span>Page {{ page() }} of {{ totalPages() }}</span>
+          <button
+            type="button"
+            [disabled]="page() >= totalPages() || ordersLoading()"
+            (click)="goToPage(page() + 1)">
+            Next
+          </button>
+          <label class="orders-pager__goto">
+            Go to page
+            <input
+              #pageInput
+              type="number"
+              min="1"
+              [attr.max]="totalPages()"
+              [value]="page()"
+              (keydown.enter)="goToPage(pageInput.value)" />
+          </label>
+          <button type="button" [disabled]="ordersLoading()" (click)="goToPage(pageInput.value)">
+            Go
+          </button>
+        </div>
+      }
+    </div>
+  }
 </div>
 
 @if (breakdownOpen()) {
@@ -80,6 +114,7 @@
         <p class="form-msg form-msg--error">{{ breakdownError() }}</p>
       } @else {
       @if (breakdown(); as details) {
+        @let net = adminCashflow(details);
         <div class="breakdown-section">
           <h3>Customer view</h3>
           <div class="breakdown-row"><span>Display price</span><strong>₹{{ (details.display_price ?? details.order_price) | number:'1.2-2' }}</strong></div>
@@ -92,28 +127,34 @@
             </div>
           }
           <div class="breakdown-row total"><span>Customer total</span><strong>₹{{ details.customer_total | number:'1.2-2' }}</strong></div>
+          <div class="breakdown-row">
+            <span>Menu margin</span>
+            <strong>+₹{{ (details.menu_margin ?? 0) | number:'1.2-2' }}</strong>
+          </div>
           <p class="breakdown-note">
             Display price + platform charge + delivery − discount.
           </p>
         </div>
         <div class="breakdown-section">
           <h3>Admin view</h3>
-          <div class="breakdown-row"><span>Hotel payout</span><strong>₹{{ details.hotel_price | number:'1.2-2' }}</strong></div>
-          <div class="breakdown-row"><span>Delivery payout</span><strong>₹{{ details.delivery_price | number:'1.2-2' }}</strong></div>
-          <div class="breakdown-row"><span>Platform charge</span><strong>+₹{{ (details.platform_charge ?? details.platform_fee) | number:'1.2-2' }}</strong></div>
-          <div class="breakdown-row"><span>Menu margin</span><strong>+₹{{ (details.menu_margin ?? 0) | number:'1.2-2' }}</strong></div>
-          @if ((details.promo_cost ?? details.discount) > 0) {
-            <div class="breakdown-row muted">
-              <span>Promo cost{{ details.promo_code ? ' (' + details.promo_code + ')' : '' }}</span>
-              <strong>−₹{{ (details.promo_cost ?? details.discount) | number:'1.2-2' }}</strong>
-            </div>
-          }
-          <div class="breakdown-row highlight" [class.loss]="details.is_loss">
-            <span>{{ details.is_loss ? 'Admin loss' : 'Admin profit' }}</span>
-            <strong>{{ details.is_loss ? '−' : '+' }}₹{{ (details.admin_profit < 0 ? -details.admin_profit : details.admin_profit) | number:'1.2-2' }}</strong>
+          <div class="breakdown-row out">
+            <span>Hotel payout</span>
+            <strong>−₹{{ details.hotel_price | number:'1.2-2' }}</strong>
+          </div>
+          <div class="breakdown-row out">
+            <span>Delivery payout</span>
+            <strong>−₹{{ details.delivery_price | number:'1.2-2' }}</strong>
+          </div>
+          <div class="breakdown-row in">
+            <span>{{ customerPaidLabel(details) }}</span>
+            <strong>+₹{{ details.customer_total | number:'1.2-2' }}</strong>
+          </div>
+          <div class="breakdown-row highlight" [class.loss]="net < 0">
+            <span>{{ net < 0 ? 'Admin loss' : 'Admin profit' }}</span>
+            <strong>{{ net < 0 ? '−' : '+' }}₹{{ (net < 0 ? -net : net) | number:'1.2-2' }}</strong>
           </div>
           <p class="breakdown-note">
-            Platform charge + menu margin − promo. Delivery is pass-through. Coupon cost is not extra platform fee.
+            Customer paid − hotel payout − delivery payout.
           </p>
         </div>
         <div class="breakdown-section">

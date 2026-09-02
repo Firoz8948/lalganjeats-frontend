@@ -83,6 +83,8 @@
   span { flex: 1 1 auto; min-width: 0; line-height: 1.4; }
   strong { flex: 0 0 auto; white-space: nowrap; }
   &.muted { color: #888; }
+  &.out strong { color: #b91c1c; }
+  &.in strong { color: #15803d; }
   &.total { margin-top: 4px; padding-top: 12px; border-top: 1px solid #e5e5e5; border-bottom: 0; font-size: 15px; }
   &.highlight {
     margin-top: 8px;
@@ -95,3 +97,49 @@
   }
 }
 .breakdown-note { color: #888; font-size: 12px; line-height: 1.4; }
+
+.orders-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.orders-pager__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.orders-pager__nav button {
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.orders-pager__nav button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.orders-pager__goto {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 4px;
+}
+
+.orders-pager__goto input {
+  width: 64px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 6px 8px;
+}

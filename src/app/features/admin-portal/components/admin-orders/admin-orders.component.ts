@@ -1,6 +1,6 @@
 import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import {
   AdminOrderRow,
   AdminService,
@@ -27,10 +27,22 @@ export class AdminOrdersComponent implements OnInit {
   orders = signal<AdminOrderRow[]>([]);
   ordersLoading = signal(false);
   statusFilter = signal<OrderStatusFilter>('all');
+  page = signal(1);
+  pageSize = signal(10);
+  total = signal(0);
+  totalPages = signal(0);
   breakdownOpen = signal(false);
   breakdownLoading = signal(false);
   breakdownError = signal('');
   breakdown = signal<OrderBreakdown | null>(null);
+
+  readonly showingFrom = computed(() => {
+    if (!this.total()) return 0;
+    return (this.page() - 1) * this.pageSize() + 1;
+  });
+  readonly showingTo = computed(() =>
+    Math.min(this.page() * this.pageSize(), this.total()),
+  );
 
   readonly statusFilters: { key: OrderStatusFilter; label: string }[] = [
     { key: 'all', label: 'All' },
@@ -45,24 +57,38 @@ export class AdminOrdersComponent implements OnInit {
   constructor(private admin: AdminService) {}
 
   ngOnInit() {
-    this.loadOrders();
+    this.loadOrders(1);
   }
 
   setStatusFilter(status: OrderStatusFilter) {
     if (this.statusFilter() === status) return;
     this.statusFilter.set(status);
-    this.loadOrders();
+    this.loadOrders(1);
   }
 
-  loadOrders() {
+  loadOrders(page = this.page()) {
+    const nextPage = Math.max(1, Math.trunc(Number(page) || 1));
     this.ordersLoading.set(true);
-    this.admin.getOrders(this.statusFilter()).subscribe({
-      next: (rows) => {
-        this.orders.set(rows);
+    this.admin.getOrders(this.statusFilter(), nextPage).subscribe({
+      next: (res) => {
+        this.orders.set(res.items || []);
+        this.page.set(res.page || 1);
+        this.pageSize.set(res.page_size || 10);
+        this.total.set(res.total || 0);
+        this.totalPages.set(res.total_pages || 0);
         this.ordersLoading.set(false);
       },
       error: () => this.ordersLoading.set(false),
     });
+  }
+
+  goToPage(raw: string | number) {
+    const last = this.totalPages();
+    const n = Math.trunc(Number(raw));
+    if (!Number.isFinite(n) || n < 1 || !last) return;
+    const target = Math.min(n, last);
+    if (target === this.page() && this.orders().length) return;
+    this.loadOrders(target);
   }
 
   statusLabel(status: string | null | undefined): string {
@@ -87,6 +113,22 @@ export class AdminOrdersComponent implements OnInit {
 
   showVerified(order: AdminOrderRow): boolean {
     return !!order.payment_verified && (order.payment_mode === 'paid' || order.payment_mode === 'dp_qr');
+  }
+
+  customerPaidLabel(details: OrderBreakdown): string {
+    const mode =
+      details.payment_mode_label ||
+      details.payment_label ||
+      (details.payment_method === 'online' ? 'Paid' : 'COD');
+    return `Customer paid · ${mode}`;
+  }
+
+  adminCashflow(details: OrderBreakdown): number {
+    return (
+      Number(details.customer_total || 0) -
+      Number(details.hotel_price || 0) -
+      Number(details.delivery_price || 0)
+    );
   }
 
   openOrderBreakdown(order: AdminOrderRow) {
