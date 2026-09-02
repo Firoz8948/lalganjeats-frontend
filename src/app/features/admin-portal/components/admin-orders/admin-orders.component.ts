@@ -80,6 +80,14 @@ export class AdminOrdersComponent implements OnInit {
     return parts.join(' · ');
   }
 
+  modeFallback(order: AdminOrderRow): string {
+    return order.payment_method === 'online' ? 'Paid' : 'COD';
+  }
+
+  showVerified(order: AdminOrderRow): boolean {
+    return !!order.payment_verified && (order.payment_mode === 'paid' || order.payment_mode === 'dp_qr');
+  }
+
   openOrderBreakdown(order: AdminOrderRow) {
     this.breakdownOpen.set(true);
     this.breakdown.set(null);

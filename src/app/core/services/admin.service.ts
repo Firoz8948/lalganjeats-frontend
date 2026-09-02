@@ -464,6 +464,9 @@ export interface AdminOrderRow {
   total_amount: number;
   discount: number;
   payment_method: string;
+  payment_mode?: string;
+  payment_mode_label?: string;
+  payment_verified?: boolean;
   promo_code: string | null;
   promo_percent_off: number | null;
   promo_free_delivery: boolean;
@@ -486,6 +489,9 @@ export interface OrderBreakdown {
   customer_total: number;
   payment_method?: string;
   payment_label?: string;
+  payment_mode?: string;
+  payment_mode_label?: string;
+  payment_verified?: boolean;
   payment_via?: string | null;
   payment_status?: string;
   online_amount?: number;

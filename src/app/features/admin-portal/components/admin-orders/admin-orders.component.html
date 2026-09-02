@@ -18,7 +18,7 @@
     <table class="data-table">
       <thead>
         <tr>
-          <th>Order</th><th>Customer</th><th>Restaurant</th><th>Status</th>
+          <th>Order</th><th>Customer</th><th>Restaurant</th><th>Status</th><th>Mode</th>
           <th>Coupon</th><th>Total</th><th>Profit / Loss</th><th>Date</th><th></th>
         </tr>
       </thead>
@@ -29,6 +29,12 @@
             <td>{{ order.customer || '—' }}</td>
             <td>{{ order.restaurant || '—' }}</td>
             <td>{{ statusLabel(order.status) }}</td>
+            <td>
+              <span class="mode-pill" [class.verified]="showVerified(order)">
+                {{ order.payment_mode_label || modeFallback(order) }}
+                @if (showVerified(order)) { ✓ }
+              </span>
+            </td>
             <td>
               @if (order.promo_code) {
                 <span class="coupon-pill">{{ couponLabel(order) }}</span>
@@ -48,7 +54,7 @@
             </td>
           </tr>
         } @empty {
-          <tr><td colspan="9" class="empty-table-cell">No orders for this filter.</td></tr>
+          <tr><td colspan="10" class="empty-table-cell">No orders for this filter.</td></tr>
         }
       </tbody>
     </table>
@@ -114,7 +120,10 @@
           <h3>Payment</h3>
           <div class="breakdown-row">
             <span>Mode</span>
-            <strong>{{ details.payment_label || (details.payment_method === 'online' ? 'Online' : 'COD') }}</strong>
+            <strong>{{ details.payment_mode_label || details.payment_label || (details.payment_method === 'online' ? 'Paid' : 'COD') }}</strong>
+            @if (details.payment_verified && (details.payment_mode === 'paid' || details.payment_mode === 'dp_qr')) {
+              <span class="mode-pill verified" style="margin-left:8px">Verified ✓</span>
+            }
           </div>
           @if (details.payment_via) {
             <p class="breakdown-note">{{ details.payment_via }}</p>
