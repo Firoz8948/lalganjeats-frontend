@@ -464,6 +464,7 @@ export interface AdminOrderRow {
   total_amount: number;
   discount: number;
   payment_method: string;
+  payment_status?: string;
   payment_mode?: string;
   payment_mode_label?: string;
   payment_verified?: boolean;

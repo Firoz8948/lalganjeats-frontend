@@ -385,6 +385,7 @@
   text-transform: capitalize;
 
   &.paid { color: #27AE60; }
+  &.failed { color: #dc2626; }
 }
 
 // Order Tracking

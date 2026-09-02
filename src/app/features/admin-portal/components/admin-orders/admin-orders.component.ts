@@ -81,7 +81,8 @@ export class AdminOrdersComponent implements OnInit {
   }
 
   modeFallback(order: AdminOrderRow): string {
-    return order.payment_method === 'online' ? 'Paid' : 'COD';
+    if ((order.payment_status || '') === 'failed') return 'Payment failed';
+    return order.payment_method === 'online' ? 'Payment pending' : 'COD';
   }
 
   showVerified(order: AdminOrderRow): boolean {

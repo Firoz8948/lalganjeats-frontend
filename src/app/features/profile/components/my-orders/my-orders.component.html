@@ -271,8 +271,15 @@
                   }
                 </div>
                 <span class="payment-status"
-                      [class.paid]="order.payment_status === 'paid'">
-                  {{ order.payment_status | titlecase }}
+                      [class.paid]="order.payment_status === 'paid'"
+                      [class.failed]="order.payment_status === 'failed'">
+                  @if (order.payment_status === 'failed') {
+                    Payment failed
+                  } @else if (order.payment_status === 'paid') {
+                    Paid
+                  } @else {
+                    {{ order.payment_status | titlecase }}
+                  }
                 </span>
               </div>
 

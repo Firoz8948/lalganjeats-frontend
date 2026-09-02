@@ -16,10 +16,7 @@
     } @else if (status() === 'failed') {
       <div class="pay-result__icon" aria-hidden="true">!</div>
       <h1>Payment failed</h1>
-      <p>Your payment was not completed. The order is unpaid — try again from checkout or choose cash on delivery.</p>
-      @if (orderNumber()) {
-        <p class="oid">Order ID: <strong>{{ orderNumber() }}</strong></p>
-      }
+      <p>Payment did not go through, so this order was not placed. You can try again from checkout or choose cash on delivery.</p>
       <div class="pay-result__actions">
         <a routerLink="/checkout" class="btn-primary">Back to checkout</a>
         <a routerLink="/profile/orders" class="btn-ghost">My orders</a>
