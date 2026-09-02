@@ -81,7 +81,7 @@
             } @else {
               <td><strong>{{ zone.name }}</strong></td>
               <td>{{ zone.initial_km }} km</td>
-              <td>{{ zone.final_km ?? zone.radius_km }} km</td>
+              <td>{{ zone.final_km }} km</td>
               <td>{{ zone.pricing_type === 'flat' ? 'Flat' : 'Per km' }}</td>
               <td>₹{{ zone.rate }}{{ zone.pricing_type === 'per_km' ? '/km' : '' }}</td>
               <td class="zone-row-actions">
