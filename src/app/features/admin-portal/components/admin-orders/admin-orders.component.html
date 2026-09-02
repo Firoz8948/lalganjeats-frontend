@@ -40,7 +40,7 @@
                 <span class="coupon-pill">{{ couponLabel(order) }}</span>
               } @else { — }
             </td>
-            <td>₹{{ order.total_amount }}</td>
+            <td>₹{{ order.total_amount | number:'1.2-2' }}</td>
             <td>
               <strong class="money-result" [class.loss]="order.admin_earning < 0">
                 {{ order.admin_earning < 0 ? '−' : '+' }}₹{{ (order.admin_earning < 0 ? -order.admin_earning : order.admin_earning) | number:'1.2-2' }}
