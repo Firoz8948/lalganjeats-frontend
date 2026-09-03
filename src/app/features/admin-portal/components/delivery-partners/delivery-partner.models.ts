@@ -32,6 +32,7 @@ export interface DeliveryPartner {
   bank_name: string | null;
   documents: Record<DeliveryDocumentPurpose, boolean>;
   created_at: string | null;
+  allow_multiple_orders?: boolean;
 }
 
 export interface DeliveryPartnerCreate {

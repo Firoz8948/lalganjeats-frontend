@@ -15,6 +15,18 @@ import { Geolocation } from '@capacitor/geolocation';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { DpOrderLiveMapComponent } from '../dp-order-live-map/dp-order-live-map.component';
 
+interface OrderWork {
+  otp: string;
+  otpVerified: boolean;
+  lastDevOtp: string;
+  sendingOtp: boolean;
+  verifyingOtp: boolean;
+  completing: boolean;
+  cashAmount: number;
+  onlineAmount: number;
+  onlinePaid: boolean;
+}
+
 @Component({
   selector: 'app-dp-home',
   standalone: true,
@@ -30,17 +42,10 @@ export class DpHomeComponent implements OnInit, OnDestroy {
   data = signal<DpDashboard | null>(null);
   error = signal('');
   busyId = signal<number | null>(null);
-  otp = '';
-  otpVerified = signal(false);
-  lastDevOtp = signal('');
-  sendingOtp = signal(false);
-  verifyingOtp = signal(false);
-  completing = signal(false);
+  acceptingAll = signal(false);
+  orderWork = signal<Record<number, OrderWork>>({});
   orderDelivered = signal(false);
-
-  cashAmount = 0;
-  onlineAmount = 0;
-  onlinePaid = signal(false);
+  deliveredStayOnHome = signal(false);
   razorpayOrderId = '';
   razorpayPaymentId = '';
   razorpaySignature = '';
@@ -97,21 +102,69 @@ export class DpHomeComponent implements OnInit, OnDestroy {
 
         this.isFirstDpLoad = false;
         this.data.set(d);
-        const active = d.active_order;
-        if (active?.otp_verified) this.otpVerified.set(true);
-        if (
-          active
-          && !this.onlinePaid()
-          && !this.otp.trim()
-          && (active.payment_status || '').toLowerCase() !== 'paid'
-          && this.cashAmount === 0
-          && this.onlineAmount === 0
-        ) {
-          this.cashAmount = active.customer_total;
-          this.onlineAmount = 0;
-        }
+        this.hydrateOrderWork(this.activeOrders(d));
       },
       error: (e) => this.error.set(e.error?.detail || 'Failed to load'),
+    });
+  }
+
+  allowMultiple(d: DpDashboard): boolean {
+    return !!d.profile.allow_multiple_orders;
+  }
+
+  activeOrders(d: DpDashboard | null): DpOrder[] {
+    if (!d) return [];
+    if (d.active_orders?.length) return d.active_orders;
+    return d.active_order ? [d.active_order] : [];
+  }
+
+  w(o: DpOrder): OrderWork {
+    return this.orderWork()[o.id] ?? this.defaultWork(o);
+  }
+
+  setOtp(o: DpOrder, value: string) {
+    this.patchWork(o.id, { otp: value });
+  }
+
+  private defaultWork(o?: DpOrder): OrderWork {
+    const prepaid = o ? this.isPrepaid(o) : false;
+    return {
+      otp: '',
+      otpVerified: !!o?.otp_verified,
+      lastDevOtp: '',
+      sendingOtp: false,
+      verifyingOtp: false,
+      completing: false,
+      cashAmount: o && !prepaid ? o.customer_total : 0,
+      onlineAmount: 0,
+      onlinePaid: false,
+    };
+  }
+
+  private patchWork(id: number, patch: Partial<OrderWork>) {
+    this.orderWork.update((all) => {
+      const current = all[id] ?? this.defaultWork();
+      return { ...all, [id]: { ...current, ...patch } };
+    });
+  }
+
+  private hydrateOrderWork(orders: DpOrder[]) {
+    this.orderWork.update((all) => {
+      const next: Record<number, OrderWork> = { ...all };
+      const ids = new Set(orders.map((order) => order.id));
+      for (const order of orders) {
+        const existing = next[order.id];
+        if (!existing) {
+          next[order.id] = this.defaultWork(order);
+        } else if (order.otp_verified && !existing.otpVerified) {
+          next[order.id] = { ...existing, otpVerified: true };
+        }
+      }
+      for (const id of Object.keys(next)) {
+        const numId = Number(id);
+        if (!ids.has(numId)) delete next[numId];
+      }
+      return next;
     });
   }
 
@@ -270,6 +323,28 @@ export class DpHomeComponent implements OnInit, OnDestroy {
     });
   }
 
+  acceptAll(orders: DpOrder[]) {
+    if (!orders.length || this.acceptingAll()) return;
+    this.acceptingAll.set(true);
+    this.error.set('');
+    const run = (index: number) => {
+      if (index >= orders.length) {
+        this.acceptingAll.set(false);
+        this.refresh();
+        return;
+      }
+      this.api.accept(orders[index].id).subscribe({
+        next: () => run(index + 1),
+        error: (e) => {
+          this.acceptingAll.set(false);
+          this.error.set(e.error?.detail || 'Could not accept all orders');
+          this.refresh();
+        },
+      });
+    };
+    run(0);
+  }
+
   reject(o: DpOrder) {
     this.busyId.set(o.id);
     this.api.reject(o.id).subscribe({
@@ -287,77 +362,90 @@ export class DpHomeComponent implements OnInit, OnDestroy {
   }
 
   sendOtp(o: DpOrder) {
-    this.sendingOtp.set(true);
+    this.patchWork(o.id, { sendingOtp: true });
     this.error.set('');
     this.api.sendOtp(o.id).subscribe({
       next: (res) => {
-        this.sendingOtp.set(false);
-        if (res.dev_otp) this.lastDevOtp.set(res.dev_otp);
+        this.patchWork(o.id, {
+          sendingOtp: false,
+          lastDevOtp: res.dev_otp || this.w(o).lastDevOtp,
+        });
       },
       error: (e) => {
-        this.sendingOtp.set(false);
+        this.patchWork(o.id, { sendingOtp: false });
         this.error.set(e.error?.detail || 'Failed to send OTP to customer');
       },
     });
   }
 
   verifyOtp(o: DpOrder) {
-    const code = this.otp.trim();
+    const code = this.w(o).otp.trim();
     if (code.length < 4 || code.length > 6) {
       this.error.set('Please enter the 4-digit OTP sent to customer');
       return;
     }
-    this.verifyingOtp.set(true);
+    this.patchWork(o.id, { verifyingOtp: true });
     this.error.set('');
     this.api.verifyOtp(o.id, code).subscribe({
       next: () => {
-        this.verifyingOtp.set(false);
-        this.otpVerified.set(true);
+        this.patchWork(o.id, { verifyingOtp: false, otpVerified: true });
         this.refresh();
       },
       error: (e) => {
-        this.verifyingOtp.set(false);
+        this.patchWork(o.id, { verifyingOtp: false });
         this.error.set(e.error?.detail || 'Invalid or expired OTP. Please try again.');
       },
     });
   }
 
   setFullCash(a: DpOrder) {
-    this.cashAmount = a.customer_total;
-    this.onlineAmount = 0;
-    this.onlinePaid.set(false);
+    this.patchWork(a.id, {
+      cashAmount: a.customer_total,
+      onlineAmount: 0,
+      onlinePaid: false,
+    });
   }
 
   setFullOnline(a: DpOrder) {
-    this.cashAmount = 0;
-    this.onlineAmount = a.customer_total;
-    this.onlinePaid.set(false);
+    this.patchWork(a.id, {
+      cashAmount: 0,
+      onlineAmount: a.customer_total,
+      onlinePaid: false,
+    });
   }
 
   setSplitHalf(a: DpOrder) {
     const half = Math.round(a.customer_total / 2);
-    this.cashAmount = half;
-    this.onlineAmount = Math.max(0, a.customer_total - half);
-    this.onlinePaid.set(false);
+    this.patchWork(a.id, {
+      cashAmount: half,
+      onlineAmount: Math.max(0, a.customer_total - half),
+      onlinePaid: false,
+    });
   }
 
   onSplitChange(a: DpOrder, mode: 'cash' | 'online', val: number) {
     const num = Math.max(0, Number(val) || 0);
     const total = a.customer_total;
     if (mode === 'cash') {
-      this.cashAmount = num;
-      this.onlineAmount = Math.max(0, total - num);
+      this.patchWork(a.id, {
+        cashAmount: num,
+        onlineAmount: Math.max(0, total - num),
+        onlinePaid: false,
+      });
     } else {
-      this.onlineAmount = num;
-      this.cashAmount = Math.max(0, total - num);
+      this.patchWork(a.id, {
+        onlineAmount: num,
+        cashAmount: Math.max(0, total - num),
+        onlinePaid: false,
+      });
     }
-    this.onlinePaid.set(false);
   }
 
   payOnlinePortion(a: DpOrder) {
-    if (this.onlineAmount <= 0) return;
+    const work = this.w(a);
+    if (work.onlineAmount <= 0) return;
     this.busyId.set(a.id);
-    this.api.createCollectionPayment(a.id, this.onlineAmount).subscribe({
+    this.api.createCollectionPayment(a.id, work.onlineAmount).subscribe({
       next: (pay) => {
         this.busyId.set(null);
         this.api.openCollectionCheckout(
@@ -366,7 +454,7 @@ export class DpHomeComponent implements OnInit, OnDestroy {
             this.razorpayOrderId = resp.razorpay_order_id;
             this.razorpayPaymentId = resp.razorpay_payment_id;
             this.razorpaySignature = resp.razorpay_signature;
-            this.onlinePaid.set(true);
+            this.patchWork(a.id, { onlinePaid: true });
           },
           () => {
             this.error.set('Online payment was cancelled or failed.');
@@ -381,42 +469,50 @@ export class DpHomeComponent implements OnInit, OnDestroy {
   }
 
   canComplete(a: DpOrder): boolean {
-    if (!this.otpVerified()) return false;
+    const work = this.w(a);
+    if (!work.otpVerified) return false;
     if (this.isPrepaid(a)) return true;
     const need = a.customer_total;
-    const have = (this.cashAmount || 0) + (this.onlineAmount || 0);
+    const have = (work.cashAmount || 0) + (work.onlineAmount || 0);
     if (Math.abs(have - need) > 0.01) return false;
-    if (this.onlineAmount > 0 && !this.onlinePaid()) return false;
+    if (work.onlineAmount > 0 && !work.onlinePaid) return false;
     return true;
   }
 
   complete(o: DpOrder) {
-    this.completing.set(true);
+    const work = this.w(o);
+    this.patchWork(o.id, { completing: true });
     this.error.set('');
     const payload = {
-      otp: this.otp.trim(),
-      cash_amount: this.cashAmount,
-      online_amount: this.onlineAmount,
+      otp: work.otp.trim(),
+      cash_amount: work.cashAmount,
+      online_amount: work.onlineAmount,
       razorpay_order_id: this.razorpayOrderId || undefined,
       razorpay_payment_id: this.razorpayPaymentId || undefined,
       razorpay_signature: this.razorpaySignature || undefined,
     };
     this.api.complete(o.id, payload).subscribe({
       next: () => {
-        this.completing.set(false);
+        this.patchWork(o.id, { completing: false });
+        this.orderWork.update((all) => {
+          const next = { ...all };
+          delete next[o.id];
+          return next;
+        });
+        const remaining = this.activeOrders(this.data()).filter((item) => item.id !== o.id);
+        this.deliveredStayOnHome.set(remaining.length > 0);
         this.orderDelivered.set(true);
+        this.refresh();
         setTimeout(() => {
           this.orderDelivered.set(false);
-          this.otp = '';
-          this.otpVerified.set(false);
-          this.cashAmount = 0;
-          this.onlineAmount = 0;
-          this.onlinePaid.set(false);
-          this.router.navigate(['/deliverypartner/orders']);
+          this.deliveredStayOnHome.set(false);
+          if (remaining.length === 0) {
+            this.router.navigate(['/deliverypartner/orders']);
+          }
         }, 1800);
       },
       error: (e) => {
-        this.completing.set(false);
+        this.patchWork(o.id, { completing: false });
         this.error.set(e.error?.detail || 'Failed to complete delivery');
       },
     });

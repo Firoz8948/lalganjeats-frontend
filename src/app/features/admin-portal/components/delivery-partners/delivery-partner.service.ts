@@ -36,6 +36,16 @@ export class DeliveryPartnerAdminService {
     );
   }
 
+  updateMultiOrders(
+    partnerId: number,
+    allowMultipleOrders: boolean,
+  ): Observable<{ id: number; allow_multiple_orders: boolean }> {
+    return this.http.patch<{ id: number; allow_multiple_orders: boolean }>(
+      `${this.base}/${partnerId}/multi-orders`,
+      { allow_multiple_orders: allowMultipleOrders },
+    );
+  }
+
   updateCredentials(
     partnerId: number,
     payload: { username?: string | null; password?: string | null },

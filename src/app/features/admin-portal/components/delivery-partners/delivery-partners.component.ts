@@ -57,6 +57,7 @@ export class DeliveryPartnersComponent implements OnInit {
   uploading = signal<Partial<Record<DeliveryUploadPurpose, boolean>>>({});
   formData = emptyPartner();
   credDraft: Record<number, { username: string; password: string }> = {};
+  multiBusyId = signal<number | null>(null);
   readonly maxDob = todayIso();
   readonly documents: {
     purpose: DeliveryDocumentPurpose;
@@ -236,6 +237,35 @@ export class DeliveryPartnersComponent implements OnInit {
       },
       error: (response) => {
         this.error.set(response.error?.detail || 'Could not update login.');
+      },
+    });
+  }
+
+  toggleMultiOrders(partner: DeliveryPartner) {
+    const next = !partner.allow_multiple_orders;
+    this.multiBusyId.set(partner.id);
+    this.error.set('');
+    this.api.updateMultiOrders(partner.id, next).subscribe({
+      next: (result) => {
+        this.partners.update((items) =>
+          items.map((item) =>
+            item.id === partner.id
+              ? { ...item, allow_multiple_orders: result.allow_multiple_orders }
+              : item,
+          ),
+        );
+        this.multiBusyId.set(null);
+        this.success.set(
+          result.allow_multiple_orders
+            ? `${partner.full_name} can now accept multiple orders.`
+            : `${partner.full_name} is back to one order at a time.`,
+        );
+      },
+      error: (response) => {
+        this.multiBusyId.set(null);
+        this.error.set(
+          response.error?.detail || 'Could not update multiple-order setting.',
+        );
       },
     });
   }

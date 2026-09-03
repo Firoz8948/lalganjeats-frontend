@@ -91,18 +91,33 @@
 
           <footer>
             <p>{{ partner.address || 'Address pending' }}</p>
-            @if (!partner.profile_complete) {
-              <button type="button" class="reactivate-btn" (click)="completeProfile(partner)">
-                Complete profile
-              </button>
-            } @else {
+            <div class="partner-card__actions">
               <button
                 type="button"
-                [class]="partner.is_active ? 'suspend-btn' : 'reactivate-btn'"
-                (click)="toggleStatus(partner)">
-                {{ partner.is_active ? 'Suspend partner' : 'Reactivate partner' }}
+                class="multi-order-btn"
+                [class.multi-order-btn--on]="partner.allow_multiple_orders"
+                [disabled]="multiBusyId() === partner.id"
+                (click)="toggleMultiOrders(partner)">
+                @if (multiBusyId() === partner.id) {
+                  <span class="btn-spinner" aria-hidden="true"></span>
+                  <span>Saving…</span>
+                } @else {
+                  {{ partner.allow_multiple_orders ? 'Multiple orders on' : 'Accept multiple order' }}
+                }
               </button>
-            }
+              @if (!partner.profile_complete) {
+                <button type="button" class="reactivate-btn" (click)="completeProfile(partner)">
+                  Complete profile
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  [class]="partner.is_active ? 'suspend-btn' : 'reactivate-btn'"
+                  (click)="toggleStatus(partner)">
+                  {{ partner.is_active ? 'Suspend partner' : 'Reactivate partner' }}
+                </button>
+              }
+            </div>
           </footer>
         </article>
       } @empty {
