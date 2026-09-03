@@ -13,4 +13,5 @@ export const environment = {
    * Or set localStorage le_client_channel.
    */
   clientChannel: 'auto' as 'web' | 'android_app' | 'ios_app' | 'auto',
+  liveBoardUrl: 'https://live.lalganjeats.com',
 };

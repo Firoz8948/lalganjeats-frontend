@@ -1,5 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { environment } from '../../../../../environments/environment';
 import { AuthService } from '../../../../core/services/auth.service';
 import { AdminBannersComponent } from '../admin-banners/admin-banners.component';
 import { AdminCategoriesComponent } from '../admin-categories/admin-categories.component';
@@ -60,6 +61,7 @@ type AdminTab =
 export class AdminDashboardComponent implements OnInit {
   activeTab = signal<AdminTab>('overview');
   impersonating = signal(false);
+  readonly liveBoardUrl = environment.liveBoardUrl;
 
   constructor(
     private auth: AuthService,

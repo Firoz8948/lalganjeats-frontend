@@ -7,4 +7,5 @@ export const environment = {
   tokenKey: 'le_token',
   userKey: 'le_user',
   clientChannel: 'auto' as 'web' | 'android_app' | 'ios_app' | 'auto',
+  liveBoardUrl: 'https://live.lalganjeats.com',
 };
