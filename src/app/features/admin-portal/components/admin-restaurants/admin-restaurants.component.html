@@ -112,8 +112,8 @@
     </div>
     @if(!hasVariants()){
       <div class="menu-grid regular-price-grid">
-        <label class="menu-field"><span>Seller transfer (&#8377;) *</span><input type="number" min="0" step="0.01" [(ngModel)]="newMenuItem.actual_price"></label>
-        <label class="menu-field menu-field--calculated"><span>Display (&#8377;)</span><input type="number" [value]="calculatedDisplayPrice(newMenuItem.actual_price)" readonly></label>
+        <label class="menu-field"><span>Seller transfer (&#8377;) *</span><input type="number" min="0" step="0.01" [(ngModel)]="newMenuItem.actual_price" (ngModelChange)="onItemTransferChange()"></label>
+        <label class="menu-field"><span>Display (&#8377;) *</span><input type="number" min="0" step="0.01" [(ngModel)]="newMenuItem.price"><small>Suggested ₹{{calculatedDisplayPrice(newMenuItem.actual_price)}} from transfer + markup. <button type="button" class="linkish" (click)="fillSuggestedDisplay()">Use suggested</button></small></label>
         <label class="menu-field"><span>MRP (&#8377;)</span><input type="number" min="0" step="0.01" [(ngModel)]="newMenuItem.original_price"></label>
       </div>
       <button type="button" class="add-variant-btn" (click)="enableVariants()">+ Add variant</button>
@@ -126,12 +126,12 @@
           <button type="button" class="linkish linkish--muted" (click)="disableVariants()">Remove variants</button>
         </div>
       </div>
-      <p class="price-note">Variant prices now replace the regular item price. Enter transfer and MRP separately for each size.</p>
+      <p class="price-note">Enter transfer, display, and MRP for each size. Display is what the customer pays; you can edit it.</p>
       @for(v of variantDrafts;track $index;let i=$index){
         <div class="variant-row">
           <label class="menu-field"><span>Size label *</span><input placeholder="Half / Full" [(ngModel)]="v.label"></label>
-          <label class="menu-field"><span>Seller transfer (&#8377;) *</span><input type="number" min="0" step="0.01" [(ngModel)]="v.actual_price"></label>
-          <label class="menu-field menu-field--calculated"><span>Display (&#8377;)</span><input type="number" [value]="calculatedDisplayPrice(v.actual_price)" readonly></label>
+          <label class="menu-field"><span>Seller transfer (&#8377;) *</span><input type="number" min="0" step="0.01" [(ngModel)]="v.actual_price" (ngModelChange)="onVariantTransferChange(v)"></label>
+          <label class="menu-field"><span>Display (&#8377;) *</span><input type="number" min="0" step="0.01" [(ngModel)]="v.price"><small>Suggested ₹{{calculatedDisplayPrice(v.actual_price)}} <button type="button" class="linkish" (click)="fillSuggestedVariantDisplay(v)">Use suggested</button></small></label>
           <label class="menu-field"><span>MRP (&#8377;)</span><input type="number" min="0" step="0.01" [(ngModel)]="v.original_price"></label>
           <button type="button" class="danger-link" [disabled]="variantDrafts.length<=1" (click)="removeVariantRow(i)">Remove</button>
         </div>

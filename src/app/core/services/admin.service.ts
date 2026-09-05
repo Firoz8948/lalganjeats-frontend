@@ -49,7 +49,7 @@ export interface AdminMenuItemCreate {
   subcategory_id?: number | null;
   is_veg:         boolean;
   is_bestseller:  boolean;
-  variants?:      { label: string; actual_price: number; original_price?: number | null }[];
+  variants?:      { label: string; actual_price: number; price?: number | null; original_price?: number | null }[];
 }
 
 export interface CatalogCategory {

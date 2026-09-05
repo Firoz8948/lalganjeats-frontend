@@ -30,7 +30,7 @@ export class AdminRestaurantsComponent implements OnInit {
   menuImagePreview=signal<string|null>(null);
   menuImageUploading=signal(false);
   hasVariants=signal(false);
-  variantDrafts:{label:string;actual_price:number|null;original_price:number|null}[]=[];
+  variantDrafts:{label:string;actual_price:number|null;price:number|null;original_price:number|null}[]=[];
   newMenuItem:AdminMenuItemCreate={name:'',description:'',price:0,actual_price:0,category_name:'Other',subcategory_id:null,is_veg:true,is_bestseller:false};
   readonly bannerSpec={label:'Restaurant Card',hint:'Shown on home page and restaurants list (desktop + mobile)',size:'Fixed card height: 210px (e.g. 600 × 420 px / ~4:3)',formats:'JPG, PNG, or WebP · max 2 MB'};
   readonly desktopHeroSpec={label:'Hotel Hero Banner — Desktop',hint:'Shown on restaurant menu page for desktop screens',size:'1600 × 600 px (~8:3)',formats:'JPG, PNG, or WebP · max 2 MB'};
@@ -45,10 +45,20 @@ export class AdminRestaurantsComponent implements OnInit {
   loadCatalog(){this.admin.getCatalogCategories().subscribe(categories=>{this.catalogCategories.set(categories.filter(item=>item.is_active));const restaurant=categories.find(item=>item.slug==='restaurant'&&item.is_active);if(!this.newRestaurant.business_category_id)this.newRestaurant.business_category_id=restaurant?.id||categories[0]?.id||null;});}
   loadPriceMarkup(){this.paymentSettings.getSettings().subscribe({next:s=>this.displayPriceMarkup.set(s.display_price_markup_percent),error:()=>this.displayPriceMarkup.set(30)});}
   calculatedDisplayPrice(transfer:number|null|undefined){const t=Number(transfer)||0;return Math.round(t*(1+this.displayPriceMarkup()/100)*100)/100;}
-  enableVariants(){this.hasVariants.set(true);this.variantDrafts=[{label:'Half',actual_price:null,original_price:null},{label:'Full',actual_price:null,original_price:null}];}
+  enableVariants(){this.hasVariants.set(true);this.variantDrafts=[{label:'Half',actual_price:null,price:null,original_price:null},{label:'Full',actual_price:null,price:null,original_price:null}];}
   disableVariants(){this.hasVariants.set(false);this.variantDrafts=[];}
-  addVariantRow(){this.variantDrafts=[...this.variantDrafts,{label:'',actual_price:null,original_price:null}];}
+  addVariantRow(){this.variantDrafts=[...this.variantDrafts,{label:'',actual_price:null,price:null,original_price:null}];}
   removeVariantRow(index:number){if(this.variantDrafts.length<=1)return;this.variantDrafts=this.variantDrafts.filter((_,i)=>i!==index);}
+  onItemTransferChange(){
+    if(this.editingMenuItemId())return;
+    this.newMenuItem.price=this.calculatedDisplayPrice(this.newMenuItem.actual_price);
+  }
+  onVariantTransferChange(row:{actual_price:number|null;price:number|null}){
+    if(this.editingMenuItemId() && row.price)return;
+    row.price=this.calculatedDisplayPrice(row.actual_price);
+  }
+  fillSuggestedDisplay(){this.newMenuItem.price=this.calculatedDisplayPrice(this.newMenuItem.actual_price);}
+  fillSuggestedVariantDisplay(row:{actual_price:number|null;price:number|null}){row.price=this.calculatedDisplayPrice(row.actual_price);}
   load(){this.admin.getRestaurants().subscribe(v=>this.restaurants.set(v));}
   impersonate(r:AdminRestaurantRow){
     if(!confirm(`Open the hotel dashboard as "${r.name}"?`))return;
@@ -193,7 +203,7 @@ export class AdminRestaurantsComponent implements OnInit {
     this.editingMenuItemId.set(item.id);this.menuError.set('');
     this.newMenuItem={name:item.name,description:item.description||'',image_url:item.image_url||null,price:item.price,actual_price:item.actual_price,original_price:item.original_price,category_name:item.category,subcategory_id:item.subcategory_id??null,is_veg:item.is_veg,is_bestseller:item.is_bestseller};
     this.menuImagePreview.set(item.image_url||null);
-    if(item.variants?.length){this.hasVariants.set(true);this.variantDrafts=item.variants.map(v=>({label:v.label,actual_price:v.actual_price,original_price:v.original_price??null}));}
+    if(item.variants?.length){this.hasVariants.set(true);this.variantDrafts=item.variants.map(v=>({label:v.label,actual_price:v.actual_price,price:v.price??this.calculatedDisplayPrice(v.actual_price),original_price:v.original_price??null}));}
     else{this.disableVariants();}
     setTimeout(()=>document.querySelector('.menu-form')?.scrollIntoView({behavior:'smooth',block:'start'}));
   }
@@ -216,19 +226,26 @@ export class AdminRestaurantsComponent implements OnInit {
     if(!this.newMenuItem.subcategory_id){this.menuError.set('Choose a subcategory.');return}
     const variants=this.hasVariants()
       ? this.variantDrafts
-          .map(v=>({label:(v.label||'').trim(),actual_price:Number(v.actual_price)||0,original_price:v.original_price!=null?Number(v.original_price):null}))
+          .map(v=>({
+            label:(v.label||'').trim(),
+            actual_price:Number(v.actual_price)||0,
+            price:Number(v.price)||this.calculatedDisplayPrice(v.actual_price),
+            original_price:v.original_price!=null?Number(v.original_price):null,
+          }))
           .filter(v=>v.label && v.actual_price>0)
       : [];
     if(this.hasVariants()&&!variants.length){this.menuError.set('Add at least one variant with its seller transfer price.');return}
     if(!this.hasVariants()){
       const transfer=Number(this.newMenuItem.actual_price)||0;
-      const display=this.calculatedDisplayPrice(transfer);
+      const display=Number(this.newMenuItem.price)||this.calculatedDisplayPrice(transfer);
       if(transfer<=0){this.menuError.set('Seller transfer price is required.');return}
+      if(display<=0){this.menuError.set('Display price is required.');return}
+      this.newMenuItem.price=display;
       if(this.newMenuItem.original_price!=null&&Number(this.newMenuItem.original_price)<display){this.menuError.set(`MRP cannot be lower than display ₹${display}.`);return}
     }else{
       for(const v of variants){
-        const display=this.calculatedDisplayPrice(v.actual_price);
-        if(v.original_price!=null && v.original_price<display){this.menuError.set(`MRP for ${v.label} cannot be lower than display ₹${display}.`);return}
+        if(v.price<=0){this.menuError.set(`Display price is required for ${v.label}.`);return}
+        if(v.original_price!=null && v.original_price<v.price){this.menuError.set(`MRP for ${v.label} cannot be lower than display ₹${v.price}.`);return}
       }
     }
     const subcategory=this.menuSubcategories().find(item=>item.id===Number(this.newMenuItem.subcategory_id));
@@ -237,8 +254,8 @@ export class AdminRestaurantsComponent implements OnInit {
       category_name:subcategory?.name||'Other',
       actual_price:this.hasVariants()?variants[0].actual_price:Number(this.newMenuItem.actual_price),
       original_price:this.hasVariants()?variants[0].original_price:this.newMenuItem.original_price,
-      price:this.calculatedDisplayPrice(this.hasVariants()?variants[0].actual_price:this.newMenuItem.actual_price),
-      variants:this.hasVariants()?variants.map(v=>({label:v.label,actual_price:v.actual_price,original_price:v.original_price})):undefined,
+      price:this.hasVariants()?variants[0].price:Number(this.newMenuItem.price),
+      variants:this.hasVariants()?variants.map(v=>({label:v.label,actual_price:v.actual_price,price:v.price,original_price:v.original_price})):undefined,
     };
     this.menuSaving.set(true);
     const editingId=this.editingMenuItemId();
