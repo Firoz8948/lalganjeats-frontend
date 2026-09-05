@@ -16,6 +16,7 @@ import {
 } from '../../../../core/services/promo.service';
 import { ProfileService, Address, CustomerProfile } from '../../../profile/services/profile.service';
 import { NavbarComponent } from '../../../home/components/navbar/navbar.component';
+import { getDeviceId } from '../../../../core/utils/device-id';
 
 @Component({
   selector: 'app-checkout',
@@ -352,6 +353,7 @@ export class CheckoutComponent implements OnInit {
       notes: this.notes || null,
       promo_code: this.appliedPromoCode() || this.promoCode.trim() || null,
       client_channel: this.promos.clientChannel,
+      device_id: getDeviceId() || null,
       items: c.items.map((i: CartItem) => ({
         menu_item_id: i.id,
         quantity: i.quantity,

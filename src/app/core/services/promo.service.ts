@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ClientChannel, getClientChannel } from '../utils/client-channel';
+import { getDeviceId } from '../utils/device-id';
 
 export type { ClientChannel };
 
@@ -63,6 +64,7 @@ export class PromoService {
       client_channel: opts?.client_channel ?? this.clientChannel,
       subtotal: opts?.subtotal,
       delivery_fee: opts?.delivery_fee,
+      device_id: getDeviceId() || undefined,
     });
   }
 }

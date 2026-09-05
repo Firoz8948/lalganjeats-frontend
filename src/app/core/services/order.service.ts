@@ -19,6 +19,7 @@ export interface PlaceOrderPayload {
   notes?: string | null;
   promo_code?: string | null;
   client_channel?: string | null;
+  device_id?: string | null;
   items: PlaceOrderItem[];
 }
 
