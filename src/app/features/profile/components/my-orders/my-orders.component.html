@@ -192,6 +192,16 @@
 
           </div>
 
+          @if (order.delivery_otp) {
+            <div class="delivery-otp-panel" (click)="$event.stopPropagation()">
+              <div class="delivery-otp-panel__copy">
+                <span>DELIVERY OTP</span>
+                <p>Share this with your delivery partner to confirm the order</p>
+              </div>
+              <strong class="delivery-otp-panel__code">{{ order.delivery_otp }}</strong>
+            </div>
+          }
+
           <!-- Expanded Details -->
           @if (expandedId() === order.id) {
             <div class="order-card__body">

@@ -46,6 +46,7 @@ export interface CustomerOrder {
   delivery_fee:    number;
   total_amount:    number;
   delivery_partner: DeliveryPartnerIdentity | null;
+  delivery_otp?:   string | null;
   items:           OrderItem[];
   created_at:      string;
 }

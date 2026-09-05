@@ -67,17 +67,31 @@ export class MyOrdersComponent implements OnInit, OnDestroy {
     this.pollTimer = setInterval(() => {
       // Quiet background refresh without flashing loading spinner
       this.profileService.getOrders(this.activeFilter()).subscribe({
-        next: (data) => this.orders.set(data),
+        next: (data) => {
+          this.orders.set(data);
+          this.revealOrderWithOtp(data);
+        },
         error: () => {}
       });
     }, 4000);
+  }
+
+  private revealOrderWithOtp(orders: CustomerOrder[]) {
+    const withOtp = orders.find(o => !!o.delivery_otp);
+    if (withOtp && this.expandedId() == null) {
+      this.expandedId.set(withOtp.id);
+    }
   }
 
   loadOrders(filter: OrderFilter) {
     this.activeFilter.set(filter);
     this.loading.set(true);
     this.profileService.getOrders(filter).subscribe({
-      next:  (data) => { this.orders.set(data); this.loading.set(false); },
+      next:  (data) => {
+        this.orders.set(data);
+        this.loading.set(false);
+        this.revealOrderWithOtp(data);
+      },
       error: ()     => this.loading.set(false)
     });
   }
