@@ -44,6 +44,7 @@ export interface CustomerOrder {
   payment_status:  string;
   subtotal:        number;
   delivery_fee:    number;
+  packing_charge?: number;
   total_amount:    number;
   delivery_partner: DeliveryPartnerIdentity | null;
   delivery_otp?:   string | null;

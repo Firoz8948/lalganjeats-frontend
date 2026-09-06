@@ -116,6 +116,13 @@
               <strong>₹{{ platformCharge() | number:'1.2-2' }}</strong>
             </div>
 
+            @if (packingCharge() > 0) {
+              <div class="bill-row">
+                <span>Packaging charge</span>
+                <strong>₹{{ packingCharge() | number:'1.2-2' }}</strong>
+              </div>
+            }
+
             @if (discountAmount() > 0) {
               <div class="bill-row bill-row--discount">
                 <span>Coupon Discount</span>

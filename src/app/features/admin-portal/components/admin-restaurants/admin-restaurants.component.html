@@ -24,6 +24,16 @@
       <input placeholder="Login username (optional)" [(ngModel)]="newRestaurant.owner_username" autocomplete="off">
       <input type="password" placeholder="Login password (optional)" [(ngModel)]="newRestaurant.owner_password" autocomplete="new-password">
     </div>
+    <div class="packing-option">
+      <label>
+        <input type="checkbox" [(ngModel)]="newRestaurant.show_packing_charge">
+        Show packing charge
+      </label>
+      @if (newRestaurant.show_packing_charge) {
+        <input type="number" min="0" step="0.01" placeholder="Packing charge ₹" [(ngModel)]="newRestaurant.packing_charge">
+        <small>Added to the customer bill and hotel transfer for this restaurant only.</small>
+      }
+    </div>
     @if(uploadError()){<p class="form-msg form-msg--error">{{uploadError()}}</p>}
     <p class="upload-note">Upload three restaurant images. Each slot has its own recommended size and preview.</p>
     <div class="image-upload-grid">
@@ -70,6 +80,16 @@
   @if(editError()){<p class="form-msg form-msg--error">{{editError()}}</p>}
   <div class="form-grid"><input placeholder="Restaurant name *" [(ngModel)]="editForm.name"><input placeholder="Cuisine / description" [(ngModel)]="editForm.description"><label class="select-field"><span>Business category</span><select [(ngModel)]="editForm.business_category_id">@for(category of catalogCategories();track category.id){<option [ngValue]="category.id">{{category.name}}</option>}</select></label><div class="phone-input"><span>+91</span><input type="tel" maxlength="10" placeholder="Restaurant phone" [ngModel]="editForm.restaurant_phone" (ngModelChange)="editPhone($event)"></div><input placeholder="Address" [(ngModel)]="editForm.address"><input placeholder="City" [(ngModel)]="editForm.city"><input placeholder="Pincode" [(ngModel)]="editForm.pincode"><input type="number" placeholder="Latitude" [(ngModel)]="editForm.latitude"><input type="number" placeholder="Longitude" [(ngModel)]="editForm.longitude"><input placeholder="Owner name" [(ngModel)]="editForm.owner_name"><input placeholder="Owner phone (read-only)" [ngModel]="editForm.owner_phone" disabled><input placeholder="Login username" [(ngModel)]="editForm.owner_username" autocomplete="off"><input type="password" placeholder="{{editForm.has_password ? 'New password (leave blank to keep)' : 'Login password'}}" [(ngModel)]="editForm.owner_password" autocomplete="new-password"></div>
   <div class="flags"><label><input type="checkbox" [(ngModel)]="editForm.is_open"> Open now</label><label><input type="checkbox" [(ngModel)]="editForm.is_approved"> Approved</label><label><input type="checkbox" [(ngModel)]="editForm.is_active"> Active</label></div>
+  <div class="packing-option">
+    <label>
+      <input type="checkbox" [(ngModel)]="editForm.show_packing_charge">
+      Show packing charge
+    </label>
+    @if (editForm.show_packing_charge) {
+      <input type="number" min="0" step="0.01" placeholder="Packing charge ₹" [(ngModel)]="editForm.packing_charge">
+      <small>Added to the customer bill and hotel transfer for this restaurant only.</small>
+    }
+  </div>
   <div class="image-upload-grid">
     <div class="banner"><h3>Restaurant Card</h3><small>Fixed card height: 210px · home/list card</small>@if(editBannerPreview()){<img class="banner-preview--card" [src]="editBannerPreview()"><button class="danger-link" type="button" (click)="editBannerPreview.set(null);editForm.list_banner_url=null">Remove</button>}@else{<label class="dropzone dropzone--card"><input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectBanner($event,'card',true)">Upload card</label>}</div>
     <div class="banner"><h3>Desktop Hero</h3><small>1600 × 600 · menu page</small>@if(editDesktopHeroPreview()){<img class="banner-preview--wide" [src]="editDesktopHeroPreview()"><button class="danger-link" type="button" (click)="editDesktopHeroPreview.set(null);editForm.banner_url=null">Remove</button>}@else{<label class="dropzone"><input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectBanner($event,'desktop',true)">Upload desktop hero</label>}</div>

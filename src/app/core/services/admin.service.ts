@@ -525,6 +525,7 @@ export interface OrderBreakdown {
   platform_fee: number;
   delivery_charge: number;
   discount: number;
+  packing_charge?: number;
   customer_total: number;
   payment_method?: string;
   payment_label?: string;
@@ -549,6 +550,7 @@ export interface OrderBreakdown {
     platform_fee: number;
     delivery_charge: number;
     discount: number;
+    packing_charge?: number;
     customer_total: number;
   };
   admin_view?: {

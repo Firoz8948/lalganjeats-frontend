@@ -21,6 +21,8 @@ export interface Restaurant {
   city?: string;
   latitude?: number | null;
   longitude?: number | null;
+  show_packing_charge?: boolean;
+  packing_charge?: number;
 }
 
 export interface RestaurantCreatePayload {
@@ -42,6 +44,8 @@ export interface RestaurantCreatePayload {
   owner_password?: string;
   business_category_id?: number | null;
   is_approved?: boolean;
+  show_packing_charge?: boolean;
+  packing_charge?: number | null;
 }
 
 export interface RestaurantUpdatePayload {
@@ -64,6 +68,8 @@ export interface RestaurantUpdatePayload {
   owner_username?: string | null;
   owner_password?: string | null;
   business_category_id?: number | null;
+  show_packing_charge?: boolean;
+  packing_charge?: number | null;
 }
 
 export interface AdminRestaurantRow {
@@ -90,5 +96,7 @@ export interface AdminRestaurantRow {
   is_open: boolean;
   is_approved: boolean;
   is_active: boolean;
+  show_packing_charge?: boolean;
+  packing_charge?: number | null;
   created_at?: string;
 }

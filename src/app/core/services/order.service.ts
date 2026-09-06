@@ -33,6 +33,7 @@ export interface PlaceOrderResult {
   delivery_fee: number;
   discount: number;
   platform_charge?: number;
+  packing_charge?: number;
   distance_km: number | null;
   eta_minutes: number | null;
   online_payment_stub?: { stub: boolean; message: string } | null;

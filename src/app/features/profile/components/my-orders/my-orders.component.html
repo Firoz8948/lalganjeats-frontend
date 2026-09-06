@@ -254,6 +254,12 @@
                        : '₹' + order.delivery_fee }}
                   </span>
                 </div>
+                @if ((order.packing_charge || 0) > 0) {
+                  <div class="bill-row">
+                    <span>Packaging charge</span>
+                    <span>₹{{ order.packing_charge }}</span>
+                  </div>
+                }
                 <div class="bill-row bill-row--total">
                   <span>Total Paid</span>
                   <span>₹{{ order.total_amount }}</span>

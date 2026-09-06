@@ -155,8 +155,14 @@
           <div class="bill-rows">
             <div class="bill-row">
               <span>Item Total</span>
-              <span>₹{{ order()!.total_amount }}</span>
+              <span>₹{{ order()!.total_amount - (order()!.packing_charge || 0) }}</span>
             </div>
+            @if ((order()!.packing_charge || 0) > 0) {
+              <div class="bill-row">
+                <span>Packaging charge</span>
+                <span>₹{{ order()!.packing_charge }}</span>
+              </div>
+            }
             <div class="bill-row">
               <span>Delivery Fee</span>
               <span>₹0</span>

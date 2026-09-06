@@ -120,6 +120,9 @@
           <div class="breakdown-row"><span>Display price</span><strong>₹{{ (details.display_price ?? details.order_price) | number:'1.2-2' }}</strong></div>
           <div class="breakdown-row"><span>Platform charge</span><strong>₹{{ (details.platform_charge ?? details.platform_fee) | number:'1.2-2' }}</strong></div>
           <div class="breakdown-row"><span>Delivery charge</span><strong>₹{{ details.delivery_charge | number:'1.2-2' }}</strong></div>
+          @if ((details.packing_charge || details.customer_view?.packing_charge || 0) > 0) {
+            <div class="breakdown-row"><span>Packaging charge</span><strong>₹{{ (details.packing_charge ?? details.customer_view?.packing_charge) | number:'1.2-2' }}</strong></div>
+          }
           @if (details.discount > 0) {
             <div class="breakdown-row muted">
               <span>Discount{{ details.promo_code ? ' (' + details.promo_code + ')' : '' }}</span>
@@ -132,7 +135,7 @@
             <strong>+₹{{ (details.menu_margin ?? 0) | number:'1.2-2' }}</strong>
           </div>
           <p class="breakdown-note">
-            Display price + platform charge + delivery − discount.
+            Display price + platform charge + delivery + packing − discount.
           </p>
         </div>
         <div class="breakdown-section">

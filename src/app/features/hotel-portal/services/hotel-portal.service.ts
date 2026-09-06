@@ -29,6 +29,7 @@ export interface Order {
   order_number:   string;
   status:         string;
   total_amount:   number;
+  packing_charge?: number;
   payment_method: string;
   customer:       string;
   items:          OrderItem[];

@@ -17,7 +17,7 @@ export class AdminRestaurantsComponent implements OnInit {
   desktopHeroPreview=signal<string|null>(null); mobileHeroPreview=signal<string|null>(null);
   desktopHeroUploading=signal(false); mobileHeroUploading=signal(false);
   restaurantPhone=''; ownerPhone='';
-  newRestaurant:RestaurantCreatePayload={name:'',description:'',phone:'',address:'',city:'Lalganj',pincode:'',owner_phone:'',owner_name:'',owner_username:'',owner_password:'',latitude:null,longitude:null,logo_url:'',list_banner_url:'',banner_url:'',banner_mobile_url:'',business_category_id:null,is_approved:true};
+  newRestaurant:RestaurantCreatePayload={name:'',description:'',phone:'',address:'',city:'Lalganj',pincode:'',owner_phone:'',owner_name:'',owner_username:'',owner_password:'',latitude:null,longitude:null,logo_url:'',list_banner_url:'',banner_url:'',banner_mobile_url:'',business_category_id:null,is_approved:true,show_packing_charge:false,packing_charge:null};
   editForm:RestaurantUpdatePayload&{owner_phone?:string;restaurant_phone?:string;has_password?:boolean;owner_password?:string}={};
   editOpen=signal(false); editSaving=signal(false); editError=signal(''); editId:number|null=null;
   editBannerPreview=signal<string|null>(null); editDesktopHeroPreview=signal<string|null>(null); editMobileHeroPreview=signal<string|null>(null);
@@ -86,6 +86,7 @@ export class AdminRestaurantsComponent implements OnInit {
     if(!this.newRestaurant.name.trim()){this.error.set('Restaurant name is required.');return}
     if(this.ownerPhone.length!==10){this.error.set('Enter a valid 10-digit owner mobile number.');return}
     if(this.restaurantPhone&&this.restaurantPhone.length!==10){this.error.set('Restaurant phone must be exactly 10 digits.');return}
+    if(this.newRestaurant.show_packing_charge && !(Number(this.newRestaurant.packing_charge)>0)){this.error.set('Enter a packing charge amount.');return}
     this.saving.set(true);
     this.admin.createRestaurant({
       ...this.newRestaurant,
@@ -95,8 +96,10 @@ export class AdminRestaurantsComponent implements OnInit {
       owner_password: this.newRestaurant.owner_password?.trim() || undefined,
       latitude: this.newRestaurant.latitude ?? null,
       longitude: this.newRestaurant.longitude ?? null,
+      show_packing_charge: !!this.newRestaurant.show_packing_charge,
+      packing_charge: this.newRestaurant.show_packing_charge ? Number(this.newRestaurant.packing_charge) : 0,
     }).subscribe({
-      next:()=>{this.saving.set(false);this.success.set('Restaurant added successfully.');this.addRestaurantOpen.set(false);const categoryId=this.newRestaurant.business_category_id;this.newRestaurant={name:'',description:'',phone:'',address:'',city:'Lalganj',pincode:'',owner_phone:'',owner_name:'',owner_username:'',owner_password:'',latitude:null,longitude:null,logo_url:'',list_banner_url:'',banner_url:'',banner_mobile_url:'',business_category_id:categoryId,is_approved:true};this.restaurantPhone='';this.ownerPhone='';this.bannerPreview.set(null);this.desktopHeroPreview.set(null);this.mobileHeroPreview.set(null);this.load();},
+      next:()=>{this.saving.set(false);this.success.set('Restaurant added successfully.');this.addRestaurantOpen.set(false);const categoryId=this.newRestaurant.business_category_id;this.newRestaurant={name:'',description:'',phone:'',address:'',city:'Lalganj',pincode:'',owner_phone:'',owner_name:'',owner_username:'',owner_password:'',latitude:null,longitude:null,logo_url:'',list_banner_url:'',banner_url:'',banner_mobile_url:'',business_category_id:categoryId,is_approved:true,show_packing_charge:false,packing_charge:null};this.restaurantPhone='';this.ownerPhone='';this.bannerPreview.set(null);this.desktopHeroPreview.set(null);this.mobileHeroPreview.set(null);this.load();},
       error:e=>{this.saving.set(false);this.error.set(e.error?.detail||'Failed to add restaurant.')}
     });
   }
@@ -177,7 +180,8 @@ export class AdminRestaurantsComponent implements OnInit {
       list_banner_url:r.list_banner_url??'',banner_url:r.banner_url??'',banner_mobile_url:r.banner_mobile_url??'',
       business_category_id:r.business_category_id??null,is_open:r.is_open,is_approved:r.is_approved,is_active:r.is_active,
       owner_name:r.owner??'',owner_phone:r.owner_phone??'',owner_username:r.owner_username??'',owner_password:'',
-      has_password:!!r.has_password,restaurant_phone:(r.phone??'').replace(/\D/g,'').slice(-10)
+      has_password:!!r.has_password,restaurant_phone:(r.phone??'').replace(/\D/g,'').slice(-10),
+      show_packing_charge:!!r.show_packing_charge,packing_charge:r.packing_charge??null
     };
     this.editBannerPreview.set(r.list_banner_url||null);
     this.editDesktopHeroPreview.set(r.banner_url||null);
@@ -193,7 +197,8 @@ export class AdminRestaurantsComponent implements OnInit {
     if(!this.editId)return;this.editError.set('');
     if(!this.editForm.name?.trim()){this.editError.set('Restaurant name is required.');return}
     const phone=this.editForm.restaurant_phone||'';if(phone&&phone.length!==10){this.editError.set('Restaurant phone must be exactly 10 digits.');return}
-    const p:RestaurantUpdatePayload={name:this.editForm.name.trim(),description:this.editForm.description||null,phone:phone||null,address:this.editForm.address||null,city:this.editForm.city||'Lalganj',pincode:this.editForm.pincode||null,latitude:this.editForm.latitude!=null&&this.editForm.latitude!==('' as any)?Number(this.editForm.latitude):null,longitude:this.editForm.longitude!=null&&this.editForm.longitude!==('' as any)?Number(this.editForm.longitude):null,logo_url:this.editForm.logo_url||null,list_banner_url:this.editForm.list_banner_url||null,banner_url:this.editForm.banner_url||null,banner_mobile_url:this.editForm.banner_mobile_url||null,business_category_id:this.editForm.business_category_id??null,is_open:this.editForm.is_open,is_approved:this.editForm.is_approved,is_active:this.editForm.is_active,owner_name:this.editForm.owner_name||null,owner_username:(this.editForm.owner_username||'').trim()||null,owner_password:(this.editForm.owner_password||'').trim()||null};
+    if(this.editForm.show_packing_charge && !(Number(this.editForm.packing_charge)>0)){this.editError.set('Enter a packing charge amount.');return}
+    const p:RestaurantUpdatePayload={name:this.editForm.name.trim(),description:this.editForm.description||null,phone:phone||null,address:this.editForm.address||null,city:this.editForm.city||'Lalganj',pincode:this.editForm.pincode||null,latitude:this.editForm.latitude!=null&&this.editForm.latitude!==('' as any)?Number(this.editForm.latitude):null,longitude:this.editForm.longitude!=null&&this.editForm.longitude!==('' as any)?Number(this.editForm.longitude):null,logo_url:this.editForm.logo_url||null,list_banner_url:this.editForm.list_banner_url||null,banner_url:this.editForm.banner_url||null,banner_mobile_url:this.editForm.banner_mobile_url||null,business_category_id:this.editForm.business_category_id??null,is_open:this.editForm.is_open,is_approved:this.editForm.is_approved,is_active:this.editForm.is_active,show_packing_charge:!!this.editForm.show_packing_charge,packing_charge:this.editForm.show_packing_charge?Number(this.editForm.packing_charge):0,owner_name:this.editForm.owner_name||null,owner_username:(this.editForm.owner_username||'').trim()||null,owner_password:(this.editForm.owner_password||'').trim()||null};
     this.editSaving.set(true);this.admin.updateRestaurant(this.editId,p).subscribe({next:()=>{this.editSaving.set(false);this.closeEdit();this.success.set('Restaurant updated.');this.load();},error:e=>{this.editSaving.set(false);this.editError.set(typeof e.error?.detail==='string'?e.error.detail:'Failed to update restaurant.')}});
   }
   openMenu(r:AdminRestaurantRow){this.menuRestaurantId.set(r.id);this.menuName.set(r.name);this.menuBusinessCategoryId.set(r.business_category_id||0);this.menuOpen.set(true);this.menuError.set('');this.resetMenu();this.loadMenu();this.loadMenuSubcategories();}

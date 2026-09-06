@@ -63,6 +63,7 @@ export class CheckoutComponent implements OnInit {
   promoMessage = signal('');
   success = signal<{ order_number: string; eta_minutes: number | null; distance_km: number | null } | null>(null);
   deliveryCharge = signal(0);
+  packingCharge = signal(0);
   platformCharge = signal(2);
   allowPrepaid = signal(true);
   allowCod = signal(true);
@@ -81,7 +82,7 @@ export class CheckoutComponent implements OnInit {
   grandTotal = computed(() =>
     Math.max(
       0,
-      this.totalAmount() + this.effectiveDelivery() + this.platformCharge() - this.discountAmount(),
+      this.totalAmount() + this.effectiveDelivery() + this.platformCharge() + this.packingCharge() - this.discountAmount(),
     ),
   );
   codAvailable = computed(() =>
@@ -107,8 +108,10 @@ export class CheckoutComponent implements OnInit {
       this.restaurants
         .getRestaurant(cart.restaurantId, location.lat, location.lng)
         .subscribe({
-          next: restaurant =>
-            this.deliveryCharge.set(restaurant.delivery_charge || 0),
+          next: restaurant => {
+            this.deliveryCharge.set(restaurant.delivery_charge || 0);
+            this.packingCharge.set(Number(restaurant.packing_charge) || 0);
+          },
         });
     }
     this.paymentSettings.getPublicSettings().subscribe({
