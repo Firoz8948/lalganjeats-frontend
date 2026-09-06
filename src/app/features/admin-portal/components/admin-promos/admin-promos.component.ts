@@ -30,6 +30,8 @@ export class AdminPromosComponent implements OnInit {
   promoMaxUsesMode: 'unlimited' | 'custom' = 'custom';
   editingId = signal<number | null>(null);
   restaurants = signal<AdminRestaurantRow[]>([]);
+  allRestaurants = true;
+  selectedRestaurantIds: number[] = [];
   newPromo: PromoCodeCreate = this.blankPromo();
 
   constructor(private admin: AdminService) {}
@@ -58,7 +60,36 @@ export class AdminPromosComponent implements OnInit {
       description: '',
       is_public: true,
       restaurant_id: null,
+      restaurant_ids: [],
     };
+  }
+
+  restaurantLabel(promo: PromoCode): string {
+    const names = promo.restaurant_names?.filter(Boolean) || [];
+    if (names.length) return names.join(', ');
+    if (promo.restaurant_name) return promo.restaurant_name;
+    return 'All restaurants';
+  }
+
+  isRestaurantChecked(id: number): boolean {
+    return this.selectedRestaurantIds.includes(id);
+  }
+
+  toggleRestaurant(id: number, event: Event) {
+    const checked = (event.target as HTMLInputElement).checked;
+    if (checked) {
+      if (!this.selectedRestaurantIds.includes(id)) {
+        this.selectedRestaurantIds = [...this.selectedRestaurantIds, id];
+      }
+    } else {
+      this.selectedRestaurantIds = this.selectedRestaurantIds.filter(x => x !== id);
+    }
+  }
+
+  onAllRestaurantsChange() {
+    if (this.allRestaurants) {
+      this.selectedRestaurantIds = [];
+    }
   }
 
   loadPromos() {
@@ -117,7 +148,13 @@ export class AdminPromosComponent implements OnInit {
       description: promo.description || '',
       is_public: promo.is_public,
       restaurant_id: promo.restaurant_id ?? null,
+      restaurant_ids: promo.restaurant_ids || [],
     };
+    const ids = promo.restaurant_ids?.length
+      ? promo.restaurant_ids
+      : (promo.restaurant_id ? [promo.restaurant_id] : []);
+    this.allRestaurants = ids.length === 0;
+    this.selectedRestaurantIds = [...ids];
     this.promoMaxUsesMode = promo.max_uses === 0 ? 'unlimited' : 'custom';
     this.promoExpiresLocal = this.toDatetimeLocal(promo.expires_at);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -140,6 +177,8 @@ export class AdminPromosComponent implements OnInit {
     this.newPromo = this.blankPromo();
     this.promoMaxUsesMode = 'custom';
     this.promoExpiresLocal = '';
+    this.allRestaurants = true;
+    this.selectedRestaurantIds = [];
   }
 
   savePromo() {
@@ -167,6 +206,12 @@ export class AdminPromosComponent implements OnInit {
       }
     }
 
+    if (!this.allRestaurants && this.selectedRestaurantIds.length === 0) {
+      this.promoError.set('Tick at least one restaurant, or choose All restaurants.');
+      return;
+    }
+
+    const restaurantIds = this.allRestaurants ? [] : this.selectedRestaurantIds;
     const payload: PromoCodeCreate = {
       ...this.newPromo,
       code: this.newPromo.code.trim().toUpperCase(),
@@ -180,7 +225,8 @@ export class AdminPromosComponent implements OnInit {
       min_cart_value: this.newPromo.min_cart_value && this.newPromo.min_cart_value > 0
         ? Number(this.newPromo.min_cart_value)
         : null,
-      restaurant_id: this.newPromo.restaurant_id || null,
+      restaurant_id: restaurantIds.length === 1 ? restaurantIds[0] : null,
+      restaurant_ids: restaurantIds,
     };
     this.promoSaving.set(true);
     const editingId = this.editingId();

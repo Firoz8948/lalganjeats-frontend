@@ -2,7 +2,7 @@
 
 .promo-form-row { align-items: flex-end; }
 .promo-delivery-block {
-  max-width: 360px;
+  max-width: 440px;
   margin: 14px 0 18px;
   padding: 14px 16px;
   border: 1px solid #e8e8e8;
@@ -20,6 +20,19 @@
     input { width: 18px; height: 18px; accent-color: #ff0000; }
   }
   &__hint { margin: 8px 0 0; color: #777; font-size: 12px; }
+}
+.promo-restaurant-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 420px;
+  max-height: 240px;
+  overflow: auto;
+  margin: 10px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid #ececec;
+  border-radius: 8px;
+  background: #fff;
 }
 .promo-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .usage-modal { max-width: 640px; max-height: 85vh; overflow: auto; }

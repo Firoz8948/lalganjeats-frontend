@@ -636,6 +636,8 @@ export interface PromoCode {
   description: string | null;
   restaurant_id?: number | null;
   restaurant_name?: string | null;
+  restaurant_ids?: number[];
+  restaurant_names?: string[];
   created_at: string | null;
 }
 
@@ -653,6 +655,7 @@ export interface PromoCodeCreate {
   description?: string | null;
   is_public?: boolean;
   restaurant_id?: number | null;
+  restaurant_ids?: number[];
 }
 
 export interface PromoUsage {
