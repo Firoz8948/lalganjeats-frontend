@@ -634,6 +634,8 @@ export interface PromoCode {
   is_expired: boolean;
   audience?: 'all' | 'new_users';
   description: string | null;
+  restaurant_id?: number | null;
+  restaurant_name?: string | null;
   created_at: string | null;
 }
 
@@ -650,6 +652,7 @@ export interface PromoCodeCreate {
   max_uses: number;
   description?: string | null;
   is_public?: boolean;
+  restaurant_id?: number | null;
 }
 
 export interface PromoUsage {

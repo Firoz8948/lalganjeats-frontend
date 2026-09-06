@@ -1,14 +1,28 @@
 <div class="content-area">
   <app-portal-page-header eyebrow="GROWTH CAMPAIGNS" title="Promocodes" subtitle="Create targeted discounts and track their usage across web and mobile." tone="admin">
-    <button class="approve-btn" (click)="createPromo()" [disabled]="promoSaving()">{{ promoSaving() ? 'Saving...' : 'Create Promo' }}</button>
+    <button class="approve-btn" (click)="savePromo()" [disabled]="promoSaving()">
+      {{ promoSaving() ? 'Saving...' : (editingId() ? 'Save changes' : 'Create Promo') }}
+    </button>
+    @if (editingId()) {
+      <button class="btn-link" type="button" (click)="cancelEdit()">Cancel edit</button>
+    }
   </app-portal-page-header>
   @if (promoError()) { <div class="form-error">{{ promoError() }}</div> }
   @if (promoSuccess()) { <div class="form-success">{{ promoSuccess() }}</div> }
 
   <div class="zone-form">
-    <h3>Create promocode</h3>
+    <h3>{{ editingId() ? 'Edit promocode' : 'Create promocode' }}</h3>
     <div class="zone-form__row promo-form-row">
-      <label>Code<input [(ngModel)]="newPromo.code" placeholder="WELCOME10"/></label>
+      <label>Code<input [(ngModel)]="newPromo.code" placeholder="WELCOME10" [disabled]="!!editingId()"/></label>
+      <label>
+        Restaurant
+        <select [(ngModel)]="newPromo.restaurant_id">
+          <option [ngValue]="null">All restaurants</option>
+          @for (restaurant of restaurants(); track restaurant.id) {
+            <option [ngValue]="restaurant.id">{{ restaurant.name }}</option>
+          }
+        </select>
+      </label>
       <label>
         Channel
         <select [(ngModel)]="newPromo.channel">
@@ -61,6 +75,9 @@
       <p class="promo-delivery-block__hint">
         Leave unchecked for secret codes that customers can only enter manually.
       </p>
+      <p class="promo-delivery-block__hint">
+        Choose one restaurant to limit this code to that menu. Leave as All restaurants for every hotel.
+      </p>
       <label class="promo-delivery-block__check">
         <input type="checkbox" [(ngModel)]="newPromo.free_delivery"/>
         <span>Free Delivery</span>
@@ -72,7 +89,7 @@
   <div class="table-wrap">
     <table class="data-table">
       <thead>
-        <tr><th>Code</th><th>Channel</th><th>Who</th><th>Visibility</th><th>Benefit</th><th>Uses left</th><th>Expiry</th><th>Status</th><th></th></tr>
+        <tr><th>Code</th><th>Restaurant</th><th>Channel</th><th>Who</th><th>Visibility</th><th>Benefit</th><th>Uses left</th><th>Expiry</th><th>Status</th><th></th></tr>
       </thead>
       <tbody>
         @for (promo of promos(); track promo.id) {
@@ -83,6 +100,7 @@
                 <div class="promo-desc">{{ promo.description }}</div>
               }
             </td>
+            <td>{{ promo.restaurant_name || 'All restaurants' }}</td>
             <td>{{ promo.channel === 'mobile_app' ? 'Mobile app only' : 'All' }}</td>
             <td>{{ promo.audience === 'new_users' ? 'New users' : 'All users · 1× / mobile' }}</td>
             <td>{{ promo.is_public ? 'Public' : 'Secret' }}</td>
@@ -96,12 +114,13 @@
             </td>
             <td class="promo-actions">
               <button class="approve-btn" type="button" (click)="openUsage(promo)">Usage</button>
+              <button class="btn-link" type="button" (click)="startEdit(promo)">Edit</button>
               <button class="btn-link" type="button" (click)="togglePromo(promo)">{{ promo.is_active ? 'Deactivate' : 'Activate' }}</button>
               <button class="danger-link" type="button" (click)="deletePromo(promo)">Delete</button>
             </td>
           </tr>
         } @empty {
-          <tr><td colspan="9" class="empty-table-cell">No promocodes yet.</td></tr>
+          <tr><td colspan="10" class="empty-table-cell">No promocodes yet.</td></tr>
         }
       </tbody>
     </table>

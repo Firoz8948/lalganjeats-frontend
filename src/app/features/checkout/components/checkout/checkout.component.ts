@@ -125,7 +125,7 @@ export class CheckoutComponent implements OnInit {
       },
       error: () => this.platformCharge.set(2),
     });
-    this.promos.listActive().subscribe({
+    this.promos.listActive(cart?.restaurantId).subscribe({
       next: rows => this.publicPromos.set(rows),
     });
     if (this.isLoggedIn()) {
@@ -205,6 +205,7 @@ export class CheckoutComponent implements OnInit {
       .validate(code, {
         subtotal: this.totalAmount(),
         delivery_fee: this.deliveryCharge(),
+        restaurant_id: this.cartData()?.restaurantId,
       })
       .subscribe({
         next: (result: PromoValidateResult) => {

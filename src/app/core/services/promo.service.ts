@@ -51,13 +51,21 @@ export class PromoService {
 
   constructor(private http: HttpClient) {}
 
-  listActive(): Observable<PublicPromo[]> {
-    return this.http.get<PublicPromo[]>(`${this.baseUrl}/active`);
+  listActive(restaurantId?: number | null): Observable<PublicPromo[]> {
+    const params = restaurantId
+      ? `?restaurant_id=${encodeURIComponent(String(restaurantId))}`
+      : '';
+    return this.http.get<PublicPromo[]>(`${this.baseUrl}/active${params}`);
   }
 
   validate(
     code: string,
-    opts?: { subtotal?: number; delivery_fee?: number; client_channel?: ClientChannel }
+    opts?: {
+      subtotal?: number;
+      delivery_fee?: number;
+      client_channel?: ClientChannel;
+      restaurant_id?: number | null;
+    }
   ): Observable<PromoValidateResult> {
     return this.http.post<PromoValidateResult>(`${this.baseUrl}/validate`, {
       code,
@@ -65,6 +73,7 @@ export class PromoService {
       subtotal: opts?.subtotal,
       delivery_fee: opts?.delivery_fee,
       device_id: getDeviceId() || undefined,
+      restaurant_id: opts?.restaurant_id || undefined,
     });
   }
 }

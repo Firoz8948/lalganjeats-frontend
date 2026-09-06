@@ -8,6 +8,7 @@ import {
   PromoCodeCreate,
   PromoUsage,
 } from '../../../../core/services/admin.service';
+import { AdminRestaurantRow } from '../../../../core/models/restaurant.model';
 
 @Component({
   selector: 'app-admin-promos',
@@ -27,25 +28,37 @@ export class AdminPromosComponent implements OnInit {
   usagesLoading = signal(false);
   promoExpiresLocal = '';
   promoMaxUsesMode: 'unlimited' | 'custom' = 'custom';
-  newPromo: PromoCodeCreate = {
-    code: '',
-    channel: 'all',
-    audience: 'all',
-    discount_type: 'percent',
-    percent_off: 10,
-    flat_off: null,
-    min_cart_value: null,
-    free_delivery: false,
-    expires_at: null,
-    max_uses: 100,
-    description: '',
-    is_public: true,
-  };
+  editingId = signal<number | null>(null);
+  restaurants = signal<AdminRestaurantRow[]>([]);
+  newPromo: PromoCodeCreate = this.blankPromo();
 
   constructor(private admin: AdminService) {}
 
   ngOnInit() {
     this.loadPromos();
+    this.admin.getRestaurants().subscribe({
+      next: (rows) => this.restaurants.set(
+        [...rows].sort((a, b) => a.name.localeCompare(b.name)),
+      ),
+    });
+  }
+
+  private blankPromo(): PromoCodeCreate {
+    return {
+      code: '',
+      channel: 'all',
+      audience: 'all',
+      discount_type: 'percent',
+      percent_off: 10,
+      flat_off: null,
+      min_cart_value: null,
+      free_delivery: false,
+      expires_at: null,
+      max_uses: 100,
+      description: '',
+      is_public: true,
+      restaurant_id: null,
+    };
   }
 
   loadPromos() {
@@ -83,6 +96,53 @@ export class AdminPromosComponent implements OnInit {
   }
 
   createPromo() {
+    this.savePromo();
+  }
+
+  startEdit(promo: PromoCode) {
+    this.promoError.set('');
+    this.promoSuccess.set('');
+    this.editingId.set(promo.id);
+    this.newPromo = {
+      code: promo.code,
+      channel: promo.channel,
+      audience: promo.audience || 'all',
+      discount_type: promo.discount_type || 'percent',
+      percent_off: promo.percent_off,
+      flat_off: promo.flat_off ?? null,
+      min_cart_value: promo.min_cart_value ?? null,
+      free_delivery: promo.free_delivery,
+      expires_at: promo.expires_at,
+      max_uses: promo.max_uses === 0 ? 100 : promo.max_uses,
+      description: promo.description || '',
+      is_public: promo.is_public,
+      restaurant_id: promo.restaurant_id ?? null,
+    };
+    this.promoMaxUsesMode = promo.max_uses === 0 ? 'unlimited' : 'custom';
+    this.promoExpiresLocal = this.toDatetimeLocal(promo.expires_at);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  cancelEdit() {
+    this.editingId.set(null);
+    this.resetForm();
+  }
+
+  private toDatetimeLocal(iso: string | null): string {
+    if (!iso) return '';
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+
+  private resetForm() {
+    this.newPromo = this.blankPromo();
+    this.promoMaxUsesMode = 'custom';
+    this.promoExpiresLocal = '';
+  }
+
+  savePromo() {
     this.promoError.set('');
     this.promoSuccess.set('');
     if (!this.newPromo.code.trim()) {
@@ -120,28 +180,19 @@ export class AdminPromosComponent implements OnInit {
       min_cart_value: this.newPromo.min_cart_value && this.newPromo.min_cart_value > 0
         ? Number(this.newPromo.min_cart_value)
         : null,
+      restaurant_id: this.newPromo.restaurant_id || null,
     };
     this.promoSaving.set(true);
-    this.admin.createPromo(payload).subscribe({
+    const editingId = this.editingId();
+    const request = editingId
+      ? this.admin.updatePromo(editingId, payload)
+      : this.admin.createPromo(payload);
+    request.subscribe({
       next: () => {
         this.promoSaving.set(false);
-        this.promoSuccess.set('Promocode created.');
-        this.newPromo = {
-          code: '',
-          channel: 'all',
-          audience: 'all',
-          discount_type: 'percent',
-          percent_off: 10,
-          flat_off: null,
-          min_cart_value: null,
-          free_delivery: false,
-          expires_at: null,
-          max_uses: 100,
-          description: '',
-          is_public: true,
-        };
-        this.promoMaxUsesMode = 'custom';
-        this.promoExpiresLocal = '';
+        this.promoSuccess.set(editingId ? 'Promocode updated.' : 'Promocode created.');
+        this.editingId.set(null);
+        this.resetForm();
         this.loadPromos();
       },
       error: (error) => {
@@ -152,7 +203,7 @@ export class AdminPromosComponent implements OnInit {
             ? detail
             : Array.isArray(detail)
               ? detail.map((item: any) => item.msg).join('. ')
-              : 'Failed to create.',
+              : (editingId ? 'Failed to update.' : 'Failed to create.'),
         );
       },
     });
