@@ -441,6 +441,7 @@ export interface DeliveryZone {
   radius_km: number;
   pricing_type: 'flat' | 'per_km';
   rate: number;
+  delivery_partner_rate?: number | null;
   sort_order: number;
   is_active: boolean;
 }
@@ -451,6 +452,7 @@ export interface DeliveryZoneCreate {
   final_km: number;
   pricing_type: 'flat' | 'per_km';
   rate: number;
+  delivery_partner_rate?: number | null;
   sort_order?: number;
 }
 
@@ -543,6 +545,7 @@ export interface OrderBreakdown {
   is_loss: boolean;
   platform_charge?: number;
   menu_margin?: number;
+  delivery_margin?: number;
   promo_cost?: number;
   promo_code: string | null;
   customer_view?: {

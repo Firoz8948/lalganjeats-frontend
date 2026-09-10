@@ -134,6 +134,10 @@
             <span>Menu margin</span>
             <strong>+₹{{ (details.menu_margin ?? 0) | number:'1.2-2' }}</strong>
           </div>
+          <div class="breakdown-row">
+            <span>Delivery rate margin</span>
+            <strong>+₹{{ (details.delivery_margin ?? 0) | number:'1.2-2' }}</strong>
+          </div>
           <p class="breakdown-note">
             Display price + platform charge + delivery + packing − discount.
           </p>
@@ -147,6 +151,10 @@
           <div class="breakdown-row out">
             <span>Delivery payout</span>
             <strong>−₹{{ details.delivery_price | number:'1.2-2' }}</strong>
+          </div>
+          <div class="breakdown-row in">
+            <span>Delivery margin</span>
+            <strong>+₹{{ (details.delivery_margin ?? 0) | number:'1.2-2' }}</strong>
           </div>
           <div class="breakdown-row in">
             <span>{{ customerPaidLabel(details) }}</span>

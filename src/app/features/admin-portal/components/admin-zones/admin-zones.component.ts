@@ -91,6 +91,7 @@ export class AdminZonesComponent implements OnInit {
       final_km: Number(zone.final_km ?? zone.radius_km),
       pricing_type: zone.pricing_type,
       rate: Number(zone.rate),
+      delivery_partner_rate: zone.delivery_partner_rate != null ? Number(zone.delivery_partner_rate) : Number(zone.rate),
       sort_order: zone.sort_order,
     };
     this.zoneError.set('');
@@ -192,6 +193,7 @@ export class AdminZonesComponent implements OnInit {
       final_km: nextStart + 2,
       pricing_type: 'flat',
       rate: 30,
+      delivery_partner_rate: 30,
       sort_order: 0,
     };
   }

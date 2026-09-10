@@ -42,7 +42,8 @@
           <option value="per_km">Per km rate</option>
         </select>
       </label>
-      <label>Rate (₹)<input type="number" min="0" step="1" [(ngModel)]="newZone.rate"/></label>
+      <label>Delivery Charge (₹)<input type="number" min="0" step="1" [(ngModel)]="newZone.rate"/></label>
+      <label>Delivery Partner Rate (₹)<input type="number" min="0" step="1" [(ngModel)]="newZone.delivery_partner_rate"/></label>
     </div>
   </div>
 
@@ -54,7 +55,8 @@
           <th>Initial range [including this]</th>
           <th>Final range [excluding this]</th>
           <th>Pricing</th>
-          <th>Rate</th>
+          <th>Delivery Charge</th>
+          <th>Partner Rate</th>
           <th></th>
         </tr>
       </thead>
@@ -72,6 +74,7 @@
                 </select>
               </td>
               <td><input type="number" min="0" step="1" [(ngModel)]="editDraft.rate" /></td>
+              <td><input type="number" min="0" step="1" [(ngModel)]="editDraft.delivery_partner_rate" /></td>
               <td class="zone-row-actions">
                 <button type="button" class="approve-btn small" [disabled]="zoneSaving()" (click)="saveEdit(zone)">
                   {{ zoneSaving() ? 'Saving…' : 'Save' }}
@@ -84,6 +87,7 @@
               <td>{{ zone.final_km }} km</td>
               <td>{{ zone.pricing_type === 'flat' ? 'Flat' : 'Per km' }}</td>
               <td>₹{{ zone.rate }}{{ zone.pricing_type === 'per_km' ? '/km' : '' }}</td>
+              <td>₹{{ zone.delivery_partner_rate ?? zone.rate }}{{ zone.pricing_type === 'per_km' ? '/km' : '' }}</td>
               <td class="zone-row-actions">
                 <button type="button" class="hist-toggle" (click)="startEdit(zone)">Edit</button>
                 <button type="button" class="danger-link" (click)="deleteZone(zone)">Delete</button>
@@ -91,7 +95,7 @@
             }
           </tr>
         } @empty {
-          <tr><td colspan="6" class="empty-table-cell">No zones yet. Add Zone 1 with an initial and final range to get started.</td></tr>
+          <tr><td colspan="7" class="empty-table-cell">No zones yet. Add Zone 1 with an initial and final range to get started.</td></tr>
         }
       </tbody>
     </table>

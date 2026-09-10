@@ -138,6 +138,27 @@
     line-height: 1.5;
     color: var(--color-muted);
   }
+
+  .insta-unlock-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 9px 18px;
+    border-radius: 9999px;
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(220, 39, 67, 0.25);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(220, 39, 67, 0.35);
+    }
+  }
 }
 
 @keyframes empty-fade-in {
