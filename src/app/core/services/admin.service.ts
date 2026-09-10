@@ -634,7 +634,7 @@ export interface PromoCode {
   is_active: boolean;
   is_public: boolean;
   is_expired: boolean;
-  audience?: 'all' | 'new_users';
+  audience?: 'all' | 'new_users' | 'all_time';
   description: string | null;
   restaurant_id?: number | null;
   restaurant_name?: string | null;
@@ -646,7 +646,7 @@ export interface PromoCode {
 export interface PromoCodeCreate {
   code: string;
   channel: 'all' | 'mobile_app';
-  audience?: 'all' | 'new_users';
+  audience?: 'all' | 'new_users' | 'all_time';
   discount_type?: 'percent' | 'flat';
   percent_off?: number | null;
   flat_off?: number | null;

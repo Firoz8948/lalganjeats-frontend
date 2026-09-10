@@ -26,6 +26,7 @@
         <select [(ngModel)]="newPromo.audience">
           <option value="all">All users (one time per mobile)</option>
           <option value="new_users">New users only</option>
+          <option value="all_time">All time (unlimited per user)</option>
         </select>
       </label>
       <label>
@@ -111,7 +112,7 @@
             </td>
             <td>{{ restaurantLabel(promo) }}</td>
             <td>{{ promo.channel === 'mobile_app' ? 'Mobile app only' : 'All' }}</td>
-            <td>{{ promo.audience === 'new_users' ? 'New users' : 'All users · 1× / mobile' }}</td>
+            <td>{{ promo.audience === 'new_users' ? 'New users' : (promo.audience === 'all_time' ? 'All time (unlimited)' : 'All users · 1× / mobile') }}</td>
             <td>{{ promo.is_public ? 'Public' : 'Secret' }}</td>
             <td>{{ benefitLabel(promo) }}</td>
             <td>{{ promo.max_uses === 0 ? 'Unlimited' : (promo.remaining_uses + ' / ' + promo.max_uses) }}</td>
