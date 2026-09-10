@@ -26,6 +26,7 @@ export interface TrackSnapshot {
   delivery_partner_id: number | null;
   delivery_partner: {
     name: string;
+    phone?: string | null;
     selfie_url: string | null;
     registered_vehicle_number: string | null;
     bike_info: string | null;
