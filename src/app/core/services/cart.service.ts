@@ -117,6 +117,26 @@ export class CartService {
     }
   }
 
+  deleteItem(restaurantId: number, itemId: number, variantId: number | null = null) {
+    const current = this._cart();
+    if (!current || current.restaurantId !== restaurantId) return;
+
+    const key = this._lineKey(itemId, variantId);
+    const newItems = current.items.filter(
+      i => this._lineKey(i.id, i.variant_id ?? null) !== key
+    );
+
+    if (newItems.length === 0) {
+      this._save(null);
+    } else {
+      this._save({
+        restaurantId,
+        restaurantName: current.restaurantName,
+        items: newItems,
+      });
+    }
+  }
+
   clearCart() {
     this._save(null);
   }

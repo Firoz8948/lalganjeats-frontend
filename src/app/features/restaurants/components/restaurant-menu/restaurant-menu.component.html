@@ -116,23 +116,37 @@
                 @for (item of group.items; track item.id) {
                 <div class="menu-card" [class.unavailable]="!item.is_available">
 
-                  <div class="menu-card__info">
-
-                    <div class="menu-card__badges">
-                      <div class="veg-badge" [class.non-veg]="!item.is_veg">
-                        <span></span>
+                  <!-- 1. LEFT SIDE: 1:1 menu icon or menu image if uploaded -->
+                  <div class="menu-card__media">
+                    @if (item.image_url) {
+                      <img [src]="item.image_url" [alt]="item.name" class="menu-card__img" loading="lazy">
+                    } @else {
+                      <div class="menu-card__placeholder" [class.non-veg]="!item.is_veg">
+                        <span class="placeholder-emoji">{{ item.is_veg ? '🥗' : '🍗' }}</span>
                       </div>
+                    }
+                  </div>
 
-                      @if (item.is_bestseller) {
-                        <span class="bestseller-tag">🔥 Bestseller</span>
-                      }
-
-                      @if (!item.is_available) {
-                        <span class="unavailable-tag">Not Available</span>
-                      }
+                  <!-- 2. MIDDLE: All content left-aligned -->
+                  <div class="menu-card__content">
+                    <!-- Menu title on left, veg/non-veg sign on extreme right of same row -->
+                    <div class="menu-card__header">
+                      <h3 class="menu-card__name">{{ item.name }}</h3>
+                      <div class="veg-badge" [class.non-veg]="!item.is_veg" [title]="item.is_veg ? 'Pure Veg' : 'Non-Veg'">
+                        <span class="veg-symbol"></span>
+                      </div>
                     </div>
 
-                    <h3 class="menu-card__name">{{ item.name }}</h3>
+                    @if (item.is_bestseller || !item.is_available) {
+                      <div class="menu-card__tags">
+                        @if (item.is_bestseller) {
+                          <span class="bestseller-tag">🔥 Bestseller</span>
+                        }
+                        @if (!item.is_available) {
+                          <span class="unavailable-tag">Not Available</span>
+                        }
+                      </div>
+                    }
 
                     @if (variantsFor(item).length > 0) {
                       <div class="variant-pills">
@@ -149,42 +163,65 @@
                       </div>
                     }
 
+                    <!-- Display price, MRP cut, Percent off (all left aligned) -->
                     <div class="menu-card__price">
                       <span class="price-current">₹{{ displayPrice(item) }}</span>
                       @if (displayMrp(item); as mrp) {
-                        <span class="price-original">₹{{ mrp }}</span>
-                        <span class="price-discount">
-                          {{ ((mrp - displayPrice(item)) / mrp * 100) | number:'1.0-0' }}% OFF
-                        </span>
+                        @if (mrp > displayPrice(item)) {
+                          <span class="price-original">₹{{ mrp }}</span>
+                          <span class="price-discount">
+                            {{ ((mrp - displayPrice(item)) / mrp * 100) | number:'1.0-0' }}% OFF
+                          </span>
+                        }
                       }
                     </div>
 
-                    <p class="menu-card__desc">{{ item.description }}</p>
+                    <!-- Description (left aligned) -->
+                    @if (item.description) {
+                      <p class="menu-card__desc">{{ item.description }}</p>
+                    }
                   </div>
 
-                  <div class="menu-card__right">
-                    <div class="menu-card__image">
-                      @if (item.image_url) {
-                        <img [src]="item.image_url" [alt]="item.name" class="item-img">
-                      } @else {
-                        <span class="item-emoji">{{ item.is_veg ? '🥗' : '🍗' }}</span>
-                      }
-                    </div>
-
+                  <!-- 3. RIGHT SIDE: 10% of menu card with big + or -[quantity]+ -->
+                  <div class="menu-card__action">
                     @if (item.is_available) {
-                      <div class="menu-card__add">
-                        @if (getCartQuantity(item) === 0) {
-                          <button class="add-btn" (click)="addToCart(item)">
-                            + ADD
+                      @if (getCartQuantity(item) === 0) {
+                        <button
+                          type="button"
+                          class="btn-add-big"
+                          (click)="addToCart(item)"
+                          [attr.aria-label]="'Add ' + item.name + ' to cart'">
+                          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                          </svg>
+                        </button>
+                      } @else {
+                        <div class="qty-counter">
+                          <button
+                            type="button"
+                            class="qty-counter__btn"
+                            (click)="removeFromCart(item)"
+                            aria-label="Decrease quantity">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6">
+                              <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
                           </button>
-                        } @else {
-                          <div class="qty-control">
-                            <button class="qty-btn" (click)="removeFromCart(item)">−</button>
-                            <span class="qty-value">{{ getCartQuantity(item) }}</span>
-                            <button class="qty-btn" (click)="addToCart(item)">+</button>
-                          </div>
-                        }
-                      </div>
+                          <span class="qty-counter__val">{{ getCartQuantity(item) }}</span>
+                          <button
+                            type="button"
+                            class="qty-counter__btn"
+                            (click)="addToCart(item)"
+                            aria-label="Increase quantity">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6">
+                              <line x1="12" y1="5" x2="12" y2="19"/>
+                              <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                          </button>
+                        </div>
+                      }
+                    } @else {
+                      <span class="action-unavailable">Sold out</span>
                     }
                   </div>
 

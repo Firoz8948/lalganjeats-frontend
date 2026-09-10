@@ -96,6 +96,12 @@ export class CheckoutComponent implements OnInit {
     this.paymentMethod = method;
   }
 
+  deleteItem(item: CartItem) {
+    const c = this.cartData();
+    if (!c) return;
+    this.cart.deleteItem(c.restaurantId, item.id, item.variant_id ?? null);
+  }
+
   ngOnInit() {
     window.scrollTo(0, 0);
     if (!this.cartData()) {
