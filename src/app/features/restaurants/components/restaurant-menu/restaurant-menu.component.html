@@ -116,7 +116,12 @@
                 @for (item of group.items; track item.id) {
                 <div class="menu-card" [class.unavailable]="!item.is_available">
 
-                  <!-- 1. LEFT SIDE: 1:1 menu icon or menu image if uploaded -->
+                  <!-- Veg / Non-Veg badge: Extreme right top corner (2px below & 2px left on mobile, 4px on desktop) -->
+                  <div class="veg-badge veg-corner-badge" [class.non-veg]="!item.is_veg" [title]="item.is_veg ? 'Pure Veg' : 'Non-Veg'">
+                    <span class="veg-symbol"></span>
+                  </div>
+
+                  <!-- 1. LEFT 25%: Menu item image without inner padding -->
                   <div class="menu-card__media">
                     @if (item.image_url) {
                       <img [src]="item.image_url" [alt]="item.name" class="menu-card__img" loading="lazy">
@@ -127,15 +132,9 @@
                     }
                   </div>
 
-                  <!-- 2. MIDDLE: All content left-aligned -->
+                  <!-- 2. RIGHT 75%: Left-aligned & vertically centered content -->
                   <div class="menu-card__content">
-                    <!-- Menu title on left, veg/non-veg sign on extreme right of same row -->
-                    <div class="menu-card__header">
-                      <h3 class="menu-card__name">{{ item.name }}</h3>
-                      <div class="veg-badge" [class.non-veg]="!item.is_veg" [title]="item.is_veg ? 'Pure Veg' : 'Non-Veg'">
-                        <span class="veg-symbol"></span>
-                      </div>
-                    </div>
+                    <h3 class="menu-card__name">{{ item.name }}</h3>
 
                     @if (item.is_bestseller || !item.is_available) {
                       <div class="menu-card__tags">
@@ -144,21 +143,6 @@
                         }
                         @if (!item.is_available) {
                           <span class="unavailable-tag">Not Available</span>
-                        }
-                      </div>
-                    }
-
-                    @if (variantsFor(item).length > 0) {
-                      <div class="variant-pills">
-                        @for (v of variantsFor(item); track v.id) {
-                          <button
-                            type="button"
-                            class="variant-pill"
-                            [class.active]="selectedVariantFor(item)?.id === v.id"
-                            [disabled]="!v.is_available"
-                            (click)="selectVariant(item.id, v.id)">
-                            {{ v.label }}
-                          </button>
                         }
                       </div>
                     }
@@ -176,53 +160,65 @@
                       }
                     </div>
 
-                    <!-- Description (left aligned) -->
+                    @if (variantsFor(item).length > 0) {
+                      <div class="variant-pills">
+                        @for (v of variantsFor(item); track v.id) {
+                          <button
+                            type="button"
+                            class="variant-pill"
+                            [class.active]="selectedVariantFor(item)?.id === v.id"
+                            [disabled]="!v.is_available"
+                            (click)="selectVariant(item.id, v.id)">
+                            {{ v.label }}
+                          </button>
+                        }
+                      </div>
+                    }
+
+                    <!-- Description (10px in mobile view, left aligned) -->
                     @if (item.description) {
                       <p class="menu-card__desc">{{ item.description }}</p>
                     }
-                  </div>
 
-                  <!-- 3. RIGHT SIDE: 10% of menu card with big + or -[quantity]+ -->
-                  <div class="menu-card__action">
-                    @if (item.is_available) {
-                      @if (getCartQuantity(item) === 0) {
-                        <button
-                          type="button"
-                          class="btn-add-big"
-                          (click)="addToCart(item)"
-                          [attr.aria-label]="'Add ' + item.name + ' to cart'">
-                          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                          </svg>
-                        </button>
-                      } @else {
-                        <div class="qty-counter">
+                    <!-- Add button (switches to -[qty]+ when clicked) -->
+                    <div class="menu-card__action">
+                      @if (item.is_available) {
+                        @if (getCartQuantity(item) === 0) {
                           <button
                             type="button"
-                            class="qty-counter__btn"
-                            (click)="removeFromCart(item)"
-                            aria-label="Decrease quantity">
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6">
-                              <line x1="5" y1="12" x2="19" y2="12"/>
-                            </svg>
-                          </button>
-                          <span class="qty-counter__val">{{ getCartQuantity(item) }}</span>
-                          <button
-                            type="button"
-                            class="qty-counter__btn"
+                            class="btn-add-text"
                             (click)="addToCart(item)"
-                            aria-label="Increase quantity">
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6">
-                              <line x1="12" y1="5" x2="12" y2="19"/>
-                              <line x1="5" y1="12" x2="19" y2="12"/>
-                            </svg>
+                            [attr.aria-label]="'Add ' + item.name + ' to cart'">
+                            ADD
                           </button>
-                        </div>
+                        } @else {
+                          <div class="qty-counter">
+                            <button
+                              type="button"
+                              class="qty-counter__btn"
+                              (click)="removeFromCart(item)"
+                              aria-label="Decrease quantity">
+                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6">
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                              </svg>
+                            </button>
+                            <span class="qty-counter__val">{{ getCartQuantity(item) }}</span>
+                            <button
+                              type="button"
+                              class="qty-counter__btn"
+                              (click)="addToCart(item)"
+                              aria-label="Increase quantity">
+                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                              </svg>
+                            </button>
+                          </div>
+                        }
+                      } @else {
+                        <span class="action-unavailable">Sold out</span>
                       }
-                    } @else {
-                      <span class="action-unavailable">Sold out</span>
-                    }
+                    </div>
                   </div>
 
                 </div>
