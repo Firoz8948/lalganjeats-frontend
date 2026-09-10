@@ -116,12 +116,7 @@
                 @for (item of group.items; track item.id) {
                 <div class="menu-card" [class.unavailable]="!item.is_available">
 
-                  <!-- Veg / Non-Veg badge: Extreme right top corner (2px below & 2px left on mobile, 4px on desktop) -->
-                  <div class="veg-badge veg-corner-badge" [class.non-veg]="!item.is_veg" [title]="item.is_veg ? 'Pure Veg' : 'Non-Veg'">
-                    <span class="veg-symbol"></span>
-                  </div>
-
-                  <!-- 1. LEFT 25%: Menu item image without inner padding -->
+                  <!-- 1. LEFT SIDE: 1:1 Square Image -->
                   <div class="menu-card__media">
                     @if (item.image_url) {
                       <img [src]="item.image_url" [alt]="item.name" class="menu-card__img" loading="lazy">
@@ -132,9 +127,14 @@
                     }
                   </div>
 
-                  <!-- 2. RIGHT 75%: Left-aligned & vertically centered content -->
+                  <!-- 2. RIGHT SIDE: Content -->
                   <div class="menu-card__content">
-                    <h3 class="menu-card__name">{{ item.name }}</h3>
+                    <div class="menu-card__header">
+                      <div class="veg-badge" [class.non-veg]="!item.is_veg" [title]="item.is_veg ? 'Pure Veg' : 'Non-Veg'">
+                        <span class="veg-symbol"></span>
+                      </div>
+                      <h3 class="menu-card__name">{{ item.name }}</h3>
+                    </div>
 
                     @if (item.is_bestseller || !item.is_available) {
                       <div class="menu-card__tags">
@@ -147,7 +147,7 @@
                       </div>
                     }
 
-                    <!-- Display price, MRP cut, Percent off (all left aligned) -->
+                    <!-- Price, MRP, % OFF -->
                     <div class="menu-card__price">
                       <span class="price-current">₹{{ displayPrice(item) }}</span>
                       @if (displayMrp(item); as mrp) {
@@ -175,40 +175,40 @@
                       </div>
                     }
 
-                    <!-- Description (10px in mobile view, left aligned) -->
+                    <!-- Description -->
                     @if (item.description) {
                       <p class="menu-card__desc">{{ item.description }}</p>
                     }
 
-                    <!-- Add button (switches to -[qty]+ when clicked) -->
-                    <div class="menu-card__action">
+                    <!-- Action row: Right-aligned near thumb -->
+                    <div class="menu-card__action-row">
                       @if (item.is_available) {
                         @if (getCartQuantity(item) === 0) {
                           <button
                             type="button"
-                            class="btn-add-text"
+                            class="btn-add-primary"
                             (click)="addToCart(item)"
                             [attr.aria-label]="'Add ' + item.name + ' to cart'">
                             ADD
                           </button>
                         } @else {
-                          <div class="qty-counter">
+                          <div class="qty-counter-primary">
                             <button
                               type="button"
-                              class="qty-counter__btn"
+                              class="qty-counter-primary__btn"
                               (click)="removeFromCart(item)"
                               aria-label="Decrease quantity">
-                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6">
+                              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6">
                                 <line x1="5" y1="12" x2="19" y2="12"/>
                               </svg>
                             </button>
-                            <span class="qty-counter__val">{{ getCartQuantity(item) }}</span>
+                            <span class="qty-counter-primary__val">{{ getCartQuantity(item) }}</span>
                             <button
                               type="button"
-                              class="qty-counter__btn"
+                              class="qty-counter-primary__btn"
                               (click)="addToCart(item)"
                               aria-label="Increase quantity">
-                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6">
+                              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6">
                                 <line x1="12" y1="5" x2="12" y2="19"/>
                                 <line x1="5" y1="12" x2="19" y2="12"/>
                               </svg>
