@@ -28,7 +28,14 @@
             <td><strong>{{ order.order_number }}</strong></td>
             <td>{{ order.customer || '—' }}</td>
             <td>{{ order.restaurant || '—' }}</td>
-            <td>{{ statusLabel(order.status) }}</td>
+            <td>
+              <span
+                class="status-badge"
+                [class.cancelled]="order.status === 'cancelled'"
+                [class.delivered]="order.status === 'delivered'">
+                {{ statusLabel(order.status) }}
+              </span>
+            </td>
             <td>
               <span class="mode-pill" [class.verified]="showVerified(order)">
                 {{ modeLabel(order) }}
@@ -48,9 +55,20 @@
             </td>
             <td>{{ order.created_at | date:'d MMM yyyy, h:mm a' }}</td>
             <td>
-              <button type="button" class="approve-btn small" (click)="openOrderBreakdown(order)">
-                Breakdown
-              </button>
+              <div class="order-actions">
+                <button type="button" class="approve-btn small" (click)="openOrderBreakdown(order)">
+                  Breakdown
+                </button>
+                @if (order.status !== 'cancelled') {
+                  <button
+                    type="button"
+                    class="cancel-order-btn small"
+                    [disabled]="cancellingOrderId() === order.id"
+                    (click)="confirmCancelOrder(order)">
+                    {{ cancellingOrderId() === order.id ? 'Cancelling…' : 'Cancel' }}
+                  </button>
+                }
+              </div>
             </td>
           </tr>
         } @empty {
@@ -102,7 +120,15 @@
         <div>
           <h2 class="modal__title">Order Breakdown</h2>
           @if (breakdown(); as details) {
-            <p class="modal__sub">{{ details.order_number }} · {{ details.restaurant || 'Restaurant' }}</p>
+            <p class="modal__sub">
+              {{ details.order_number }} · {{ details.restaurant || 'Restaurant' }}
+              <span
+                class="status-badge"
+                [class.cancelled]="details.status === 'cancelled'"
+                [class.delivered]="details.status === 'delivered'">
+                {{ statusLabel(details.status) }}
+              </span>
+            </p>
           }
         </div>
         <button type="button" class="modal__close" (click)="closeOrderBreakdown()">×</button>
@@ -114,6 +140,11 @@
         <p class="form-msg form-msg--error">{{ breakdownError() }}</p>
       } @else {
       @if (breakdown(); as details) {
+        @if (details.status === 'cancelled') {
+          <div class="cancelled-alert-box">
+            ⚠️ This order is CANCELLED. It is hidden from restaurant and delivery partner order histories.
+          </div>
+        }
         @let net = adminCashflow(details);
         <div class="breakdown-section">
           <h3>Customer view</h3>
@@ -191,6 +222,20 @@
           <p class="breakdown-note">
             Amount equals customer total. Online = prepaid PayU or delivery QR. COD = cash collected by the rider.
           </p>
+        </div>
+        <div class="modal__footer">
+          @if (details.status !== 'cancelled') {
+            <button
+              type="button"
+              class="cancel-order-btn"
+              [disabled]="cancellingOrderId() === details.order_id"
+              (click)="confirmCancelOrder(details)">
+              {{ cancellingOrderId() === details.order_id ? 'Cancelling…' : 'Cancel Order' }}
+            </button>
+          }
+          <button type="button" class="btn-close-modal" (click)="closeOrderBreakdown()">
+            Close
+          </button>
         </div>
       }
       }

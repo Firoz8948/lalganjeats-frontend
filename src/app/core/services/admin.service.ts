@@ -351,6 +351,16 @@ export class AdminService {
     return this.http.get<OrderBreakdown>(`${this.baseUrl}/orders/${orderId}/breakdown`);
   }
 
+  cancelOrder(
+    orderId: number | string,
+    reason?: string,
+  ): Observable<{ status: string; message: string; order_number: string }> {
+    return this.http.post<{ status: string; message: string; order_number: string }>(
+      `${this.baseUrl}/orders/${orderId}/cancel`,
+      { reason: reason || 'Cancelled by Admin' },
+    );
+  }
+
   getPaymentsReceived(page = 1): Observable<PaymentsReceivedResponse> {
     return this.http.get<PaymentsReceivedResponse>(
       `${this.baseUrl}/payments/received?page=${page}`,

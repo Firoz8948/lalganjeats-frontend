@@ -40,6 +40,7 @@ export class AdminOrdersComponent implements OnInit {
   breakdownLoading = signal(false);
   breakdownError = signal('');
   breakdown = signal<OrderBreakdown | null>(null);
+  cancellingOrderId = signal<number | null>(null);
 
   readonly showingFrom = computed(() => {
     if (!this.total()) return 0;
@@ -156,5 +157,35 @@ export class AdminOrdersComponent implements OnInit {
     this.breakdownOpen.set(false);
     this.breakdown.set(null);
     this.breakdownError.set('');
+  }
+
+  confirmCancelOrder(order: { id?: number; order_id?: number; order_number: string; status: string }) {
+    const id = order.id ?? order.order_id;
+    if (!id) return;
+    const orderNumber = order.order_number;
+    if (order.status === 'cancelled') return;
+
+    const ok = window.confirm(
+      `Are you sure you want to cancel order ${orderNumber}? This will revoke it from the restaurant and delivery partner.`
+    );
+    if (!ok) return;
+
+    this.cancellingOrderId.set(id);
+    this.admin.cancelOrder(id).subscribe({
+      next: () => {
+        this.cancellingOrderId.set(null);
+        this.orders.update((list) =>
+          list.map((o) => (o.id === id ? { ...o, status: 'cancelled' } : o))
+        );
+        const currentBreakdown = this.breakdown();
+        if (currentBreakdown && (currentBreakdown.order_id === id || currentBreakdown.order_number === orderNumber)) {
+          this.breakdown.update((b) => (b ? { ...b, status: 'cancelled' } : b));
+        }
+      },
+      error: (err) => {
+        this.cancellingOrderId.set(null);
+        alert(typeof err.error?.detail === 'string' ? err.error.detail : 'Failed to cancel order.');
+      },
+    });
   }
 }

@@ -9,7 +9,7 @@ import {
 } from '../../services/hotel-portal.service';
 import { HpIconComponent, HpIconName } from '../shared/hp-icon/hp-icon.component';
 
-type HistoryFilter = 'delivered' | 'cancelled';
+type HistoryFilter = 'delivered';
 
 @Component({
   selector: 'app-hp-order-history',
@@ -26,7 +26,6 @@ export class HpOrderHistoryComponent implements OnInit {
 
   filters: { key: HistoryFilter; label: string }[] = [
     { key: 'delivered', label: 'Delivered'      },
-    { key: 'cancelled', label: 'Cancelled'      },
   ];
 
   constructor(private service: HotelPortalService) {}
