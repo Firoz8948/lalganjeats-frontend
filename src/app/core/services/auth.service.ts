@@ -260,9 +260,10 @@ export class AuthService {
     return `User ${user.user_id}`;
   }
 
-  private isPlaceholderName(name: string): boolean {
+  isPlaceholderName(name: string | null | undefined): boolean {
+    if (!name) return true;
     const trimmed = name.trim();
     if (!trimmed) return true;
-    return /^User_?\d+$/i.test(trimmed.replace(/\s/g, ''));
+    return /^(user|cust|customer)([\s_-]*\d*)$/i.test(trimmed);
   }
 }

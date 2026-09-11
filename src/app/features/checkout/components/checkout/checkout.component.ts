@@ -142,9 +142,8 @@ export class CheckoutComponent implements OnInit {
     }
   }
 
-  private isPlaceholderName(name: string): boolean {
-    if (!name || !name.trim()) return true;
-    return /^cust\s*\d+$/i.test(name.trim()) || /^user\s*\d+$/i.test(name.trim());
+  private isPlaceholderName(name: string | null | undefined): boolean {
+    return this.auth.isPlaceholderName(name);
   }
 
   private isPlaceholderEmail(email: string): boolean {
@@ -157,10 +156,14 @@ export class CheckoutComponent implements OnInit {
     this.profile.getProfile().subscribe({
       next: (prof: CustomerProfile) => {
         if (prof) {
-          const validName = prof.full_name && !this.isPlaceholderName(prof.full_name);
+          const rawName = (prof.full_name || '').trim();
+          const validName = !!rawName && !this.isPlaceholderName(rawName);
           if (validName) {
-            this.fullName = prof.full_name;
+            this.fullName = rawName;
             this.hasSavedProfile.set(true);
+          } else {
+            this.fullName = '';
+            this.hasSavedProfile.set(false);
           }
           if (prof.email && !this.isPlaceholderEmail(prof.email)) {
             this.email = prof.email;
@@ -326,18 +329,23 @@ export class CheckoutComponent implements OnInit {
 
     this.placing.set(true);
 
-    // Auto-update profile in background if self mode and not saved
-    if (this.recipientMode === 'self') {
+    // Auto-update profile in background if self mode and update auth session immediately
+    const enteredName = this.fullName.trim();
+    if (this.recipientMode === 'self' && enteredName) {
       this.profile.updateProfile({
-        full_name: this.fullName.trim(),
+        full_name: enteredName,
         email: this.email.trim() || null,
       }).subscribe({
+        next: () => {
+          this.auth.patchUser({ full_name: enteredName });
+        },
         error: (err: any) => {
           if (err.error?.detail && typeof err.error.detail === 'string') {
             console.warn('Profile update note:', err.error.detail);
           }
-        }
+        },
       });
+      this.auth.patchUser({ full_name: enteredName });
     }
 
     const loc = this.customerLocation.location();
@@ -359,6 +367,7 @@ export class CheckoutComponent implements OnInit {
 
     const payload: PlaceOrderPayload = {
       restaurant_id: c.restaurantId,
+      customer_name: this.recipientMode === 'self' ? enteredName : (this.recipientName.trim() || null),
       payment_method: this.paymentMethod,
       notes: this.notes || null,
       promo_code: this.appliedPromoCode() || this.promoCode.trim() || null,

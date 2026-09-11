@@ -18,6 +18,7 @@ export interface PlaceOrderPayload {
   payment_method: 'cash' | 'online';
   notes?: string | null;
   promo_code?: string | null;
+  customer_name?: string | null;
   client_channel?: string | null;
   device_id?: string | null;
   items: PlaceOrderItem[];
