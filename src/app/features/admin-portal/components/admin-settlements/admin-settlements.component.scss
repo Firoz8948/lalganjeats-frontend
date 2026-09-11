@@ -43,6 +43,32 @@
   &:disabled { cursor: not-allowed; opacity: .5; }
 }
 
+.clear-cash-btn {
+  padding: 6px 12px;
+  border: 1px solid #d97706;
+  border-radius: 8px;
+  background: #d97706;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 100ms ease-out, opacity 100ms ease-out, background 100ms ease-out;
+
+  &:hover:not(:disabled) {
+    background: #b45309;
+    border-color: #b45309;
+    transform: translateY(-1px);
+  }
+  &:active:not(:disabled) { transform: translateY(0); }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    border-color: #e5e7eb;
+    background: #f3f4f6;
+    color: #9ca3af;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .impersonate-btn { transition: none; }
+  .impersonate-btn, .clear-cash-btn { transition: none; }
 }

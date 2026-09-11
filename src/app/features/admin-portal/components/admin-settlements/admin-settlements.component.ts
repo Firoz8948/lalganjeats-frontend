@@ -18,6 +18,7 @@ export class AdminSettlementsComponent implements OnInit {
   deliverySettlements = signal<SettlementRow[]>([]);
   settlementsLoading = signal(false);
   settlementAction = signal('');
+  clearCashAction = signal<number | null>(null);
   settlementError = signal('');
   settlementSuccess = signal('');
   impersonatingPartnerId = signal<number | null>(null);
@@ -77,6 +78,33 @@ export class AdminSettlementsComponent implements OnInit {
 
   settleDeliveryPartner(row: SettlementRow) {
     this.runSettlement('delivery', row);
+  }
+
+  clearDeliveryPartnerCash(row: SettlementRow) {
+    const cash = row.cash_collected || 0;
+    if (cash <= 0) return;
+    const confirmed = window.confirm(
+      `Clear collected cash of ₹${cash.toFixed(2)} for ${row.name}? ` +
+      'This will mark all collected cash as received by platform and reset cash on hand to ₹0.00.',
+    );
+    if (!confirmed) return;
+
+    this.clearCashAction.set(row.id);
+    this.settlementError.set('');
+    this.settlementSuccess.set('');
+    this.admin.clearDeliveryPartnerCash(row.id).subscribe({
+      next: (result) => {
+        this.settlementSuccess.set(
+          result.message || `Cleared cash of ₹${result.cleared_amount.toFixed(2)} for ${row.name}. Cash on hand is now ₹0.00.`
+        );
+        this.clearCashAction.set(null);
+        this.loadSettlements();
+      },
+      error: (error) => {
+        this.settlementError.set(error?.error?.detail || 'Failed to clear cash. Please try again.');
+        this.clearCashAction.set(null);
+      },
+    });
   }
 
   toggleRestaurantHistory(id: number) {

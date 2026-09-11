@@ -91,6 +91,12 @@
                         (click)="settleDeliveryPartner(row)">
                   {{ settlementAction() === 'delivery-' + row.id ? 'Settling…' : 'Settle now' }}
                 </button>
+                <button type="button" class="clear-cash-btn small"
+                        [disabled]="(row.cash_collected || 0) <= 0 || clearCashAction() === row.id"
+                        [title]="(row.cash_collected || 0) <= 0 ? 'No cash to clear' : 'Clear collected cash and reset to ₹0.00'"
+                        (click)="clearDeliveryPartnerCash(row)">
+                  {{ clearCashAction() === row.id ? 'Clearing…' : 'Clear cash' }}
+                </button>
                 <button type="button" class="hist-toggle"
                         [class.on]="openDeliveryHistory() === row.id"
                         (click)="toggleDeliveryHistory(row.id)">

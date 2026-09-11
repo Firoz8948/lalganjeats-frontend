@@ -392,6 +392,13 @@ export class AdminService {
     );
   }
 
+  clearDeliveryPartnerCash(id: number): Observable<{ cleared_amount: number; cleared_orders: number; message: string }> {
+    return this.http.post<{ cleared_amount: number; cleared_orders: number; message: string }>(
+      `${this.baseUrl}/settlements/delivery-partners/${id}/clear-cash`,
+      {},
+    );
+  }
+
   getRestaurantSettlementHistory(id: number, page = 1) {
     return this.http.get<HistoryPage>(
       `${this.baseUrl}/settlements/restaurants/${id}/history?page=${page}`,
