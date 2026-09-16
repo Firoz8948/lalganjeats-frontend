@@ -210,6 +210,42 @@
   color: #0f766e;
 }
 
+.variants-transfer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+
+  @media (max-width: 640px) {
+    align-items: flex-start;
+  }
+}
+
+.variant-transfer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+
+  .variant-label {
+    color: #475569;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  .variant-price {
+    color: #0f766e;
+    font-size: 13px;
+    font-weight: 800;
+  }
+}
+
 .item-controls {
   display: flex;
   align-items: center;

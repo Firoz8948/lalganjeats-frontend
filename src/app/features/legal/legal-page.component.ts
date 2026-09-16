@@ -4,7 +4,7 @@ import { Meta, Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 
 
-type LegalDocument = 'terms' | 'privacy' | 'refund';
+type LegalDocument = 'terms' | 'privacy' | 'refund' | 'delete-account';
 
 @Component({
   selector: 'app-legal-page',
@@ -24,7 +24,9 @@ export class LegalPageComponent implements OnInit {
     this.route.paramMap.subscribe((params) => {
       const value = params.get('document');
       this.document.set(
-        value === 'privacy' || value === 'refund' ? value : 'terms',
+        value === 'privacy' || value === 'refund' || value === 'delete-account'
+          ? value
+          : 'terms',
       );
       this.updateMetadata();
     });
@@ -35,6 +37,7 @@ export class LegalPageComponent implements OnInit {
       terms: 'Terms and Conditions',
       privacy: 'Privacy Policy',
       refund: 'Return, Cancellation and Refund Policy',
+      'delete-account': 'Delete Your LalganjEats Account',
     };
     const title = `${titles[this.document()]} | LalganjEats`;
     this.title.setTitle(title);

@@ -52,6 +52,15 @@ export interface OrderItem {
   line_label?: string;
 }
 
+export interface MenuItemVariant {
+  id:             number;
+  label:          string;
+  actual_price:   number;
+  price:          number;
+  original_price?: number | null;
+  is_available:   boolean;
+}
+
 export interface MenuItem {
   id:             number;
   name:           string;
@@ -64,6 +73,7 @@ export interface MenuItem {
   is_bestseller:  boolean;
   category_id:    number | null;
   image_url:      string | null;
+  variants?:      MenuItemVariant[];
 }
 
 export interface MenuCategory {

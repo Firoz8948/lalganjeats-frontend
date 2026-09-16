@@ -8,6 +8,7 @@
     <a routerLink="/legal/terms" routerLinkActive="active">Terms</a>
     <a routerLink="/legal/privacy" routerLinkActive="active">Privacy</a>
     <a routerLink="/legal/refund" routerLinkActive="active">Returns & refunds</a>
+    <a routerLink="/legal/delete-account" routerLinkActive="active">Delete account</a>
   </nav>
 
   <main class="legal-document">
@@ -132,6 +133,47 @@
       <section>
         <h2>How to report an issue</h2>
         <p>Contact LalganjEats as soon as possible at <a href="mailto:admin@lalganjeats.com">admin&#64;lalganjeats.com</a> or +91 97210 54930. Include the registered phone number, order reference and supporting evidence. This policy does not limit statutory consumer rights.</p>
+      </section>
+    }
+
+    @if (document() === 'delete-account') {
+      <header class="document-hero document-hero--privacy">
+        <span>LALGANJEATS · ACCOUNT DELETION</span>
+        <h1>Delete your LalganjEats account</h1>
+        <p>Request deletion of your LalganjEats customer account and associated personal data.</p>
+      </header>
+
+      <section>
+        <h2>How to request account deletion</h2>
+        <ol>
+          <li>Email <a href="mailto:admin@lalganjeats.com?subject=Delete%20LalganjEats%20account">admin&#64;lalganjeats.com</a> from a mailbox you can access, or WhatsApp / call +91 97210 54930.</li>
+          <li>Use subject line: <strong>Delete LalganjEats account</strong>.</li>
+          <li>Include your registered 10-digit mobile number and full name used on LalganjEats.</li>
+          <li>We will verify ownership of the account (for example by OTP or confirming recent order details).</li>
+          <li>After verification, we delete or anonymise the account as described below.</li>
+        </ol>
+      </section>
+      <section>
+        <h2>Data that is deleted</h2>
+        <ul>
+          <li>Account profile details (name, phone, email if stored)</li>
+          <li>Saved delivery addresses</li>
+          <li>Customer settings and device / notification tokens linked to the account</li>
+          <li>Login access to the LalganjEats customer app for that phone number</li>
+        </ul>
+      </section>
+      <section>
+        <h2>Data that may be kept</h2>
+        <p>Some records may be retained for a limited period where required for legal, tax, fraud-prevention, dispute or accounting reasons, including:</p>
+        <ul>
+          <li>Order history and payment / settlement references</li>
+          <li>Records needed to comply with law or resolve chargebacks and complaints</li>
+        </ul>
+        <p>Where retained, personal identifiers are removed or anonymised where reasonably possible. Retention is typically up to <strong>90 days</strong> for routine account wipe completion, and longer only where law or an active dispute requires it.</p>
+      </section>
+      <section>
+        <h2>Timeline</h2>
+        <p>We aim to complete verified deletion requests within <strong>7–14 days</strong>. You will receive a confirmation on the contact channel you used.</p>
       </section>
     }
 

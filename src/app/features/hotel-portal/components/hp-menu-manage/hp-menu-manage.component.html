@@ -53,7 +53,16 @@
           <!-- Price & Availability Toggle -->
           <div class="item-actions">
             <div class="item-price-block">
-              @if (item.actual_price != null) {
+              @if (item.variants && item.variants.length > 0) {
+                <div class="variants-transfer-list">
+                  @for (v of item.variants; track v.id) {
+                    <span class="variant-transfer-badge">
+                      <span class="variant-label">{{ v.label }}</span>
+                      <strong class="variant-price">₹{{ v.actual_price }}</strong>
+                    </span>
+                  }
+                </div>
+              } @else if (item.actual_price != null) {
                 <span class="item-transfer-price">₹{{ item.actual_price }}</span>
               } @else {
                 <span class="item-transfer-price">₹{{ item.price }}</span>
