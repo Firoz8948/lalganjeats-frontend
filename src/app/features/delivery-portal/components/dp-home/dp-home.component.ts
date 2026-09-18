@@ -49,6 +49,8 @@ export class DpHomeComponent implements OnInit, OnDestroy {
   razorpayOrderId = '';
   razorpayPaymentId = '';
   razorpaySignature = '';
+  private collectionTxnId = '';
+  private collectionPoll?: ReturnType<typeof setInterval>;
 
   // Live Location Signals for Hero Banner
   currentLat = signal<number | null>(null);
@@ -72,6 +74,7 @@ export class DpHomeComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.poll) clearInterval(this.poll);
+    if (this.collectionPoll) clearInterval(this.collectionPoll);
     if (this.geoWatch != null && navigator.geolocation) {
       navigator.geolocation.clearWatch(this.geoWatch);
     }
@@ -445,26 +448,31 @@ export class DpHomeComponent implements OnInit, OnDestroy {
     const work = this.w(a);
     if (work.onlineAmount <= 0) return;
     this.busyId.set(a.id);
-    this.api.createCollectionPayment(a.id, work.onlineAmount).subscribe({
-      next: (pay) => {
+    this.error.set('');
+    this.api.initiateOnlineCollection(a.id, work.onlineAmount).subscribe({
+      next: (res) => {
         this.busyId.set(null);
-        this.api.openCollectionCheckout(
-          pay,
-          (resp) => {
-            this.razorpayOrderId = resp.razorpay_order_id;
-            this.razorpayPaymentId = resp.razorpay_payment_id;
-            this.razorpaySignature = resp.razorpay_signature;
-            this.patchWork(a.id, { onlinePaid: true });
-          },
-          () => {
-            this.error.set('Online payment was cancelled or failed.');
-          }
-        );
+        this.collectionTxnId = res.txnid;
+        if (res.qr_url) {
+          window.open(res.qr_url, '_blank', 'noopener');
+        }
+        if (this.collectionPoll) clearInterval(this.collectionPoll);
+        this.collectionPoll = setInterval(() => {
+          this.api.getOnlineCollectionStatus(a.id, res.txnid).subscribe({
+            next: (st) => {
+              if (st.paid) {
+                if (this.collectionPoll) clearInterval(this.collectionPoll);
+                this.collectionPoll = undefined;
+                this.patchWork(a.id, { onlinePaid: true });
+              }
+            },
+          });
+        }, 3500);
       },
       error: (e) => {
         this.busyId.set(null);
         this.error.set(e.error?.detail || 'Could not initiate collection payment');
-      }
+      },
     });
   }
 
@@ -487,13 +495,12 @@ export class DpHomeComponent implements OnInit, OnDestroy {
       otp: work.otp.trim(),
       cash_amount: work.cashAmount,
       online_amount: work.onlineAmount,
-      razorpay_order_id: this.razorpayOrderId || undefined,
-      razorpay_payment_id: this.razorpayPaymentId || undefined,
-      razorpay_signature: this.razorpaySignature || undefined,
+      collection_txnid: this.collectionTxnId || undefined,
     };
     this.api.complete(o.id, payload).subscribe({
       next: () => {
         this.patchWork(o.id, { completing: false });
+        this.collectionTxnId = '';
         this.orderWork.update((all) => {
           const next = { ...all };
           delete next[o.id];

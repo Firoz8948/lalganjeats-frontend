@@ -12,6 +12,8 @@ export interface DpOrder {
   restaurant_lat?: number | null;
   restaurant_lng?: number | null;
   delivery_address: string | null;
+  customer_name?: string | null;
+  customer_phone?: string | null;
   customer_lat?: number | null;
   customer_lng?: number | null;
   customer_total: number;
@@ -68,18 +70,49 @@ export interface DpDashboard {
   available_orders: DpOrder[];
 }
 
-export interface CollectionPaymentResponse {
+/** Response from initiating a UPI/QR doorstep collection via Razorpay Payment Link. */
+export interface OnlineCollectionInitResponse {
+  txnid: string;
+  amount: number;
+  qr_url: string;            // Razorpay payment-link short_url for QR
+  payment_page_url: string;
+  expires_at: string | null;
+}
+
+/** Polled while customer completes UPI payment on their phone. */
+export interface OnlineCollectionStatusResponse {
+  paid: boolean;
+  amount: number;
+  paid_at: string | null;
+  txnid: string;
+}
+
+export interface RazorpayCheckoutSession {
   razorpay_order_id: string;
   amount: number;
   currency: string;
   key_id: string;
+  checkout_config_id?: string | null;
+  name?: string;
+  description?: string;
+  remittance_id?: number;
+  order_count?: number;
+  prefill?: {
+    name?: string;
+    email?: string;
+    contact?: string;
+  };
 }
 
-declare const Razorpay: any;
+declare const Razorpay: new (options: Record<string, unknown>) => {
+  open: () => void;
+  on: (event: string, handler: (resp: unknown) => void) => void;
+};
 
 @Injectable({ providedIn: 'root' })
 export class DeliveryPortalService {
   private api = `${environment.apiBaseUrl}/delivery`;
+  private payApi = `${environment.apiBaseUrl}/payment`;
   private locApi = `${environment.apiBaseUrl}/getlocation`;
 
   constructor(private http: HttpClient) {}
@@ -122,10 +155,21 @@ export class DeliveryPortalService {
     );
   }
 
-  createCollectionPayment(orderId: number, onlineAmount: number) {
-    return this.http.post<CollectionPaymentResponse>(
-      `${this.api}/orders/${orderId}/collection-payment`,
+  /**
+   * Initiate a Razorpay Payment Link for the online portion of a doorstep order.
+   * Backend returns a short URL to be encoded in a QR the customer scans.
+   */
+  initiateOnlineCollection(orderId: number, onlineAmount: number) {
+    return this.http.post<OnlineCollectionInitResponse>(
+      `${this.api}/orders/${orderId}/collect-online/initiate`,
       { online_amount: onlineAmount },
+    );
+  }
+
+  /** Poll payment-link status while DP is showing the QR to the customer. */
+  getOnlineCollectionStatus(orderId: number, txnid: string) {
+    return this.http.get<OnlineCollectionStatusResponse>(
+      `${this.api}/orders/${orderId}/collect-online/status?txnid=${encodeURIComponent(txnid)}`,
     );
   }
 
@@ -135,40 +179,10 @@ export class DeliveryPortalService {
       otp: string;
       cash_amount: number;
       online_amount: number;
-      razorpay_order_id?: string;
-      razorpay_payment_id?: string;
-      razorpay_signature?: string;
+      collection_txnid?: string;
     },
   ) {
     return this.http.post(`${this.api}/orders/${orderId}/complete`, payload);
-  }
-
-  openCollectionCheckout(
-    pay: CollectionPaymentResponse,
-    onSuccess: (data: {
-      razorpay_order_id: string;
-      razorpay_payment_id: string;
-      razorpay_signature: string;
-    }) => void,
-    onFailure: () => void,
-  ) {
-    const options = {
-      key: pay.key_id,
-      amount: Math.round(pay.amount * 100),
-      currency: pay.currency,
-      name: 'LalganjEats',
-      description: 'Order collection',
-      order_id: pay.razorpay_order_id,
-      theme: { color: '#187a43' },
-      handler: (response: {
-        razorpay_order_id: string;
-        razorpay_payment_id: string;
-        razorpay_signature: string;
-      }) => onSuccess(response),
-      modal: { ondismiss: () => onFailure() },
-    };
-    const rzp = new Razorpay(options);
-    rzp.open();
   }
 
   myOrders(filter = 'today', date?: string, page = 1) {
@@ -205,30 +219,61 @@ export class DeliveryPortalService {
   }
 
   initiateCashRemit() {
-    return this.http.post<{
-      payment_url: string;
-      fields: Record<string, string>;
-      remittance_id: number;
-      amount: number;
-      order_count: number;
-    }>(`${this.api}/cash-remit/initiate`, {});
+    return this.http.post<RazorpayCheckoutSession>(`${this.api}/cash-remit/initiate`, {});
   }
 
-  /** Auto-submit a hidden form to PayU hosted checkout. */
-  redirectToPayU(paymentUrl: string, fields: Record<string, string>): void {
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = paymentUrl;
-    form.style.display = 'none';
-    Object.entries(fields).forEach(([name, value]) => {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = name;
-      input.value = value ?? '';
-      form.appendChild(input);
-    });
-    document.body.appendChild(form);
-    form.submit();
+  verifyCashRemit(payload: {
+    remittance_id: number;
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+  }) {
+    return this.http.post(`${this.payApi}/verify-remittance`, payload);
+  }
+
+  /** Opens Razorpay Standard Checkout overlay inside the app WebView. */
+  openRazorpayCheckout(
+    session: RazorpayCheckoutSession,
+    onSuccess: (data: {
+      razorpay_order_id: string;
+      razorpay_payment_id: string;
+      razorpay_signature: string;
+    }) => void,
+    onDismiss: () => void,
+  ): void {
+    if (typeof Razorpay === 'undefined') {
+      onDismiss();
+      throw new Error('Razorpay SDK failed to load');
+    }
+
+    const options: Record<string, unknown> = {
+      key: session.key_id,
+      amount: Math.round(Number(session.amount) * 100),
+      currency: session.currency || 'INR',
+      name: session.name || 'LalganjEats',
+      description: session.description || 'Payment',
+      order_id: session.razorpay_order_id,
+      prefill: session.prefill || {},
+      theme: { color: '#c41e3a' },
+      handler: (response: {
+        razorpay_order_id: string;
+        razorpay_payment_id: string;
+        razorpay_signature: string;
+      }) => onSuccess(response),
+      modal: {
+        ondismiss: () => onDismiss(),
+        escape: true,
+        confirm_close: true,
+      },
+    };
+
+    if (session.checkout_config_id) {
+      options['config'] = { checkout_config_id: session.checkout_config_id };
+    }
+
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', () => onDismiss());
+    rzp.open();
   }
 
   pingLocation(lat: number, lng: number) {

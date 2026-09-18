@@ -267,20 +267,53 @@ export class CheckoutComponent implements OnInit {
     this.placeOrder();
   }
 
-  private startPayU(orderId: number) {
-    this.checkoutPay.initiatePayU(orderId).subscribe({
-      next: (pay) => {
+  private startRazorpay(res: PlaceOrderResult) {
+    const orderId = res.id;
+    this.checkoutPay.createRazorpayOrder(orderId).subscribe({
+      next: (session) => {
         try {
-          sessionStorage.setItem('le_pending_payu_order', String(orderId));
+          this.checkoutPay.openRazorpayCheckout(
+            session,
+            (pay) => {
+              this.checkoutPay
+                .verifyRazorpay({
+                  order_id: orderId,
+                  razorpay_order_id: pay.razorpay_order_id,
+                  razorpay_payment_id: pay.razorpay_payment_id,
+                  razorpay_signature: pay.razorpay_signature,
+                })
+                .subscribe({
+                  next: (verified) => {
+                    this.placing.set(false);
+                    this.cart.clearCart();
+                    this.success.set({
+                      order_number: verified.order_number || session.order_number || res.order_number,
+                      eta_minutes: res.eta_minutes ?? null,
+                      distance_km: res.distance_km ?? null,
+                    });
+                  },
+                  error: (err: { error?: { detail?: string } }) => {
+                    this.placing.set(false);
+                    this.error.set(
+                      err.error?.detail || 'Payment received but verification failed. Contact support.',
+                    );
+                  },
+                });
+            },
+            () => {
+              this.placing.set(false);
+              this.error.set('Payment cancelled. You can retry from My Orders if the order is still unpaid.');
+            },
+          );
         } catch {
-          /* ignore */
+          this.placing.set(false);
+          this.error.set('Could not open Razorpay. Check your connection and try again.');
         }
-        this.checkoutPay.redirectToPayU(pay.payment_url, pay.fields);
       },
       error: (err: { error?: { detail?: string } }) => {
         this.placing.set(false);
         this.error.set(
-          err.error?.detail || 'Could not start PayU payment. Try again.',
+          err.error?.detail || 'Could not start Razorpay payment. Try again.',
         );
       },
     });
@@ -392,7 +425,7 @@ export class CheckoutComponent implements OnInit {
     this.orders.placeOrder(payload).subscribe({
       next: (res: PlaceOrderResult) => {
         if (res.needs_payment || (res.payment_method === 'online' && res.payment_status !== 'paid')) {
-          this.startPayU(res.id);
+          this.startRazorpay(res);
           return;
         }
         this.placing.set(false);

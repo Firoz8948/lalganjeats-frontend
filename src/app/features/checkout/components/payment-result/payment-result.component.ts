@@ -34,6 +34,7 @@ export class PaymentResultComponent implements OnInit {
     if (this.status() === 'success') {
       this.cart.clearCart();
       try {
+        sessionStorage.removeItem('le_pending_razorpay_order');
         sessionStorage.removeItem('le_pending_payu_order');
       } catch {
         /* ignore */
