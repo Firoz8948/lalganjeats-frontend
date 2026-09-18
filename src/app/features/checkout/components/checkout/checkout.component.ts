@@ -271,8 +271,8 @@ export class CheckoutComponent implements OnInit {
     const orderId = res.id;
     this.checkoutPay.createRazorpayOrder(orderId).subscribe({
       next: (session) => {
-        try {
-          this.checkoutPay.openRazorpayCheckout(
+        void this.checkoutPay
+          .openRazorpayCheckout(
             session,
             (pay) => {
               this.checkoutPay
@@ -304,13 +304,13 @@ export class CheckoutComponent implements OnInit {
               this.placing.set(false);
               this.error.set('Payment cancelled. You can retry from My Orders if the order is still unpaid.');
             },
-          );
-        } catch {
-          this.placing.set(false);
-          this.error.set('Could not open Razorpay. Check your connection and try again.');
-        }
+          )
+          .catch(() => {
+            this.placing.set(false);
+            this.error.set('Could not open Razorpay. Check your connection and try again.');
+          });
       },
-      error: (err: { error?: { detail?: string } }) => {
+      error: (err: { error?: { detail?: string }; status?: number }) => {
         this.placing.set(false);
         this.error.set(
           err.error?.detail || 'Could not start Razorpay payment. Try again.',

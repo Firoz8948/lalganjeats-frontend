@@ -41,6 +41,7 @@ export interface RazorpayVerifyResponse {
 @Injectable({ providedIn: 'root' })
 export class CheckoutService {
   private readonly base = `${environment.apiBaseUrl}/payment`;
+  private sdkLoading: Promise<void> | null = null;
 
   constructor(private http: HttpClient) {}
 
@@ -54,8 +55,42 @@ export class CheckoutService {
     return this.http.post<RazorpayVerifyResponse>(`${this.base}/verify`, payload);
   }
 
-  /** Opens Razorpay Standard Checkout overlay (works in browser + Capacitor WebView). */
-  openRazorpayCheckout(
+  /** Ensure checkout.js is present (needed after OTA / flaky WebView loads). */
+  ensureRazorpaySdk(): Promise<void> {
+    if (typeof Razorpay !== 'undefined') {
+      return Promise.resolve();
+    }
+    if (this.sdkLoading) {
+      return this.sdkLoading;
+    }
+    this.sdkLoading = new Promise<void>((resolve, reject) => {
+      const existing = document.querySelector(
+        'script[data-razorpay-checkout]',
+      ) as HTMLScriptElement | null;
+      if (existing) {
+        existing.addEventListener('load', () => resolve(), { once: true });
+        existing.addEventListener(
+          'error',
+          () => reject(new Error('Razorpay SDK failed to load')),
+          { once: true },
+        );
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.dataset['razorpayCheckout'] = '1';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Razorpay SDK failed to load'));
+      document.head.appendChild(script);
+    }).finally(() => {
+      this.sdkLoading = null;
+    });
+    return this.sdkLoading;
+  }
+
+  /** Opens Razorpay Standard Checkout overlay (browser + Capacitor WebView). */
+  async openRazorpayCheckout(
     session: RazorpayCheckoutSession,
     onSuccess: (data: {
       razorpay_order_id: string;
@@ -63,9 +98,9 @@ export class CheckoutService {
       razorpay_signature: string;
     }) => void,
     onDismiss: () => void,
-  ): void {
+  ): Promise<void> {
+    await this.ensureRazorpaySdk();
     if (typeof Razorpay === 'undefined') {
-      onDismiss();
       throw new Error('Razorpay SDK failed to load');
     }
 
@@ -78,6 +113,8 @@ export class CheckoutService {
       order_id: session.razorpay_order_id,
       prefill: session.prefill || {},
       theme: { color: '#c41e3a' },
+      // Required so Razorpay shows UPI inside Android WebView / Capacitor APK.
+      webview_intent: true,
       handler: (response: {
         razorpay_order_id: string;
         razorpay_payment_id: string;
@@ -90,6 +127,7 @@ export class CheckoutService {
       },
     };
 
+    // Only attach config when present; invalid IDs break checkout.
     if (session.checkout_config_id) {
       options['config'] = { checkout_config_id: session.checkout_config_id };
     }

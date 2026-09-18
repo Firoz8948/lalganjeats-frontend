@@ -15,7 +15,21 @@
     </div>
 
     @if (loading()) {
-      <p class="section-subtitle">Loading restaurants…</p>
+      <div class="restaurants-loading" role="status" aria-live="polite">
+        <div class="restaurants-loading__visual" aria-hidden="true">
+          <span class="restaurants-loading__ring"></span>
+          <span class="restaurants-loading__ring restaurants-loading__ring--delay"></span>
+          <span class="restaurants-loading__icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </span>
+        </div>
+        <p class="restaurants-loading__title">Wait, we are getting restaurants</p>
+        <p class="restaurants-loading__sub">Finding places that deliver to your location…</p>
+      </div>
     }
 
     @if (error()) {

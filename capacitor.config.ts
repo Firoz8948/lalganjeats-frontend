@@ -10,6 +10,11 @@ const config: CapacitorConfig = {
     // becomes https://app.lalganjeats.com instead of https://localhost.
     androidScheme: 'https',
     hostname: 'app.lalganjeats.com',
+    allowNavigation: [
+      'checkout.razorpay.com',
+      'api.razorpay.com',
+      '*.razorpay.com',
+    ],
   },
   android: {
     backgroundColor: '#ffffff',

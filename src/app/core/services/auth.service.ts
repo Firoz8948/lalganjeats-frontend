@@ -25,6 +25,7 @@ export class AuthService {
 
   private apiUrl   = `${environment.apiBaseUrl}/auth`;
   currentUser      = signal<AuthUser | null>(this.loadFromStorage());
+  private sessionExpiryHandling = false;
 
   // ── Computed helpers ──────────────────────────────────
   isLoggedIn    = computed(() => !!this.currentUser());
@@ -222,6 +223,40 @@ export class AuthService {
     localStorage.removeItem('le_token');
     this.currentUser.set(null);
     this.router.navigateByUrl(getDefaultLandingPath());
+  }
+
+  /**
+   * Called by the JWT interceptor on 401 (expired / invalid token).
+   * Clears the session and sends the user to the right login screen.
+   */
+  handleSessionExpired(): void {
+    if (this.sessionExpiryHandling) return;
+    if (!this.getToken() && !this.currentUser()) return;
+
+    this.sessionExpiryHandling = true;
+    const role = this.currentUser()?.role;
+    const returnUrl = this.router.url || '/home';
+
+    localStorage.removeItem('le_admin_backup');
+    localStorage.removeItem('le_superadmin_backup');
+    localStorage.removeItem('le_user');
+    localStorage.removeItem('le_token');
+    this.currentUser.set(null);
+
+    let loginPath = '/auth/login';
+    if (role === 'restaurant_owner') loginPath = '/auth/hotel-login';
+    else if (role === 'delivery_partner') loginPath = '/auth/delivery-login';
+    else if (role === 'admin') loginPath = '/auth/admin-login';
+    else if (role === 'super_admin') loginPath = '/auth/superadmin-login';
+
+    const queryParams: Record<string, string> = { reason: 'session' };
+    if (role === 'customer' || !role) {
+      queryParams['returnUrl'] = returnUrl.startsWith('/auth') ? '/checkout' : returnUrl;
+    }
+
+    this.router.navigate([loginPath], { queryParams }).finally(() => {
+      this.sessionExpiryHandling = false;
+    });
   }
 
   getToken(): string | null {

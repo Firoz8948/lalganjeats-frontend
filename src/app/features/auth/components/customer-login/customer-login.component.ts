@@ -1,5 +1,5 @@
 // frontend/src/app/features/auth/components/customer-login/customer-login.component.ts
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -16,7 +16,7 @@ type Step = 'phone' | 'otp' | 'name';
   templateUrl: './customer-login.component.html',
   styleUrl: './customer-login.component.scss'
 })
-export class CustomerLoginComponent {
+export class CustomerLoginComponent implements OnInit {
   step      = signal<Step>('phone');
   phone     = '';
   otp       = '';
@@ -34,6 +34,12 @@ export class CustomerLoginComponent {
     private route: ActivatedRoute,
     private location: Location,
   ) {}
+
+  ngOnInit() {
+    if (this.route.snapshot.queryParamMap.get('reason') === 'session') {
+      this.error.set('Your session expired. Please log in again to continue.');
+    }
+  }
 
   navigateBack() {
     if (window.history.length > 1) {
