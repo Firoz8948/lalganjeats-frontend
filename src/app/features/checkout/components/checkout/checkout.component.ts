@@ -403,7 +403,9 @@ export class CheckoutComponent implements OnInit {
       customer_name: this.recipientMode === 'self' ? enteredName : (this.recipientName.trim() || null),
       payment_method: this.paymentMethod,
       notes: this.notes || null,
-      promo_code: this.appliedPromoCode() || this.promoCode.trim() || null,
+      // Only send a successfully applied code — typed-but-invalid codes must
+      // not reach place-order (that previously created ghost orders on retry).
+      promo_code: this.appliedPromoCode() || null,
       client_channel: this.promos.clientChannel,
       device_id: getDeviceId() || null,
       items: c.items.map((i: CartItem) => ({
