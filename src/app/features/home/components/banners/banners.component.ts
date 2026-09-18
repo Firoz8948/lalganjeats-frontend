@@ -4,10 +4,15 @@ import {
   OnInit,
   OnDestroy,
   computed,
+  inject,
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { BannerService, HomeBannerSlide } from '../../../../core/services/banner.service';
+import { DishSearchService } from '../../../../core/services/dish-search.service';
+import { FeaturedSubcategoriesComponent } from '../featured-subcategories/featured-subcategories.component';
 
 const DEFAULT_SLIDES: HomeBannerSlide[] = [];
 const MOBILE_BREAKPOINT = 768;
@@ -15,7 +20,7 @@ const MOBILE_BREAKPOINT = 768;
 @Component({
   selector: 'app-banners',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, RouterModule, FeaturedSubcategoriesComponent],
   templateUrl: './banners.component.html',
   styleUrl: './banners.component.scss',
 })
@@ -23,6 +28,7 @@ export class BannersComponent implements OnInit, OnDestroy {
   currentIndex = signal(0);
   slides = signal<HomeBannerSlide[]>(DEFAULT_SLIDES);
   loading = signal(true);
+  dishSearch = inject(DishSearchService);
 
   private settledImages = signal<ReadonlySet<string>>(new Set<string>());
   private isMobile = signal(
@@ -57,6 +63,14 @@ export class BannersComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.stopAutoPlay();
+  }
+
+  onDishQuery(value: string) {
+    this.dishSearch.setQuery(value);
+  }
+
+  clearDishSearch() {
+    this.dishSearch.clear();
   }
 
   @HostListener('window:resize')

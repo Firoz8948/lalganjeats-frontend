@@ -5,8 +5,9 @@
 
   @media (max-width: 768px) {
     margin-top: 0;
-    padding: 16px 0 0;
-    background: #102b4d;
+    padding: 0;
+    background:
+      linear-gradient(180deg, #fffaf5 0%, #faf5ef 55%, transparent 100%);
   }
 }
 
@@ -44,7 +45,7 @@
   @media (max-width: 768px) {
     aspect-ratio: auto;
     height: 182px;
-    background: #102b4d;
+    background: #f3ede4;
     border-radius: 0;
   }
 
@@ -136,14 +137,14 @@
 
 @media (max-width: 768px) {
   .slide {
-    background: #102b4d;
+    background: #f3ede4;
   }
 }
 
 .banner-skeleton {
   display: grid;
   place-items: center;
-  background: linear-gradient(100deg, #efefef 30%, #f9f9f9 50%, #efefef 70%);
+  background: linear-gradient(100deg, #efe8de 30%, #f7f2ea 50%, #efe8de 70%);
   background-size: 240% 100%;
   animation: banner-shimmer 1.2s ease-in-out infinite;
 
@@ -236,5 +237,138 @@
     background: var(--color-primary);
     width: 24px;
     border-radius: 4px;
+  }
+}
+
+// ── Mobile dish search under slides ───────────────────────
+.banner-dish-search {
+  display: none;
+
+  @media (max-width: 768px) {
+    display: block;
+    position: relative;
+    z-index: 5;
+    padding: 12px 16px 10px;
+    background: transparent;
+  }
+
+  &__box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 1.5px solid var(--color-primary, #f05a37);
+    border-radius: 14px;
+    padding: 12px 14px;
+    box-shadow: 0 6px 18px rgba(67, 34, 21, 0.08);
+
+    svg { color: #888; flex-shrink: 0; }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      background: transparent;
+      font-size: 15px;
+      font-weight: 500;
+      color: #1a1a1a;
+      outline: none;
+
+      &::placeholder { color: #9a9a9a; font-weight: 400; }
+    }
+  }
+
+  &__clear {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 50%;
+    background: #f0f0f0;
+    color: #555;
+    font-size: 18px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  &__panel {
+    margin-top: 10px;
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    max-height: min(52vh, 360px);
+    overflow-y: auto;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  }
+
+  &__status {
+    margin: 0;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: #666;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid #f0f0f0;
+
+    &:last-child { border-bottom: 0; }
+    &:active { background: #faf7f2; }
+  }
+
+  &__thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #f4f4f4;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    font-size: 22px;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    strong {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a1a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    span {
+      font-size: 12px;
+      color: #666;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  &__open {
+    font-size: 11px;
+    font-weight: 700;
+    color: #16a34a;
+    flex-shrink: 0;
+
+    &.is-closed { color: #b45309; }
   }
 }

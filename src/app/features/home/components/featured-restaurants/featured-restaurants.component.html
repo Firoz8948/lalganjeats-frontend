@@ -1,19 +1,6 @@
 <section class="restaurants-section">
   <div class="container">
 
-    <div class="section-header">
-      <div class="section-heading-copy">
-        <span class="section-eyebrow">Order Now, We are live</span>
-        <h2 class="section-title">
-          @if (selectedSubcategoryName()) {
-            Restaurants delivering {{ selectedSubcategoryName() }}
-          } @else {
-            Restaurants Delivering to you
-          }
-        </h2>
-      </div>
-    </div>
-
     @if (loading()) {
       <div class="restaurants-loading" role="status" aria-live="polite">
         <div class="restaurants-loading__visual" aria-hidden="true">

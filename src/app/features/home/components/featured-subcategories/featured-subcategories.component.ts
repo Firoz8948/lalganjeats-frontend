@@ -1,9 +1,7 @@
-import { Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import {
-  FeaturedSubcategory,
-  RestaurantService,
-} from '../../../../core/services/restaurant.service';
+import { FeaturedSubcategoriesStore } from '../../../../core/services/featured-subcategories.store';
+import { FeaturedSubcategory } from '../../../../core/services/restaurant.service';
 
 @Component({
   selector: 'app-featured-subcategories',
@@ -11,23 +9,30 @@ import {
   imports: [RouterLink],
   templateUrl: './featured-subcategories.component.html',
   styleUrl: './featured-subcategories.component.scss',
+  host: {
+    '[class.is-mobile]': 'layout === "mobile"',
+    '[class.is-desktop]': 'layout === "desktop"',
+    '[attr.aria-hidden]': 'false',
+  },
 })
-export class FeaturedSubcategoriesComponent {
-  private restaurants = inject(RestaurantService);
+export class FeaturedSubcategoriesComponent implements OnInit {
+  /** mobile = inside banner container; desktop = below banners */
+  @Input() layout: 'mobile' | 'desktop' = 'desktop';
 
-  @ViewChild('scroller') scroller?: ElementRef<HTMLElement>;
-  items = signal<FeaturedSubcategory[]>([]);
+  store = inject(FeaturedSubcategoriesStore);
 
-  constructor() {
-    this.restaurants.getFeaturedSubcategories().subscribe({
-      next: items => this.items.set(items),
-    });
+  ngOnInit() {
+    this.store.ensureLoaded();
   }
 
-  scroll(direction: -1 | 1) {
-    this.scroller?.nativeElement.scrollBy({
-      left: direction * Math.min(520, window.innerWidth * 0.7),
-      behavior: 'smooth',
-    });
+  initials(name: string): string {
+    const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
+  trackById(_: number, item: FeaturedSubcategory) {
+    return item.id;
   }
 }

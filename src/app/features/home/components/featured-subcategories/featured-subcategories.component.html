@@ -1,32 +1,35 @@
-@if (items().length) {
-  <section class="subcategory-strip" aria-label="Explore food categories">
-    <div class="container subcategory-strip__layout">
-      <button
-        class="subcategory-strip__arrow subcategory-strip__arrow--left"
-        type="button"
-        aria-label="Show previous categories"
-        (click)="scroll(-1)">‹</button>
-
-      <div class="subcategory-strip__scroller" #scroller>
-        @for (item of items(); track item.id) {
-          <a
-            class="subcategory-pill"
-            routerLink="/restaurants"
-            [queryParams]="{ subcategory_id: item.id, name: item.name }">
-            <strong>{{ item.name }}</strong>
-            <span>
-              {{ item.restaurant_count }}
-              {{ item.restaurant_count === 1 ? 'restaurant' : 'restaurants' }}
-            </span>
-          </a>
-        }
-      </div>
-
-      <button
-        class="subcategory-strip__arrow subcategory-strip__arrow--right"
-        type="button"
-        aria-label="Show more categories"
-        (click)="scroll(1)">›</button>
-    </div>
-  </section>
-}
+<section
+  class="subcat-grid"
+  [class.subcat-grid--dummy]="store.usingDummies()"
+  aria-label="Food categories">
+  <div class="subcat-grid__inner">
+    @for (item of store.items(); track trackById($index, item); let i = $index) {
+      @if (store.usingDummies()) {
+        <div
+          class="subcat-tile subcat-tile--inert"
+          [style.--i]="i"
+          aria-disabled="true">
+          <span class="subcat-tile__circle" aria-hidden="true">
+            <span class="subcat-tile__fallback">{{ initials(item.name) }}</span>
+          </span>
+          <span class="subcat-tile__label">{{ item.name }}</span>
+        </div>
+      } @else {
+        <a
+          class="subcat-tile"
+          [style.--i]="i"
+          routerLink="/restaurants"
+          [queryParams]="{ subcategory_id: item.id, name: item.name }">
+          <span class="subcat-tile__circle" aria-hidden="true">
+            @if (item.image_url) {
+              <img [src]="item.image_url" [alt]="" loading="lazy" decoding="async" />
+            } @else {
+              <span class="subcat-tile__fallback">{{ initials(item.name) }}</span>
+            }
+          </span>
+          <span class="subcat-tile__label">{{ item.name }}</span>
+        </a>
+      }
+    }
+  </div>
+</section>

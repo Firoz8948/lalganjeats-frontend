@@ -66,6 +66,7 @@ export interface CatalogSubcategory {
   slug: string;
   is_active: boolean;
   is_featured: boolean;
+  image_url?: string | null;
   product_count: number;
 }
 
@@ -153,6 +154,16 @@ export class AdminService {
     );
   }
 
+  updateCatalogSubcategoryImage(
+    id: number,
+    imageUrl: string | null,
+  ): Observable<CatalogSubcategory> {
+    return this.http.patch<CatalogSubcategory>(
+      `${this.baseUrl}/catalog/subcategories/${id}/image`,
+      { image_url: imageUrl },
+    );
+  }
+
   getDashboard(): Observable<any> {
     return this.http.get(`${this.baseUrl}/dashboard`);
   }
@@ -206,6 +217,7 @@ export class AdminService {
       | 'menu_item'
       | 'home_banner_desktop'
       | 'home_banner_mobile'
+      | 'subcategory'
   ): Observable<{ url: string; path: string; purpose: string }> {
     const form = new FormData();
     form.append('file', file);

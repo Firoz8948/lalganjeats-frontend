@@ -94,5 +94,63 @@
         }
       </div>
     }
+
+    <!-- Mobile dish search (under banner slides) -->
+    <div class="banner-dish-search">
+      <div class="banner-dish-search__box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          type="search"
+          enterkeyhint="search"
+          autocomplete="off"
+          placeholder="Search dish — e.g. Matar paneer"
+          [ngModel]="dishSearch.query()"
+          (ngModelChange)="onDishQuery($event)"
+          aria-label="Search restaurants by dish" />
+        @if (dishSearch.query()) {
+          <button type="button" class="banner-dish-search__clear" (click)="clearDishSearch()" aria-label="Clear search">×</button>
+        }
+      </div>
+
+      @if (dishSearch.loading() || dishSearch.hint() || dishSearch.results().length) {
+        <div class="banner-dish-search__panel" role="listbox">
+          @if (dishSearch.loading()) {
+            <p class="banner-dish-search__status">Searching nearby restaurants…</p>
+          } @else if (dishSearch.hint() && !dishSearch.results().length) {
+            <p class="banner-dish-search__status">{{ dishSearch.hint() }}</p>
+          } @else {
+            @for (r of dishSearch.results(); track r.id) {
+              <a
+                class="banner-dish-search__row"
+                [routerLink]="['/restaurants', r.slug || r.id]"
+                (click)="clearDishSearch()">
+                <div class="banner-dish-search__thumb" aria-hidden="true">
+                  @if (r.list_banner_url || r.logo_url) {
+                    <img [src]="r.list_banner_url || r.logo_url" [alt]="" />
+                  } @else {
+                    <span>{{ r.image_emoji || '🍽️' }}</span>
+                  }
+                </div>
+                <div class="banner-dish-search__meta">
+                  <strong>{{ r.name }}</strong>
+                  @if (r.matched_items?.length) {
+                    <span>Serves {{ r.matched_items!.join(', ') }}</span>
+                  }
+                </div>
+                <span class="banner-dish-search__open" [class.is-closed]="!r.is_open">
+                  {{ r.is_open ? 'Open' : 'Closed' }}
+                </span>
+              </a>
+            }
+          }
+        </div>
+      }
+    </div>
+
+    <app-featured-subcategories layout="mobile" />
   </div>
 </section>

@@ -20,6 +20,7 @@ export class AdminSubcategoriesComponent implements OnInit {
   selectedCategoryId = signal(0);
   loading = signal(true);
   saving = signal(false);
+  uploadingId = signal<number | null>(null);
   error = signal('');
   search = signal('');
   productSort = signal<'asc' | 'desc'>('desc');
@@ -103,15 +104,78 @@ export class AdminSubcategoriesComponent implements OnInit {
     });
   }
 
+  private mergeSubcategory(updated: CatalogSubcategory) {
+    this.subcategories.update(value =>
+      value.map(subcategory =>
+        subcategory.id === updated.id
+          ? {
+              ...subcategory,
+              ...updated,
+              // Never let a mutation response wipe a known count.
+              product_count:
+                updated.product_count ?? subcategory.product_count ?? 0,
+            }
+          : subcategory
+      )
+    );
+  }
+
   toggleFeatured(item: CatalogSubcategory) {
-    this.admin.toggleCatalogSubcategoryFeatured(item.id).subscribe(updated => {
-      this.subcategories.update(value =>
-        value.map(subcategory =>
-          subcategory.id === updated.id
-            ? { ...subcategory, ...updated }
-            : subcategory
-        )
-      );
+    this.admin.toggleCatalogSubcategoryFeatured(item.id).subscribe({
+      next: updated => this.mergeSubcategory(updated),
+      error: () => this.error.set('Could not update featured state.'),
+    });
+  }
+
+  initials(name: string): string {
+    const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
+  onImagePicked(item: CatalogSubcategory, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      this.error.set('Choose an image file.');
+      return;
+    }
+    this.uploadingId.set(item.id);
+    this.error.set('');
+    this.admin.uploadBanner(file, 'subcategory').subscribe({
+      next: uploaded => {
+        this.admin.updateCatalogSubcategoryImage(item.id, uploaded.url).subscribe({
+          next: updated => {
+            this.mergeSubcategory(updated);
+            this.uploadingId.set(null);
+          },
+          error: () => {
+            this.error.set('Uploaded, but could not save image on subcategory.');
+            this.uploadingId.set(null);
+          },
+        });
+      },
+      error: () => {
+        this.error.set('Could not upload image.');
+        this.uploadingId.set(null);
+      },
+    });
+  }
+
+  clearImage(item: CatalogSubcategory) {
+    this.uploadingId.set(item.id);
+    this.admin.updateCatalogSubcategoryImage(item.id, null).subscribe({
+      next: updated => {
+        this.mergeSubcategory(updated);
+        this.uploadingId.set(null);
+      },
+      error: () => {
+        this.error.set('Could not remove image.');
+        this.uploadingId.set(null);
+      },
     });
   }
 }

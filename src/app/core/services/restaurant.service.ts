@@ -31,8 +31,13 @@ export interface FeaturedSubcategory {
   id: number;
   name: string;
   slug: string;
+  image_url?: string | null;
   product_count: number;
   restaurant_count: number;
+}
+
+export interface DishSearchRestaurant extends Restaurant {
+  matched_items?: string[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -76,5 +81,18 @@ export class RestaurantService {
 
   getRestaurantMenu(key: string | number): Observable<PublicMenuItem[]> {
     return this.http.get<PublicMenuItem[]>(`${this.baseUrl}/${key}/menu`);
+  }
+
+  /** Restaurants in delivery area that sell a matching dish. */
+  searchByDish(
+    q: string,
+    lat?: number | null,
+    lng?: number | null,
+  ): Observable<DishSearchRestaurant[]> {
+    let params = new HttpParams().set('q', q.trim());
+    if (lat != null && lng != null) {
+      params = params.set('lat', String(lat)).set('lng', String(lng));
+    }
+    return this.http.get<DishSearchRestaurant[]>(`${this.baseUrl}/search`, { params });
   }
 }

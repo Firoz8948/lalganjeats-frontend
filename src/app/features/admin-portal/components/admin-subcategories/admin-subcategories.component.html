@@ -6,7 +6,7 @@
 
   <section class="subcategory-tools">
     <p class="featured-help">
-      Tick a subcategory to show it in the customer hero row below the slides.
+      Tick a subcategory to show it on the customer home grid (circle image + name). Upload a square-ish photo — preview matches the live app.
     </p>
     <div class="add-row">
       <input
@@ -46,9 +46,26 @@
     } @else {
       @for (item of filtered(); track item.id) {
         <article [class.featured]="item.is_featured">
-          <span class="item-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="8" cy="8" r="1"/></svg>
-          </span>
+          <div class="item-preview">
+            <label class="item-circle" [class.is-busy]="uploadingId() === item.id">
+              @if (item.image_url) {
+                <img [src]="item.image_url" [alt]="item.name" />
+              } @else {
+                <span class="item-circle__fallback">{{ initials(item.name) }}</span>
+              }
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                (change)="onImagePicked(item, $event)" />
+            </label>
+            <span class="item-preview__hint">
+              {{ uploadingId() === item.id ? 'Uploading…' : 'Tap circle to change' }}
+            </span>
+            @if (item.image_url) {
+              <button type="button" class="item-preview__clear" (click)="clearImage(item)">Remove</button>
+            }
+          </div>
           <div>
             <strong>{{ item.name }}</strong>
             <small>{{ item.product_count }} products · {{ item.slug }}</small>

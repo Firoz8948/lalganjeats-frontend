@@ -26,6 +26,7 @@ import {
 import { AuthService } from '../../../../core/services/auth.service';
 import { CartService } from '../../../../core/services/cart.service';
 import { CustomerLocationService } from '../../../../core/services/customer-location.service';
+import { DishSearchService } from '../../../../core/services/dish-search.service';
 import { UserSidebarService } from '../../../../core/services/user-sidebar.service';
 import { UserSidebarComponent } from '../../../../shared/user-sidebar/user-sidebar.component';
 import { BottomNavComponent } from '../../../../shared/bottom-nav/bottom-nav.component';
@@ -62,7 +63,6 @@ export class NavbarComponent implements AfterViewInit, OnInit, OnDestroy {
   @ViewChild('locationMap') locationMapRef?: ElementRef<HTMLDivElement>;
 
   isScrolled = signal(false);
-  isMobileSearchHidden = signal(false);
   isProfileDropdownOpen = signal(false);
   isLocationModalOpen = signal(false);
   locationBusy = signal(false);
@@ -74,10 +74,12 @@ export class NavbarComponent implements AfterViewInit, OnInit, OnDestroy {
   draftLabel = signal('');
   draftLat = signal<number | null>(null);
   draftLng = signal<number | null>(null);
+  dishSearchOpen = signal(false);
 
   auth = inject(AuthService);
   cartService = inject(CartService);
   customerLocation = inject(CustomerLocationService);
+  dishSearch = inject(DishSearchService);
   router = inject(Router);
   sidebar = inject(UserSidebarService);
   private mapsLoader = inject(GoogleMapsLoaderService);
@@ -159,19 +161,6 @@ export class NavbarComponent implements AfterViewInit, OnInit, OnDestroy {
   onScroll() {
     const currentY = Math.max(0, window.scrollY);
     this.isScrolled.set(currentY > 10);
-    if (window.innerWidth <= 768) {
-      const previousHidden = this.isMobileSearchHidden();
-      const delta = currentY - this.lastScrollY;
-      if (currentY < 48) {
-        this.isMobileSearchHidden.set(false);
-      } else if (Math.abs(delta) > 5) {
-        this.isMobileSearchHidden.set(delta > 0);
-      }
-      if (previousHidden !== this.isMobileSearchHidden()) {
-        // Let the search collapse/expand animation settle, then shrink page padding.
-        setTimeout(() => this.updateMobileHeaderHeight(), 200);
-      }
-    }
     this.lastScrollY = currentY;
   }
 
@@ -186,6 +175,19 @@ export class NavbarComponent implements AfterViewInit, OnInit, OnDestroy {
     if (!target.closest('.profile-trigger') && !target.closest('.profile-dropdown')) {
       this.isProfileDropdownOpen.set(false);
     }
+    if (!target.closest('.navbar__search')) {
+      this.dishSearchOpen.set(false);
+    }
+  }
+
+  onDishQuery(value: string) {
+    this.dishSearchOpen.set(true);
+    this.dishSearch.setQuery(value);
+  }
+
+  clearDishSearch() {
+    this.dishSearch.clear();
+    this.dishSearchOpen.set(false);
   }
 
   toggleProfileDropdown() {

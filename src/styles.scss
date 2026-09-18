@@ -39,10 +39,8 @@
 
   --navbar-height:          68px;
 
-  // Mobile header has 3 rows (logo, location, search). Navbar measures the
-  // real height and overwrites this; keep a tall enough fallback so pages
-  // never start under the bar before that measurement lands.
-  --mobile-header-height:   168px;
+  // Mobile header: logo + location. Navbar measures real height and overwrites this.
+  --mobile-header-height:   100px;
   --bottom-nav-height:      64px;
 }
 
