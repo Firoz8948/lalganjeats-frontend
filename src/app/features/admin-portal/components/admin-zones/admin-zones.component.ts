@@ -26,7 +26,7 @@ export class AdminZonesComponent implements OnInit {
   zoneSuccess = signal('');
   editingId = signal<number | null>(null);
   newZone: DeliveryZoneCreate = this.blankZone(0);
-  editDraft: DeliveryZoneCreate = this.blankZone(0);
+  editDraft: DeliveryZoneCreate & { is_active?: boolean } = this.blankZone(0);
   newException: DeliveryExceptionCreate = {
     name: '',
     latitude: 26.1635,
@@ -93,6 +93,10 @@ export class AdminZonesComponent implements OnInit {
       rate: Number(zone.rate),
       delivery_partner_rate: zone.delivery_partner_rate != null ? Number(zone.delivery_partner_rate) : Number(zone.rate),
       sort_order: zone.sort_order,
+      is_active: zone.is_active,
+      always_available: zone.always_available !== false,
+      opening_time: zone.opening_time || '18:00',
+      closing_time: zone.closing_time || '06:00',
     };
     this.zoneError.set('');
     this.zoneSuccess.set('');
@@ -110,7 +114,12 @@ export class AdminZonesComponent implements OnInit {
     }
     this.zoneSaving.set(true);
     this.zoneError.set('');
-    this.admin.updateZone(zone.id, this.editDraft).subscribe({
+    const payload: Partial<DeliveryZoneCreate & { is_active: boolean }> = {
+      ...this.editDraft,
+      opening_time: this.editDraft.always_available ? null : (this.editDraft.opening_time || null),
+      closing_time: this.editDraft.always_available ? null : (this.editDraft.closing_time || null),
+    };
+    this.admin.updateZone(zone.id, payload).subscribe({
       next: (updated) => {
         this.zones.update((list) =>
           this.sortZones(list.map((item) => item.id === updated.id ? updated : item)),
@@ -122,6 +131,23 @@ export class AdminZonesComponent implements OnInit {
       error: (err) => {
         this.zoneSaving.set(false);
         this.zoneError.set(this.apiError(err, 'Failed to update zone.'));
+      },
+    });
+  }
+
+  toggleActive(zone: DeliveryZone) {
+    this.zoneSaving.set(true);
+    this.admin.updateZone(zone.id, { is_active: !zone.is_active }).subscribe({
+      next: (updated) => {
+        this.zones.update((list) =>
+          this.sortZones(list.map((item) => item.id === updated.id ? updated : item)),
+        );
+        this.zoneSaving.set(false);
+        this.zoneSuccess.set(updated.is_active ? 'Zone activated.' : 'Zone deactivated.');
+      },
+      error: (err) => {
+        this.zoneSaving.set(false);
+        this.zoneError.set(this.apiError(err, 'Failed to update zone status.'));
       },
     });
   }
@@ -195,6 +221,9 @@ export class AdminZonesComponent implements OnInit {
       rate: 30,
       delivery_partner_rate: 30,
       sort_order: 0,
+      always_available: true,
+      opening_time: '18:00',
+      closing_time: '06:00',
     };
   }
 
@@ -209,6 +238,9 @@ export class AdminZonesComponent implements OnInit {
     if (zone.initial_km < 0) return 'Initial range cannot be negative.';
     if (Number(zone.final_km) <= Number(zone.initial_km)) {
       return 'Final range must be greater than initial range.';
+    }
+    if (!zone.always_available && (!zone.opening_time || !zone.closing_time)) {
+      return 'Opening and closing time are required when Always available is off.';
     }
     return null;
   }

@@ -67,7 +67,7 @@
 
             <div class="restaurant-card__badges">
               @if (!restaurant.is_open) {
-                <span class="badge badge--closed">Closed</span>
+                <span class="badge badge--closed">{{ restaurant.opens_at_label || 'Closed' }}</span>
               }
             </div>
 

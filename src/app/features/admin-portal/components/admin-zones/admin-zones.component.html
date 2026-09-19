@@ -1,5 +1,5 @@
 <div class="content-area">
-  <app-portal-page-header eyebrow="DELIVERY COVERAGE" title="Delivery Zones" subtitle="Each zone is a km range: initial including, final excluding. Edit rate and range any time." tone="admin">
+  <app-portal-page-header eyebrow="DELIVERY COVERAGE" title="Delivery Zones" subtitle="Each zone is a km range: initial including, final excluding. Far zones can auto-deactivate after dark." tone="admin">
     <button class="approve-btn" (click)="createZone()" [disabled]="zoneSaving()">{{ zoneSaving() ? 'Saving...' : 'Add Zone' }}</button>
   </app-portal-page-header>
 
@@ -45,6 +45,17 @@
       <label>Delivery Charge (₹)<input type="number" min="0" step="1" [(ngModel)]="newZone.rate"/></label>
       <label>Delivery Partner Rate (₹)<input type="number" min="0" step="1" [(ngModel)]="newZone.delivery_partner_rate"/></label>
     </div>
+    <div class="zone-hours">
+      <label class="check">
+        <input type="checkbox" [(ngModel)]="newZone.always_available" />
+        Always available
+      </label>
+      @if (!newZone.always_available) {
+        <label>Opening time<input type="time" [(ngModel)]="newZone.opening_time" /></label>
+        <label>Closing time<input type="time" [(ngModel)]="newZone.closing_time" /></label>
+        <small>Zone auto-activates at opening and deactivates at closing (Asia/Kolkata).</small>
+      }
+    </div>
   </div>
 
   <div class="table-wrap">
@@ -52,29 +63,47 @@
       <thead>
         <tr>
           <th>Zone</th>
-          <th>Initial range [including this]</th>
-          <th>Final range [excluding this]</th>
+          <th>Range</th>
           <th>Pricing</th>
-          <th>Delivery Charge</th>
-          <th>Partner Rate</th>
+          <th>Hours</th>
+          <th>Status</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
         @for (zone of zones(); track zone.id) {
-          <tr>
+          <tr [class.is-inactive]="!zone.is_active">
             @if (editingId() === zone.id) {
               <td><input [(ngModel)]="editDraft.name" /></td>
-              <td><input type="number" min="0" step="0.1" [(ngModel)]="editDraft.initial_km" /></td>
-              <td><input type="number" min="0.1" step="0.1" [(ngModel)]="editDraft.final_km" /></td>
-              <td>
+              <td class="range-edit">
+                <input type="number" min="0" step="0.1" [(ngModel)]="editDraft.initial_km" />
+                <span>–</span>
+                <input type="number" min="0.1" step="0.1" [(ngModel)]="editDraft.final_km" />
                 <select [(ngModel)]="editDraft.pricing_type">
-                  <option value="flat">Flat ₹ for zone</option>
-                  <option value="per_km">Per km rate</option>
+                  <option value="flat">Flat</option>
+                  <option value="per_km">Per km</option>
                 </select>
+                <input type="number" min="0" step="1" [(ngModel)]="editDraft.rate" title="Customer rate" />
+                <input type="number" min="0" step="1" [(ngModel)]="editDraft.delivery_partner_rate" title="Partner rate" />
               </td>
-              <td><input type="number" min="0" step="1" [(ngModel)]="editDraft.rate" /></td>
-              <td><input type="number" min="0" step="1" [(ngModel)]="editDraft.delivery_partner_rate" /></td>
+              <td colspan="2">
+                <div class="zone-hours zone-hours--inline">
+                  <label class="check">
+                    <input type="checkbox" [(ngModel)]="editDraft.always_available" />
+                    Always available
+                  </label>
+                  @if (!editDraft.always_available) {
+                    <label>Open<input type="time" [(ngModel)]="editDraft.opening_time" /></label>
+                    <label>Close<input type="time" [(ngModel)]="editDraft.closing_time" /></label>
+                  }
+                </div>
+              </td>
+              <td>
+                <label class="check">
+                  <input type="checkbox" [(ngModel)]="editDraft.is_active" />
+                  Active now
+                </label>
+              </td>
               <td class="zone-row-actions">
                 <button type="button" class="approve-btn small" [disabled]="zoneSaving()" (click)="saveEdit(zone)">
                   {{ zoneSaving() ? 'Saving…' : 'Save' }}
@@ -83,19 +112,31 @@
               </td>
             } @else {
               <td><strong>{{ zone.name }}</strong></td>
-              <td>{{ zone.initial_km }} km</td>
-              <td>{{ zone.final_km }} km</td>
+              <td>{{ zone.initial_km }}–{{ zone.final_km }} km · ₹{{ zone.rate }}{{ zone.pricing_type === 'per_km' ? '/km' : '' }}</td>
               <td>{{ zone.pricing_type === 'flat' ? 'Flat' : 'Per km' }}</td>
-              <td>₹{{ zone.rate }}{{ zone.pricing_type === 'per_km' ? '/km' : '' }}</td>
-              <td>₹{{ zone.delivery_partner_rate ?? zone.rate }}{{ zone.pricing_type === 'per_km' ? '/km' : '' }}</td>
+              <td>
+                @if (zone.always_available !== false) {
+                  Always on
+                } @else {
+                  {{ zone.opening_time || '—' }} → {{ zone.closing_time || '—' }}
+                }
+              </td>
+              <td>
+                <span [class]="zone.is_active ? 'badge-open' : 'badge-closed'">
+                  {{ zone.is_active ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
               <td class="zone-row-actions">
                 <button type="button" class="hist-toggle" (click)="startEdit(zone)">Edit</button>
+                <button type="button" class="hist-toggle" (click)="toggleActive(zone)">
+                  {{ zone.is_active ? 'Deactivate' : 'Activate' }}
+                </button>
                 <button type="button" class="danger-link" (click)="deleteZone(zone)">Delete</button>
               </td>
             }
           </tr>
         } @empty {
-          <tr><td colspan="7" class="empty-table-cell">No zones yet. Add Zone 1 with an initial and final range to get started.</td></tr>
+          <tr><td colspan="6" class="empty-table-cell">No zones yet. Add Zone 1 with an initial and final range to get started.</td></tr>
         }
       </tbody>
     </table>

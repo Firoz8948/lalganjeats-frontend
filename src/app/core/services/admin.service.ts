@@ -473,6 +473,9 @@ export interface DeliveryZone {
   delivery_partner_rate?: number | null;
   sort_order: number;
   is_active: boolean;
+  always_available?: boolean;
+  opening_time?: string | null;
+  closing_time?: string | null;
 }
 
 export interface DeliveryZoneCreate {
@@ -483,6 +486,9 @@ export interface DeliveryZoneCreate {
   rate: number;
   delivery_partner_rate?: number | null;
   sort_order?: number;
+  always_available?: boolean;
+  opening_time?: string | null;
+  closing_time?: string | null;
 }
 
 export interface DeliveryException {

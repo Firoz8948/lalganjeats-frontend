@@ -9,7 +9,10 @@ export interface Restaurant {
   delivery_fee: string;
   delivery_charge: number;
   min_order: string;
-  is_open: boolean;
+    is_open: boolean;
+  opening_time?: string | null;
+  closing_time?: string | null;
+  opens_at_label?: string | null;
   offer_text?: string | null;
   image_emoji: string;
   image_bg: string;
@@ -46,6 +49,8 @@ export interface RestaurantCreatePayload {
   is_approved?: boolean;
   show_packing_charge?: boolean;
   packing_charge?: number | null;
+  opening_time?: string | null;
+  closing_time?: string | null;
 }
 
 export interface RestaurantUpdatePayload {
@@ -70,6 +75,8 @@ export interface RestaurantUpdatePayload {
   business_category_id?: number | null;
   show_packing_charge?: boolean;
   packing_charge?: number | null;
+  opening_time?: string | null;
+  closing_time?: string | null;
 }
 
 export interface AdminRestaurantRow {
@@ -98,5 +105,7 @@ export interface AdminRestaurantRow {
   is_active: boolean;
   show_packing_charge?: boolean;
   packing_charge?: number | null;
+  opening_time?: string | null;
+  closing_time?: string | null;
   created_at?: string;
 }

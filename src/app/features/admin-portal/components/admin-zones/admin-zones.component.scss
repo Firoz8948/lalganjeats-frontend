@@ -46,6 +46,79 @@
   cursor: pointer;
 }
 
+.zone-hours {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #e5e5e5;
+
+  &--inline {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  label {
+    display: grid;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #555;
+  }
+
+  input[type=time] {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+
+  small {
+    flex: 1 1 100%;
+    color: #666;
+    font-size: 12px;
+  }
+}
+
+.badge-open {
+  color: #087653;
+  background: #e8fff5;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badge-closed {
+  color: #9a3412;
+  background: #fff7ed;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+tr.is-inactive {
+  opacity: 0.72;
+}
+
+.range-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
 .data-table input,
 .data-table select {
   width: 100%;

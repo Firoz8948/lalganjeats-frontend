@@ -34,6 +34,11 @@
         <small>Added to the customer bill and hotel transfer for this restaurant only.</small>
       }
     </div>
+    <div class="hours-row">
+      <label>Opening time<input type="time" [(ngModel)]="newRestaurant.opening_time"></label>
+      <label>Closing time<input type="time" [(ngModel)]="newRestaurant.closing_time"></label>
+      <small>Auto-opens at opening time and auto-closes at closing time (Asia/Kolkata). Partner can still close manually during the day.</small>
+    </div>
     @if(uploadError()){<p class="form-msg form-msg--error">{{uploadError()}}</p>}
     <p class="upload-note">Upload three restaurant images. Each slot has its own recommended size and preview.</p>
     <div class="image-upload-grid">
@@ -80,6 +85,11 @@
   @if(editError()){<p class="form-msg form-msg--error">{{editError()}}</p>}
   <div class="form-grid"><input placeholder="Restaurant name *" [(ngModel)]="editForm.name"><input placeholder="Cuisine / description" [(ngModel)]="editForm.description"><label class="select-field"><span>Business category</span><select [(ngModel)]="editForm.business_category_id">@for(category of catalogCategories();track category.id){<option [ngValue]="category.id">{{category.name}}</option>}</select></label><div class="phone-input"><span>+91</span><input type="tel" maxlength="10" placeholder="Restaurant phone" [ngModel]="editForm.restaurant_phone" (ngModelChange)="editPhone($event)"></div><input placeholder="Address" [(ngModel)]="editForm.address"><input placeholder="City" [(ngModel)]="editForm.city"><input placeholder="Pincode" [(ngModel)]="editForm.pincode"><input type="number" placeholder="Latitude" [(ngModel)]="editForm.latitude"><input type="number" placeholder="Longitude" [(ngModel)]="editForm.longitude"><input placeholder="Owner name" [(ngModel)]="editForm.owner_name"><input placeholder="Owner phone (read-only)" [ngModel]="editForm.owner_phone" disabled><input placeholder="Login username" [(ngModel)]="editForm.owner_username" autocomplete="off"><input type="password" placeholder="{{editForm.has_password ? 'New password (leave blank to keep)' : 'Login password'}}" [(ngModel)]="editForm.owner_password" autocomplete="new-password"></div>
   <div class="flags"><label><input type="checkbox" [(ngModel)]="editForm.is_open"> Open now</label><label><input type="checkbox" [(ngModel)]="editForm.is_approved"> Approved</label><label><input type="checkbox" [(ngModel)]="editForm.is_active"> Active</label></div>
+  <div class="hours-row">
+    <label>Opening time<input type="time" [(ngModel)]="editForm.opening_time"></label>
+    <label>Closing time<input type="time" [(ngModel)]="editForm.closing_time"></label>
+    <small>Schedule uses Asia/Kolkata. Manual close during open hours is kept until the next opening.</small>
+  </div>
   <div class="packing-option">
     <label>
       <input type="checkbox" [(ngModel)]="editForm.show_packing_charge">

@@ -142,7 +142,7 @@
                   }
                 </div>
                 <span class="banner-dish-search__open" [class.is-closed]="!r.is_open">
-                  {{ r.is_open ? 'Open' : 'Closed' }}
+                  {{ r.is_open ? 'Open' : (r.opens_at_label || 'Closed') }}
                 </span>
               </a>
             }

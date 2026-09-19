@@ -39,7 +39,7 @@
           }
           <div class="hotel-hero__info">
             <div class="hotel-status" [class.open]="restaurant().isOpen">
-              {{ restaurant().isOpen ? '● Open Now' : '● Closed' }}
+              {{ restaurant().isOpen ? '● Open Now' : ('● ' + (restaurant().opensAtLabel || 'Closed')) }}
             </div>
             <h1 class="hotel-hero__name">{{ restaurant().name }}</h1>
             <p class="hotel-hero__cuisine">{{ restaurant().cuisine }}</p>

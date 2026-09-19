@@ -21,6 +21,7 @@ interface RestaurantInfo {
   deliveryFee: string;
   minOrder: string;
   isOpen: boolean;
+  opensAtLabel?: string | null;
   address: string;
   emoji: string;
   imageBg: string;
@@ -116,6 +117,7 @@ export class RestaurantMenuComponent implements OnInit {
           deliveryFee: data.delivery_fee,
           minOrder: data.min_order,
           isOpen: data.is_open,
+          opensAtLabel: data.opens_at_label || null,
           address: data.address || data.city || '',
           emoji: data.image_emoji,
           imageBg: data.image_bg,
