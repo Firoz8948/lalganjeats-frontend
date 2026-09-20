@@ -61,7 +61,13 @@
             @if (slides.length) {
               @let slideIndex = activeSlide(restaurant.id, slides.length);
               @let active = slides[slideIndex];
-              <img [src]="active.image_url" [alt]="restaurant.name" class="restaurant-list-banner">
+              @for (_ of [slideIndex]; track slideIndex) {
+                <img
+                  [src]="active.image_url"
+                  [alt]="restaurant.name"
+                  class="restaurant-list-banner"
+                >
+              }
               @if (active.text) {
                 <span class="restaurant-card__slide-text">{{ active.text }}</span>
               }

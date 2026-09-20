@@ -556,6 +556,18 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  animation: card-slide-fade 420ms ease both;
+}
+
+@keyframes card-slide-fade {
+  from { opacity: 0.35; transform: scale(1.03); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .restaurant-list-banner {
+    animation: none;
+  }
 }
 
 .badge {

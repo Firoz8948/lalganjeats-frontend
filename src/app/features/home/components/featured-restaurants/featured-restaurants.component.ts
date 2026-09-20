@@ -42,6 +42,8 @@ export class FeaturedRestaurantsComponent implements OnInit, OnDestroy {
   private customerLocation = inject(CustomerLocationService);
   private route = inject(ActivatedRoute);
   private metaTimer: ReturnType<typeof setInterval> | null = null;
+  private slideTimer: ReturnType<typeof setInterval> | null = null;
+  private static readonly SLIDE_MS = 2000;
 
   restaurants = signal<Restaurant[]>([]);
   loading = signal(true);
@@ -74,10 +76,14 @@ export class FeaturedRestaurantsComponent implements OnInit, OnDestroy {
     this.metaTimer = setInterval(() => {
       this.metaTick.update((n) => n + 1);
     }, 2800);
+    this.slideTimer = setInterval(() => {
+      this.advanceAllSlides();
+    }, FeaturedRestaurantsComponent.SLIDE_MS);
   }
 
   ngOnDestroy() {
     if (this.metaTimer) clearInterval(this.metaTimer);
+    if (this.slideTimer) clearInterval(this.slideTimer);
   }
 
   cardSlides(restaurant: Restaurant): RestaurantCardSlide[] {
@@ -99,6 +105,21 @@ export class FeaturedRestaurantsComponent implements OnInit, OnDestroy {
     event?.preventDefault();
     event?.stopPropagation();
     this.slideIndexById.update((map) => ({ ...map, [restaurantId]: index }));
+  }
+
+  private advanceAllSlides() {
+    const list = this.restaurants();
+    if (!list.length) return;
+    this.slideIndexById.update((map) => {
+      const next = { ...map };
+      for (const restaurant of list) {
+        const count = this.cardSlides(restaurant).length;
+        if (count <= 1) continue;
+        const current = next[restaurant.id] || 0;
+        next[restaurant.id] = (current + 1) % count;
+      }
+      return next;
+    });
   }
 
   cardMeta(restaurant: Restaurant): { kind: CardMetaKind; label: string } {
