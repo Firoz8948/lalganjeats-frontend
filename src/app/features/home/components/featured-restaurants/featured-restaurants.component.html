@@ -61,7 +61,7 @@
             @if (slides.length) {
               @let slideIndex = activeSlide(restaurant.id, slides.length);
               @let active = slides[slideIndex];
-              @for (_ of [slideIndex]; track slideIndex) {
+              @for (slideKey of [slideIndex]; track slideKey) {
                 <img
                   [src]="active.image_url"
                   [alt]="restaurant.name"
