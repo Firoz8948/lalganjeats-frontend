@@ -55,12 +55,6 @@
   padding-top: 12px;
   border-top: 1px dashed #e5e5e5;
 
-  &--inline {
-    margin-top: 0;
-    padding-top: 0;
-    border-top: 0;
-  }
-
   .check {
     display: flex;
     align-items: center;
@@ -78,6 +72,7 @@
   }
 
   input[type=time] {
+    min-width: 120px;
     padding: 8px 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -88,6 +83,28 @@
     color: #666;
     font-size: 12px;
   }
+}
+
+.zone-form--edit {
+  border-color: #ffc9b8;
+  background: #fffaf8;
+}
+
+.zone-form__edit-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+
+  h3 { margin: 0; }
+}
+
+.zone-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
 }
 
 .badge-open {
@@ -112,11 +129,10 @@ tr.is-inactive {
   opacity: 0.72;
 }
 
-.range-edit {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
+tr.is-editing {
+  outline: 2px solid rgba(240, 90, 55, 0.35);
+  outline-offset: -2px;
+  background: #fff8f5;
 }
 
 .data-table input,

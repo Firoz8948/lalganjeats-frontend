@@ -100,10 +100,20 @@ export class AdminZonesComponent implements OnInit {
     };
     this.zoneError.set('');
     this.zoneSuccess.set('');
+    setTimeout(() => {
+      document.querySelector('.zone-form--edit')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
   }
 
   cancelEdit() {
     this.editingId.set(null);
+  }
+
+  saveCurrentEdit() {
+    const id = this.editingId();
+    const zone = this.zones().find((item) => item.id === id);
+    if (!zone) return;
+    this.saveEdit(zone);
   }
 
   saveEdit(zone: DeliveryZone) {

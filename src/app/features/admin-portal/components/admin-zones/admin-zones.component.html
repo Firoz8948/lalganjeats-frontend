@@ -58,6 +58,56 @@
     </div>
   </div>
 
+  @if (editingId(); as editZoneId) {
+    <div class="zone-form zone-form--edit">
+      <div class="zone-form__edit-head">
+        <h3>Edit zone</h3>
+        <button type="button" class="danger-link" (click)="cancelEdit()">Cancel</button>
+      </div>
+      <div class="zone-form__row">
+        <label>Name<input [(ngModel)]="editDraft.name" placeholder="Zone 1"/></label>
+        <label>
+          Initial range [including this]
+          <input type="number" min="0" step="0.1" [(ngModel)]="editDraft.initial_km"/>
+        </label>
+        <label>
+          Final range [excluding this]
+          <input type="number" min="0.1" step="0.1" [(ngModel)]="editDraft.final_km"/>
+        </label>
+        <label>
+          Pricing
+          <select [(ngModel)]="editDraft.pricing_type">
+            <option value="flat">Flat ₹ for zone</option>
+            <option value="per_km">Per km rate</option>
+          </select>
+        </label>
+        <label>Delivery Charge (₹)<input type="number" min="0" step="1" [(ngModel)]="editDraft.rate"/></label>
+        <label>Delivery Partner Rate (₹)<input type="number" min="0" step="1" [(ngModel)]="editDraft.delivery_partner_rate"/></label>
+      </div>
+      <div class="zone-hours">
+        <label class="check">
+          <input type="checkbox" [(ngModel)]="editDraft.always_available" />
+          Always available
+        </label>
+        @if (!editDraft.always_available) {
+          <label>Opening time<input type="time" [(ngModel)]="editDraft.opening_time" /></label>
+          <label>Closing time<input type="time" [(ngModel)]="editDraft.closing_time" /></label>
+          <small>Zone auto-activates at opening and deactivates at closing (Asia/Kolkata).</small>
+        }
+        <label class="check">
+          <input type="checkbox" [(ngModel)]="editDraft.is_active" />
+          Active now
+        </label>
+      </div>
+      <div class="zone-form__actions">
+        <button type="button" class="approve-btn" [disabled]="zoneSaving()" (click)="saveCurrentEdit()">
+          {{ zoneSaving() ? 'Saving…' : 'Save changes' }}
+        </button>
+        <button type="button" class="btn-secondary" (click)="cancelEdit()">Cancel</button>
+      </div>
+    </div>
+  }
+
   <div class="table-wrap">
     <table class="data-table">
       <thead>
@@ -72,68 +122,31 @@
       </thead>
       <tbody>
         @for (zone of zones(); track zone.id) {
-          <tr [class.is-inactive]="!zone.is_active">
-            @if (editingId() === zone.id) {
-              <td><input [(ngModel)]="editDraft.name" /></td>
-              <td class="range-edit">
-                <input type="number" min="0" step="0.1" [(ngModel)]="editDraft.initial_km" />
-                <span>–</span>
-                <input type="number" min="0.1" step="0.1" [(ngModel)]="editDraft.final_km" />
-                <select [(ngModel)]="editDraft.pricing_type">
-                  <option value="flat">Flat</option>
-                  <option value="per_km">Per km</option>
-                </select>
-                <input type="number" min="0" step="1" [(ngModel)]="editDraft.rate" title="Customer rate" />
-                <input type="number" min="0" step="1" [(ngModel)]="editDraft.delivery_partner_rate" title="Partner rate" />
-              </td>
-              <td colspan="2">
-                <div class="zone-hours zone-hours--inline">
-                  <label class="check">
-                    <input type="checkbox" [(ngModel)]="editDraft.always_available" />
-                    Always available
-                  </label>
-                  @if (!editDraft.always_available) {
-                    <label>Open<input type="time" [(ngModel)]="editDraft.opening_time" /></label>
-                    <label>Close<input type="time" [(ngModel)]="editDraft.closing_time" /></label>
-                  }
-                </div>
-              </td>
-              <td>
-                <label class="check">
-                  <input type="checkbox" [(ngModel)]="editDraft.is_active" />
-                  Active now
-                </label>
-              </td>
-              <td class="zone-row-actions">
-                <button type="button" class="approve-btn small" [disabled]="zoneSaving()" (click)="saveEdit(zone)">
-                  {{ zoneSaving() ? 'Saving…' : 'Save' }}
-                </button>
-                <button type="button" class="danger-link" (click)="cancelEdit()">Cancel</button>
-              </td>
-            } @else {
-              <td><strong>{{ zone.name }}</strong></td>
-              <td>{{ zone.initial_km }}–{{ zone.final_km }} km · ₹{{ zone.rate }}{{ zone.pricing_type === 'per_km' ? '/km' : '' }}</td>
-              <td>{{ zone.pricing_type === 'flat' ? 'Flat' : 'Per km' }}</td>
-              <td>
-                @if (zone.always_available !== false) {
-                  Always on
-                } @else {
-                  {{ zone.opening_time || '—' }} → {{ zone.closing_time || '—' }}
-                }
-              </td>
-              <td>
-                <span [class]="zone.is_active ? 'badge-open' : 'badge-closed'">
-                  {{ zone.is_active ? 'Active' : 'Inactive' }}
-                </span>
-              </td>
-              <td class="zone-row-actions">
-                <button type="button" class="hist-toggle" (click)="startEdit(zone)">Edit</button>
-                <button type="button" class="hist-toggle" (click)="toggleActive(zone)">
-                  {{ zone.is_active ? 'Deactivate' : 'Activate' }}
-                </button>
-                <button type="button" class="danger-link" (click)="deleteZone(zone)">Delete</button>
-              </td>
-            }
+          <tr [class.is-inactive]="!zone.is_active" [class.is-editing]="editingId() === zone.id">
+            <td><strong>{{ zone.name }}</strong></td>
+            <td>{{ zone.initial_km }}–{{ zone.final_km }} km · ₹{{ zone.rate }}{{ zone.pricing_type === 'per_km' ? '/km' : '' }}</td>
+            <td>{{ zone.pricing_type === 'flat' ? 'Flat' : 'Per km' }}</td>
+            <td>
+              @if (zone.always_available !== false) {
+                Always on
+              } @else {
+                {{ zone.opening_time || '—' }} → {{ zone.closing_time || '—' }}
+              }
+            </td>
+            <td>
+              <span [class]="zone.is_active ? 'badge-open' : 'badge-closed'">
+                {{ zone.is_active ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td class="zone-row-actions">
+              <button type="button" class="hist-toggle" (click)="startEdit(zone)">
+                {{ editingId() === zone.id ? 'Editing…' : 'Edit' }}
+              </button>
+              <button type="button" class="hist-toggle" (click)="toggleActive(zone)">
+                {{ zone.is_active ? 'Deactivate' : 'Activate' }}
+              </button>
+              <button type="button" class="danger-link" (click)="deleteZone(zone)">Delete</button>
+            </td>
           </tr>
         } @empty {
           <tr><td colspan="6" class="empty-table-cell">No zones yet. Add Zone 1 with an initial and final range to get started.</td></tr>
