@@ -1,3 +1,8 @@
+export interface RestaurantCardSlide {
+  image_url: string;
+  text?: string | null;
+}
+
 export interface Restaurant {
   id: number;
   name: string;
@@ -18,6 +23,7 @@ export interface Restaurant {
   image_bg: string;
   logo_url?: string | null;
   list_banner_url?: string | null;
+  card_slides?: RestaurantCardSlide[];
   banner_url?: string | null;
   banner_mobile_url?: string | null;
   address?: string | null;
@@ -39,6 +45,7 @@ export interface RestaurantCreatePayload {
   longitude?: number | null;
   logo_url?: string;
   list_banner_url?: string;
+  card_slides?: RestaurantCardSlide[];
   banner_url?: string;
   banner_mobile_url?: string;
   owner_phone: string;
@@ -64,6 +71,7 @@ export interface RestaurantUpdatePayload {
   longitude?: number | null;
   logo_url?: string | null;
   list_banner_url?: string | null;
+  card_slides?: RestaurantCardSlide[];
   banner_url?: string | null;
   banner_mobile_url?: string | null;
   is_open?: boolean;
@@ -96,6 +104,7 @@ export interface AdminRestaurantRow {
   longitude?: number | null;
   logo_url?: string | null;
   list_banner_url?: string | null;
+  card_slides?: RestaurantCardSlide[];
   banner_url?: string | null;
   banner_mobile_url?: string | null;
   business_category_id?: number | null;

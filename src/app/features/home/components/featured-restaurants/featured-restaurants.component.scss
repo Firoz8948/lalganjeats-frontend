@@ -333,8 +333,12 @@
   }
 
   &.closed {
-    opacity: 0.65;
+    opacity: 0.72;
     pointer-events: none;
+
+    .restaurant-card__dots {
+      pointer-events: auto;
+    }
   }
 
   &__image {
@@ -350,13 +354,75 @@
     box-sizing: border-box;
   }
 
-  &__badges {
+  &__slide-text {
     position: absolute;
     top: 10px;
     left: 10px;
+    z-index: 2;
+    max-width: calc(100% - 24px);
+    padding: 5px 9px;
+    border-radius: 8px;
+    background: rgba(18, 18, 18, 0.62);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+    backdrop-filter: blur(4px);
+    pointer-events: none;
+  }
+
+  &__opens {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 2;
+    padding: 5px 9px;
+    border-radius: 8px;
+    background: rgba(18, 18, 18, 0.72);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.2;
+    pointer-events: none;
+  }
+
+  &__dots {
+    position: absolute;
+    left: 50%;
+    bottom: 12px;
+    z-index: 3;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    gap: 6px;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.28);
+  }
+
+  &:has(.restaurant-card__offer) .restaurant-card__dots {
+    bottom: 36px;
+  }
+
+  &:has(.restaurant-card__opens) .restaurant-card__dots {
+    bottom: 36px;
+  }
+
+  &__dot {
+    width: 7px;
+    height: 7px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.45);
+    cursor: pointer;
+    transition: transform 0.18s ease, background 0.18s ease;
+
+    &.is-active {
+      background: #fff;
+      transform: scale(1.2);
+    }
   }
 
   &__offer {
@@ -372,6 +438,7 @@
     display: flex;
     align-items: center;
     gap: 5px;
+    z-index: 1;
   }
 
   &__body {

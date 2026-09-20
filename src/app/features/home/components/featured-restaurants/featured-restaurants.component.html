@@ -57,19 +57,39 @@
         <a class="restaurant-card" [class.closed]="!restaurant.is_open" [routerLink]="['/restaurants', restaurant.slug || restaurant.id]">
 
           <div class="restaurant-card__image" [style.background]="restaurant.image_bg">
-            @if (restaurant.list_banner_url) {
-              <img [src]="restaurant.list_banner_url" [alt]="restaurant.name" class="restaurant-list-banner">
+            @let slides = cardSlides(restaurant);
+            @if (slides.length) {
+              @let slideIndex = activeSlide(restaurant.id, slides.length);
+              @let active = slides[slideIndex];
+              <img [src]="active.image_url" [alt]="restaurant.name" class="restaurant-list-banner">
+              @if (active.text) {
+                <span class="restaurant-card__slide-text">{{ active.text }}</span>
+              }
+              @if (slides.length > 1) {
+                <div
+                  class="restaurant-card__dots"
+                  (click)="$event.preventDefault(); $event.stopPropagation()"
+                >
+                  @for (slide of slides; track $index; let i = $index) {
+                    <button
+                      type="button"
+                      class="restaurant-card__dot"
+                      [class.is-active]="i === slideIndex"
+                      [attr.aria-label]="'Slide ' + (i + 1)"
+                      (click)="setSlide(restaurant.id, i, $event)"
+                    ></button>
+                  }
+                </div>
+              }
             } @else if (restaurant.logo_url) {
               <img [src]="restaurant.logo_url" [alt]="restaurant.name" class="restaurant-logo">
             } @else {
               <span class="restaurant-emoji">{{ restaurant.image_emoji }}</span>
             }
 
-            <div class="restaurant-card__badges">
-              @if (!restaurant.is_open) {
-                <span class="badge badge--closed">{{ restaurant.opens_at_label || 'Closed' }}</span>
-              }
-            </div>
+            @if (!restaurant.is_open) {
+              <span class="restaurant-card__opens">{{ restaurant.opens_at_label || 'Closed' }}</span>
+            }
 
             @if (restaurant.offer_text && restaurant.is_open) {
               <div class="restaurant-card__offer">

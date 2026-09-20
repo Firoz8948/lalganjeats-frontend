@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { Restaurant } from '../../../../core/models/restaurant.model';
+import { Restaurant, RestaurantCardSlide } from '../../../../core/models/restaurant.model';
 import { RestaurantService } from '../../../../core/services/restaurant.service';
 import { CustomerLocationService } from '../../../../core/services/customer-location.service';
 
@@ -51,6 +51,8 @@ export class FeaturedRestaurantsComponent implements OnInit, OnDestroy {
   metaTick = signal(0);
   selectedSubcategoryId = signal<number | null>(null);
   selectedSubcategoryName = signal('');
+  /** Per-card slide index for multi-image card banners. */
+  slideIndexById = signal<Record<number, number>>({});
 
   constructor() {
     this.route.queryParamMap.subscribe(params => {
@@ -76,6 +78,27 @@ export class FeaturedRestaurantsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.metaTimer) clearInterval(this.metaTimer);
+  }
+
+  cardSlides(restaurant: Restaurant): RestaurantCardSlide[] {
+    const slides = (restaurant.card_slides || []).filter((s) => !!s?.image_url);
+    if (slides.length) return slides;
+    if (restaurant.list_banner_url) {
+      return [{ image_url: restaurant.list_banner_url, text: null }];
+    }
+    return [];
+  }
+
+  activeSlide(restaurantId: number, slideCount: number): number {
+    if (slideCount <= 0) return 0;
+    const current = this.slideIndexById()[restaurantId] || 0;
+    return ((current % slideCount) + slideCount) % slideCount;
+  }
+
+  setSlide(restaurantId: number, index: number, event?: Event) {
+    event?.preventDefault();
+    event?.stopPropagation();
+    this.slideIndexById.update((map) => ({ ...map, [restaurantId]: index }));
   }
 
   cardMeta(restaurant: Restaurant): { kind: CardMetaKind; label: string } {

@@ -67,11 +67,9 @@ input { padding: 11px 13px; border: 1px solid #ddd; border-radius: 9px; }
   display: grid;
   place-items: center;
   cursor: pointer;
-  background:
-    radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.55), transparent 45%),
-    linear-gradient(145deg, #ffe8d6 0%, #ffd0b0 48%, #f4a261 100%);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-  border: 2px solid rgba(0, 0, 0, 0.04);
+  background: transparent;
+  box-shadow: none;
+  border: 0;
   transition: transform .12s ease, opacity .12s ease;
 
   &:hover { transform: scale(1.03); }

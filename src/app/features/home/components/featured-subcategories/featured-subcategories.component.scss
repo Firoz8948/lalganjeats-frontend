@@ -46,7 +46,6 @@
 
   &:hover .subcat-tile__circle {
     transform: translateY(-3px) scale(1.04);
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
   }
 
   &:active .subcat-tile__circle {
@@ -55,7 +54,6 @@
 
   &--inert:hover .subcat-tile__circle {
     transform: none;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
   }
 }
 
@@ -66,11 +64,9 @@
   overflow: hidden;
   display: grid;
   place-items: center;
-  background:
-    radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.55), transparent 45%),
-    linear-gradient(145deg, #ffe8d6 0%, #ffd0b0 48%, #f4a261 100%);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  background: transparent;
+  box-shadow: none;
+  transition: transform 180ms ease;
   flex-shrink: 0;
 
   img {
@@ -86,7 +82,6 @@
   font-weight: 800;
   letter-spacing: 0.02em;
   color: #7a3b12;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .subcat-tile__label {
@@ -117,8 +112,7 @@
   }
 
   .subcat-tile__circle {
-    box-shadow: 0 6px 16px rgba(67, 34, 21, 0.12);
-    border: 2px solid rgba(255, 255, 255, 0.7);
+    border: 0;
   }
 }
 

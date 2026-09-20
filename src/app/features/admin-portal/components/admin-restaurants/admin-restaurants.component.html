@@ -40,19 +40,30 @@
       <small>Auto-opens at opening time and auto-closes at closing time (Asia/Kolkata). Partner can still close manually during the day.</small>
     </div>
     @if(uploadError()){<p class="form-msg form-msg--error">{{uploadError()}}</p>}
-    <p class="upload-note">Upload three restaurant images. Each slot has its own recommended size and preview.</p>
-    <div class="image-upload-grid">
-      <div class="banner">
-        <h3>{{bannerSpec.label}}</h3>
-        <p>{{bannerSpec.hint}}</p>
-        <small>Recommended: {{bannerSpec.size}} · {{bannerSpec.formats}}</small>
-        @if(bannerPreview()){
-          <img class="banner-preview--card" [src]="bannerPreview()" alt="Restaurant card preview">
-          <button class="danger-link" type="button" (click)="bannerPreview.set(null);newRestaurant.list_banner_url=''">Remove</button>
-        } @else {
-          <label class="dropzone dropzone--card"><input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectBanner($event,'card')">Click to upload restaurant card</label>
+    <p class="upload-note">Upload card slides (up to 5) plus menu hero images. Empty card slides stay hidden on the storefront.</p>
+    <div class="card-slides-panel">
+      <h3>{{bannerSpec.label}}</h3>
+      <p>{{bannerSpec.hint}}</p>
+      <small>Recommended: {{bannerSpec.size}} · {{bannerSpec.formats}}</small>
+      <div class="card-slides-grid">
+        @for (slide of cardSlides; track $index; let i = $index) {
+          <div class="card-slide-slot">
+            <span class="card-slide-slot__label">Slide {{ i + 1 }}</span>
+            @if (slide.image_url) {
+              <img class="banner-preview--card" [src]="slide.image_url" [alt]="'Card slide ' + (i + 1)">
+              <button class="danger-link" type="button" (click)="removeCardSlide(i)">Remove</button>
+            } @else {
+              <label class="dropzone dropzone--card">
+                <input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectCardSlide($event, i)">
+                {{ cardSlideUploading()[i] ? 'Uploading…' : 'Upload slide' }}
+              </label>
+            }
+            <input class="card-slide-slot__text" type="text" maxlength="60" placeholder="Text on top-left (optional)" [(ngModel)]="slide.text" [name]="'addSlideText' + i">
+          </div>
         }
       </div>
+    </div>
+    <div class="image-upload-grid">
       <div class="banner">
         <h3>{{desktopHeroSpec.label}}</h3>
         <p>{{desktopHeroSpec.hint}}</p>
@@ -76,7 +87,7 @@
         }
       </div>
     </div>
-    <button class="approve-btn" [disabled]="saving()||bannerUploading()||desktopHeroUploading()||mobileHeroUploading()" (click)="create()">{{saving()?'Saving…':'Add Restaurant'}}</button>
+    <button class="approve-btn" [disabled]="saving()||anyCardSlideUploading()||desktopHeroUploading()||mobileHeroUploading()" (click)="create()">{{saving()?'Saving…':'Add Restaurant'}}</button>
   </div>
   }
 </div>
@@ -100,12 +111,32 @@
       <small>Added to the customer bill and hotel transfer for this restaurant only.</small>
     }
   </div>
+  <div class="card-slides-panel">
+    <h3>Restaurant Card slides</h3>
+    <small>Fixed card height: 210px · up to 5 slides · empty slides hidden</small>
+    <div class="card-slides-grid">
+      @for (slide of editCardSlides; track $index; let i = $index) {
+        <div class="card-slide-slot">
+          <span class="card-slide-slot__label">Slide {{ i + 1 }}</span>
+          @if (slide.image_url) {
+            <img class="banner-preview--card" [src]="slide.image_url" [alt]="'Card slide ' + (i + 1)">
+            <button class="danger-link" type="button" (click)="removeCardSlide(i, true)">Remove</button>
+          } @else {
+            <label class="dropzone dropzone--card">
+              <input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectCardSlide($event, i, true)">
+              {{ editCardSlideUploading()[i] ? 'Uploading…' : 'Upload slide' }}
+            </label>
+          }
+          <input class="card-slide-slot__text" type="text" maxlength="60" placeholder="Text on top-left (optional)" [(ngModel)]="slide.text" [name]="'editSlideText' + i">
+        </div>
+      }
+    </div>
+  </div>
   <div class="image-upload-grid">
-    <div class="banner"><h3>Restaurant Card</h3><small>Fixed card height: 210px · home/list card</small>@if(editBannerPreview()){<img class="banner-preview--card" [src]="editBannerPreview()"><button class="danger-link" type="button" (click)="editBannerPreview.set(null);editForm.list_banner_url=null">Remove</button>}@else{<label class="dropzone dropzone--card"><input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectBanner($event,'card',true)">Upload card</label>}</div>
     <div class="banner"><h3>Desktop Hero</h3><small>1600 × 600 · menu page</small>@if(editDesktopHeroPreview()){<img class="banner-preview--wide" [src]="editDesktopHeroPreview()"><button class="danger-link" type="button" (click)="editDesktopHeroPreview.set(null);editForm.banner_url=null">Remove</button>}@else{<label class="dropzone"><input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectBanner($event,'desktop',true)">Upload desktop hero</label>}</div>
     <div class="banner"><h3>Mobile Hero</h3><small>1080 × 720 · menu page</small>@if(editMobileHeroPreview()){<img class="banner-preview--mobile" [src]="editMobileHeroPreview()"><button class="danger-link" type="button" (click)="editMobileHeroPreview.set(null);editForm.banner_mobile_url=null">Remove</button>}@else{<label class="dropzone"><input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectBanner($event,'mobile',true)">Upload mobile hero</label>}</div>
   </div>
-  <footer><button class="btn-secondary" (click)="closeEdit()">Cancel</button><button class="approve-btn" [disabled]="editSaving()||editBannerUploading()||editDesktopHeroUploading()||editMobileHeroUploading()" (click)="saveEdit()">{{editSaving()?'Saving…':'Save changes'}}</button></footer>
+  <footer><button class="btn-secondary" (click)="closeEdit()">Cancel</button><button class="approve-btn" [disabled]="editSaving()||anyCardSlideUploading(true)||editDesktopHeroUploading()||editMobileHeroUploading()" (click)="saveEdit()">{{editSaving()?'Saving…':'Save changes'}}</button></footer>
 </div></div></div>}
 
 @if(menuOpen()){<div class="modal-backdrop" (click)="menuOpen.set(false)"><div class="modal" (click)="$event.stopPropagation()"><div class="modal__header"><div><h2 class="modal__title">Menu — {{menuName()}}</h2><p class="modal__sub">Add, toggle or delete menu items</p></div><button class="modal__close" (click)="menuOpen.set(false)">×</button></div>
