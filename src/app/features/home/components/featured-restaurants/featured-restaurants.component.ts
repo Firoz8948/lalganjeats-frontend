@@ -43,7 +43,7 @@ export class FeaturedRestaurantsComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private metaTimer: ReturnType<typeof setInterval> | null = null;
   private slideTimer: ReturnType<typeof setInterval> | null = null;
-  private static readonly SLIDE_MS = 2000;
+  private static readonly SLIDE_MS = 3200;
 
   restaurants = signal<Restaurant[]>([]);
   loading = signal(true);
