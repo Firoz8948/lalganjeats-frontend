@@ -30,6 +30,7 @@
     "@capacitor/local-notifications": "^7.0.7",
     "@capacitor/push-notifications": "^7.0.7",
     "@capgo/capacitor-updater": "^7.50.2",
+    "leaflet": "^1.9.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
@@ -40,6 +41,7 @@
     "@angular/compiler-cli": "^19.2.0",
     "@capacitor/cli": "^8.5.0",
     "@types/google.maps": "^3.65.4",
+    "@types/leaflet": "^1.9.22",
     "typescript": "~5.7.2"
   }
 }

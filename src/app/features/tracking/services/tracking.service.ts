@@ -32,7 +32,14 @@ export interface TrackSnapshot {
     bike_info: string | null;
   } | null;
   status_meta: string | null;
+  /** Always null now — tracking map is Leaflet/OSM. Kept for old bundles. */
   google_maps_api_key: string | null;
+  /** Deep link to the rider's last position in the Google Maps app. */
+  rider_maps_url?: string | null;
+  /** How often the rider's device sends its GPS (seconds). */
+  rider_ping_seconds?: number;
+  /** True once the order is picked up and rider position is being shared. */
+  live_tracking?: boolean;
 }
 
 export interface TrackingPublicConfig {
@@ -40,6 +47,7 @@ export interface TrackingPublicConfig {
   maps_enabled: boolean;
   app_name: string;
   track_poll_seconds: number;
+  rider_ping_seconds?: number;
 }
 
 @Injectable({ providedIn: 'root' })

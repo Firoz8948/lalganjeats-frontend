@@ -1,4 +1,3 @@
-/// <reference types="google.maps" />
 import {
   AfterViewInit,
   Component,
@@ -14,10 +13,22 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { GoogleMapsLoaderService } from '../../services/google-maps-loader.service';
+import * as L from 'leaflet';
 import { TrackingService, TrackSnapshot } from '../../services/tracking.service';
 import { TrackingWebsocketService } from '../../services/tracking-websocket.service';
-import { NativeMapsService } from '../../services/native-maps.service';
+
+/**
+ * Customer order tracking.
+ *
+ * Cost policy (₹0 Google):
+ *  - Before pickup: status only, no map, no rider position.
+ *  - After pickup: Leaflet + OpenStreetMap tiles show the rider's last
+ *    position, refreshed every `rider_ping_seconds` (2 min) via WebSocket
+ *    push with a slow REST poll as fallback. No routing API is called —
+ *    a straight dashed line links rider → destination.
+ */
+const DEFAULT_CENTER: L.LatLngTuple = [25.86, 85.18];
+const DEFAULT_POLL_MS = 120_000;
 
 @Component({
   selector: 'app-order-live-map',
@@ -34,42 +45,37 @@ export class OrderLiveMapComponent implements OnInit, OnChanges, AfterViewInit, 
   @ViewChild('mapHost') mapHost?: ElementRef<HTMLDivElement>;
 
   private tracking = inject(TrackingService);
-  private mapsLoader = inject(GoogleMapsLoaderService);
   private ws = inject(TrackingWebsocketService);
-  private nativeMaps = inject(NativeMapsService);
 
   readonly riderIconUrl = 'assets/icons/delivery-man.png';
 
   snap = signal<TrackSnapshot | null>(null);
   error = signal('');
-  mapsReady = signal(false);
-  mapsMissingKey = signal(false);
   liveMode = signal<'websocket' | 'rest-fallback' | 'connecting'>('connecting');
-  usingNativeMap = signal(false);
+  mapReady = signal(false);
+  /** "Updated 2 min ago" — re-evaluated every 30 s. */
+  updatedAgo = signal('');
 
-  private map?: google.maps.Map;
-  private riderMarker?: google.maps.Marker;
-  private destMarker?: google.maps.Marker;
-  private directionsService?: google.maps.DirectionsService;
-  private directionsRenderer?: google.maps.DirectionsRenderer;
-  private lastRouteKey = '';
+  private map?: L.Map;
+  private riderMarker?: L.Marker;
+  private destMarker?: L.Marker;
+  private line?: L.Polyline;
+  private fitted = false;
   private viewReady = false;
-  private apiKey = '';
   private wsSub?: Subscription;
-  private fallbackPoll?: ReturnType<typeof setInterval>;
+  private poll?: ReturnType<typeof setInterval>;
+  private agoTimer?: ReturnType<typeof setInterval>;
+  private pollMs = DEFAULT_POLL_MS;
   private startedForId = 0;
-
-  get nativeMapElementId(): string {
-    return `le-native-map-${this.orderId || 0}`;
-  }
 
   ngOnInit() {
     this.bootstrap();
+    this.agoTimer = setInterval(() => this.refreshAgo(), 30_000);
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['orderId'] && !changes['orderId'].firstChange) {
-      this.teardownLive();
+      this.teardown();
       this.bootstrap();
     }
   }
@@ -80,8 +86,42 @@ export class OrderLiveMapComponent implements OnInit, OnChanges, AfterViewInit, 
   }
 
   ngOnDestroy() {
-    this.teardownLive();
+    this.teardown();
+    if (this.agoTimer) clearInterval(this.agoTimer);
   }
+
+  // ── Derived view helpers ───────────────────────────────────
+
+  /** Rider position is only shared after pickup. */
+  showMap(): boolean {
+    const s = this.snap();
+    return !!s && !!s.rider && (s.live_tracking || s.order_status === 'picked_up'
+      || s.order_status === 'out_for_delivery');
+  }
+
+  awaitingPickup(): boolean {
+    const s = this.snap();
+    if (!s) return false;
+    return ['pending', 'accepted', 'ready'].includes(s.order_status || '');
+  }
+
+  pingMinutes(): number {
+    const secs = this.snap()?.rider_ping_seconds || this.pollMs / 1000;
+    return Math.max(1, Math.round(secs / 60));
+  }
+
+  private refreshAgo() {
+    const at = this.snap()?.updated_at;
+    if (!at) {
+      this.updatedAgo.set('');
+      return;
+    }
+    const diff = Math.max(0, Date.now() - new Date(at).getTime());
+    const mins = Math.round(diff / 60_000);
+    this.updatedAgo.set(mins <= 0 ? 'Updated just now' : `Updated ${mins} min ago`);
+  }
+
+  // ── Lifecycle ──────────────────────────────────────────────
 
   private bootstrap() {
     if (!this.orderId) return;
@@ -89,221 +129,159 @@ export class OrderLiveMapComponent implements OnInit, OnChanges, AfterViewInit, 
     this.snap.set(null);
     this.error.set('');
     this.liveMode.set('connecting');
+    this.fitted = false;
 
     this.tracking.publicConfig().subscribe({
-      next: async (cfg) => {
-        if (this.startedForId !== this.orderId) return;
-        this.apiKey = cfg.google_maps_api_key || '';
-        if (!this.apiKey) {
-          this.mapsMissingKey.set(true);
-          this.startLiveUpdates();
-          return;
-        }
-
-        if (this.nativeMaps.isNativeApp()) {
-          const ok = await this.nativeMaps.tryCreateNativeMap(
-            this.nativeMapElementId,
-            this.apiKey,
-            { lat: 25.86, lng: 85.18 },
-          );
-          if (ok) {
-            this.usingNativeMap.set(true);
-            this.mapsReady.set(true);
-            this.startLiveUpdates();
-            return;
-          }
-        }
-
-        this.mapsLoader
-          .load(this.apiKey)
-          .then(() => {
-            if (this.startedForId !== this.orderId) return;
-            this.mapsReady.set(true);
-            this.tryInitMap();
-            this.startLiveUpdates();
-          })
-          .catch((e: Error) => {
-            this.error.set(e?.message || 'Failed to load Google Maps');
-            this.startLiveUpdates();
-          });
-      },
-      error: () => {
-        this.error.set('Could not load maps config');
+      next: (cfg) => {
+        const secs = cfg.rider_ping_seconds || cfg.track_poll_seconds;
+        if (secs && secs >= 30) this.pollMs = secs * 1000;
         this.startLiveUpdates();
       },
+      error: () => this.startLiveUpdates(),
     });
   }
 
-  private teardownLive() {
+  private teardown() {
     this.wsSub?.unsubscribe();
     this.wsSub = undefined;
     this.ws.disconnect();
-    if (this.fallbackPoll) {
-      clearInterval(this.fallbackPoll);
-      this.fallbackPoll = undefined;
+    if (this.poll) {
+      clearInterval(this.poll);
+      this.poll = undefined;
     }
-    void this.nativeMaps.destroyNativeMap();
-    this.map = undefined;
+    if (this.map) {
+      this.map.remove();
+      this.map = undefined;
+    }
     this.riderMarker = undefined;
     this.destMarker = undefined;
-    this.directionsService = undefined;
-    this.directionsRenderer = undefined;
-    this.lastRouteKey = '';
+    this.line = undefined;
+    this.mapReady.set(false);
   }
 
   private startLiveUpdates() {
-    this.tracking.trackOrder(this.orderId).subscribe({
-      next: (s) => this.onSnapshot(s),
-      error: (e: { error?: { detail?: string } }) => {
-        this.error.set(e.error?.detail || 'Failed to load tracking');
-      },
-    });
+    if (this.startedForId !== this.orderId) return;
+    this.fetchOnce();
 
     this.wsSub = this.ws.connect(this.orderId).subscribe({
       next: (msg) => {
         if (msg.type === 'track_update') {
           this.liveMode.set('websocket');
-          if (this.fallbackPoll) {
-            clearInterval(this.fallbackPoll);
-            this.fallbackPoll = undefined;
-          }
           this.onSnapshot(msg.data);
         } else if (msg.type === 'error') {
           this.error.set(msg.detail);
-          this.enableRestFallback();
+          this.liveMode.set('rest-fallback');
         }
       },
-      error: () => this.enableRestFallback(),
+      error: () => this.liveMode.set('rest-fallback'),
     });
 
+    // Slow safety poll (2 min) — matches the rider's ping interval, so it
+    // never asks more often than new data can exist.
+    this.poll = setInterval(() => this.fetchOnce(), this.pollMs);
+
     setTimeout(() => {
-      if (this.liveMode() === 'connecting') {
-        this.enableRestFallback();
-      }
-    }, 4000);
+      if (this.liveMode() === 'connecting') this.liveMode.set('rest-fallback');
+    }, 5000);
   }
 
-  private enableRestFallback() {
-    if (this.fallbackPoll) return;
-    this.liveMode.set('rest-fallback');
-    this.fallbackPoll = setInterval(() => {
-      this.tracking.trackOrder(this.orderId).subscribe({
-        next: (s) => this.onSnapshot(s),
-        error: () => {},
-      });
-    }, 4000);
+  private fetchOnce() {
+    if (!this.orderId) return;
+    this.tracking.trackOrder(this.orderId).subscribe({
+      next: (s) => this.onSnapshot(s),
+      error: (e: { error?: { detail?: string } }) => {
+        if (!this.snap()) this.error.set(e.error?.detail || 'Failed to load tracking');
+      },
+    });
   }
 
   private onSnapshot(s: TrackSnapshot) {
     this.snap.set(s);
-    if (s.google_maps_api_key && !this.apiKey) {
-      this.apiKey = s.google_maps_api_key;
-      this.mapsMissingKey.set(false);
-    }
-    void this.applySnapshot(s);
+    this.error.set('');
+    this.refreshAgo();
+    // The map host only exists in the DOM after pickup; give CD one tick.
+    setTimeout(() => {
+      this.tryInitMap();
+      this.applySnapshot(s);
+    }, 0);
   }
+
+  // ── Leaflet ────────────────────────────────────────────────
 
   private tryInitMap() {
-    if (this.usingNativeMap()) return;
-    if (!this.viewReady || !this.mapsReady() || this.map) return;
+    if (this.map || !this.viewReady || !this.showMap()) return;
     const host = this.mapHost?.nativeElement;
-    const g = window.google;
-    if (!host || !g?.maps) return;
+    if (!host) return;
 
-    this.map = new g.maps.Map(host, {
-      center: { lat: 25.86, lng: 85.18 },
+    this.map = L.map(host, {
+      center: DEFAULT_CENTER,
       zoom: 14,
-      disableDefaultUI: true,
       zoomControl: true,
-      gestureHandling: 'greedy',
-      styles: [{ featureType: 'poi', stylers: [{ visibility: 'off' }] }],
+      attributionControl: true,
     });
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(this.map);
 
-    this.directionsService = new g.maps.DirectionsService();
-    this.directionsRenderer = new g.maps.DirectionsRenderer({
-      map: this.map,
-      suppressMarkers: true,
-      polylineOptions: {
-        strokeColor: '#ff0000',
-        strokeOpacity: 0.9,
-        strokeWeight: 5,
-      },
-    });
-
-    const s = this.snap();
-    if (s) void this.applySnapshot(s);
+    this.mapReady.set(true);
+    setTimeout(() => this.map?.invalidateSize(), 50);
   }
 
-  private async applySnapshot(s: TrackSnapshot) {
-    if (this.usingNativeMap() && s.rider) {
-      await this.nativeMaps.updateNativeRider(
-        s.rider.lat,
-        s.rider.lng,
-        this.riderIconUrl,
-      );
+  private applySnapshot(s: TrackSnapshot) {
+    if (!this.map || !s.rider) return;
+    const rider: L.LatLngTuple = [s.rider.lat, s.rider.lng];
+
+    if (!this.riderMarker) {
+      this.riderMarker = L.marker(rider, {
+        icon: L.icon({
+          iconUrl: this.riderIconUrl,
+          iconSize: [46, 46],
+          iconAnchor: [23, 23],
+        }),
+        title: 'Delivery partner',
+        zIndexOffset: 1000,
+      }).addTo(this.map);
+    } else {
+      this.riderMarker.setLatLng(rider);
+    }
+
+    const dest = s.destination || s.customer;
+    if (dest) {
+      const d: L.LatLngTuple = [dest.lat, dest.lng];
+      if (!this.destMarker) {
+        this.destMarker = L.marker(d, {
+          icon: L.divIcon({
+            className: 'le-dest-pin',
+            html: '<span></span>',
+            iconSize: [18, 18],
+            iconAnchor: [9, 9],
+          }),
+          title: 'Delivery address',
+        }).addTo(this.map);
+      } else {
+        this.destMarker.setLatLng(d);
+      }
+      if (!this.line) {
+        this.line = L.polyline([rider, d], {
+          color: '#e10000',
+          weight: 4,
+          opacity: 0.85,
+          dashArray: '8 8',
+        }).addTo(this.map);
+      } else {
+        this.line.setLatLngs([rider, d]);
+      }
+      if (!this.fitted) {
+        this.map.fitBounds(L.latLngBounds([rider, d]), { padding: [40, 40], maxZoom: 16 });
+        this.fitted = true;
+        return;
+      }
+    } else if (!this.fitted) {
+      this.map.setView(rider, 15);
+      this.fitted = true;
       return;
     }
-
-    if (!this.map || !window.google?.maps) return;
-    const g = window.google;
-
-    if (s.rider) {
-      if (!this.riderMarker) {
-        this.riderMarker = new g.maps.Marker({
-          map: this.map,
-          position: s.rider,
-          title: 'Delivery partner',
-          icon: {
-            url: this.riderIconUrl,
-            scaledSize: new g.maps.Size(48, 48),
-            anchor: new g.maps.Point(24, 24),
-          },
-        });
-      } else {
-        this.riderMarker.setPosition(s.rider);
-      }
-      this.map.panTo(s.rider);
-    }
-
-    if (s.destination) {
-      if (!this.destMarker) {
-        this.destMarker = new g.maps.Marker({
-          map: this.map,
-          position: s.destination,
-          title: s.phase === 'to_restaurant' ? 'Restaurant' : 'Delivery address',
-          icon: {
-            path: g.maps.SymbolPath.CIRCLE,
-            scale: 8,
-            fillColor: '#1a1a1a',
-            fillOpacity: 1,
-            strokeColor: '#fff',
-            strokeWeight: 2,
-          },
-        });
-      } else {
-        this.destMarker.setPosition(s.destination);
-      }
-    }
-
-    if (s.rider && s.destination && this.directionsService && this.directionsRenderer) {
-      const key =
-        `${s.rider.lat.toFixed(4)},${s.rider.lng.toFixed(4)}|` +
-        `${s.destination.lat.toFixed(4)},${s.destination.lng.toFixed(4)}`;
-      if (key !== this.lastRouteKey) {
-        this.lastRouteKey = key;
-        this.directionsService.route(
-          {
-            origin: s.rider,
-            destination: s.destination,
-            travelMode: g.maps.TravelMode.DRIVING,
-          },
-          (result, status) => {
-            if (status === 'OK' && result) {
-              this.directionsRenderer!.setDirections(result);
-            }
-          },
-        );
-      }
-    }
+    this.map.panTo(rider, { animate: true });
   }
 }

@@ -96,6 +96,37 @@ export interface DeliveryPartnerImpersonationSession {
   redirect_to: string;
 }
 
+export interface MapsUsageSummary {
+  window_days: number;
+  cost_per_call_inr: number;
+  google: {
+    total_calls: number;
+    calls_last_24h: number;
+    estimated_cost_inr: number;
+    by_purpose: { purpose: string; status: string; calls: number; estimated_cost_inr: number }[];
+    by_day: { day: string; calls: number; estimated_cost_inr: number }[];
+    recent: {
+      at: string | null;
+      api: string;
+      purpose: string;
+      status: string;
+      estimated_cost_inr: number;
+      error: string | null;
+    }[];
+  };
+  road_distance_cache: {
+    entries: number;
+    hits: number;
+    estimated_saved_inr: number;
+  };
+  rider_location_pings: {
+    total: number;
+    last_24h: number;
+    by_source: { source: string; count: number }[];
+    google_cost_inr: number;
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private readonly baseUrl = `${environment.apiBaseUrl}/admin`;
@@ -166,6 +197,12 @@ export class AdminService {
 
   getDashboard(): Observable<any> {
     return this.http.get(`${this.baseUrl}/dashboard`);
+  }
+
+  getMapsUsage(days = 30): Observable<MapsUsageSummary> {
+    return this.http.get<MapsUsageSummary>(`${this.baseUrl}/maps-usage`, {
+      params: { days: String(days) },
+    });
   }
 
   getRestaurants(): Observable<AdminRestaurantRow[]> {

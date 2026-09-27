@@ -1,26 +1,28 @@
 <div class="live-map" [class.live-map--compact]="compact">
   <div class="live-map__bar">
     <div>
-      <p class="live-map__kicker">Live tracking</p>
+      <p class="live-map__kicker">{{ showMap() ? 'Live tracking' : 'Order status' }}</p>
       @if (snap(); as s) {
         <p class="live-map__status">{{ s.status_meta || s.order_status }}</p>
       }
     </div>
-    <span
-      class="live-pill"
-      [class.ws]="liveMode() === 'websocket'"
-      [class.fallback]="liveMode() === 'rest-fallback'">
-      @if (liveMode() === 'websocket') { Live }
-      @else if (liveMode() === 'rest-fallback') { Sync }
-      @else { Connecting… }
-    </span>
+    @if (showMap()) {
+      <span
+        class="live-pill"
+        [class.ws]="liveMode() === 'websocket'"
+        [class.fallback]="liveMode() === 'rest-fallback'">
+        @if (liveMode() === 'websocket') { Live }
+        @else if (liveMode() === 'rest-fallback') { Sync }
+        @else { Connecting… }
+      </span>
+    }
   </div>
 
-  @if (snap()?.eta_label) {
+  @if (snap()?.eta_label && showMap()) {
     <div class="eta-bubble" [class.done]="snap()?.phase === 'delivered'">
       <strong>{{ snap()?.eta_label }}</strong>
       @if (snap()?.distance_km != null && snap()?.phase !== 'delivered') {
-        <span>{{ snap()?.distance_km }} km</span>
+        <span>≈ {{ snap()?.distance_km }} km</span>
       }
     </div>
   }
@@ -49,25 +51,37 @@
     </section>
   }
 
-  <div class="map-wrap">
-    <div
-      [id]="nativeMapElementId"
-      class="map native"
-      [class.hidden]="!usingNativeMap()"></div>
-    <div #mapHost class="map web" [class.hidden]="usingNativeMap()"></div>
+  @if (showMap()) {
+    <div class="map-wrap">
+      <div #mapHost class="map"></div>
+      @if (!mapReady()) {
+        <div class="map-overlay"><p>Loading map…</p></div>
+      }
+    </div>
 
-    @if (mapsMissingKey()) {
-      <div class="map-overlay">
-        <p>Map key not configured yet. Tracking still updates live.</p>
-      </div>
-    } @else if (!mapsReady() && !error()) {
-      <div class="map-overlay"><p>Loading map…</p></div>
-    } @else if (!snap()?.rider && !error() && mapsReady()) {
-      <div class="map-overlay">
-        <p>Waiting for delivery partner location…</p>
-      </div>
-    }
-  </div>
+    <div class="map-foot">
+      <span class="map-foot__ago">
+        {{ updatedAgo() || 'Waiting for update…' }} · refreshes every {{ pingMinutes() }} min
+      </span>
+      @if (snap()?.rider_maps_url; as url) {
+        <a class="map-foot__link" [href]="url" target="_blank" rel="noopener">Open in Google Maps</a>
+      }
+    </div>
+  } @else if (awaitingPickup()) {
+    <div class="pre-pickup">
+      <div class="pre-pickup__icon">🍲</div>
+      <p class="pre-pickup__title">Your order is being prepared</p>
+      <p class="pre-pickup__hint">
+        Live rider location will appear here as soon as your order is picked up.
+      </p>
+    </div>
+  } @else if (snap() && snap()?.order_status !== 'delivered' && !snap()?.rider) {
+    <div class="pre-pickup">
+      <div class="pre-pickup__icon">📍</div>
+      <p class="pre-pickup__title">Rider is on the way</p>
+      <p class="pre-pickup__hint">Waiting for the rider's first location update…</p>
+    </div>
+  }
 
   @if (error()) {
     <p class="err">{{ error() }}</p>
@@ -76,10 +90,7 @@
   @if (snap(); as s) {
     <section class="meta">
       <p>{{ s.status_meta || s.message || 'Updating…' }}</p>
-      @if (s.phase === 'to_restaurant') {
-        <p class="hint">Rider is heading to the restaurant to pick up your order.</p>
-      }
-      @if (s.phase === 'to_customer' && s.order_status === 'picked_up' && s.delivery_partner; as rider) {
+      @if (s.phase === 'to_customer' && s.rider && s.delivery_partner; as rider) {
         <p class="hint">
           {{ rider.name }}
           @if (rider.bike_info || rider.registered_vehicle_number) {

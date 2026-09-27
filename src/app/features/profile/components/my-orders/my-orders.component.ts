@@ -105,7 +105,7 @@ export class MyOrdersComponent implements OnInit, OnDestroy {
   }
 
   canTrack(status: string): boolean {
-    return ['pending', 'accepted', 'ready', 'picked_up'].includes(status);
+    return ['pending', 'accepted', 'ready', 'picked_up', 'out_for_delivery'].includes(status);
   }
 
   getTrackingSteps(currentStatus: string): TrackingStep[] {

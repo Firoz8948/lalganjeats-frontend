@@ -84,6 +84,46 @@
       </article>
     </div>
 
+    @if (mapsUsage(); as maps) {
+      <section class="maps-usage-panel">
+        <div class="maps-usage-panel__header">
+          <div>
+            <p class="overview-kicker">MAPS COST</p>
+            <h2>Google Maps spend</h2>
+            <p>Last {{ maps.window_days }} days · paid Distance Matrix only</p>
+          </div>
+          <strong>₹{{ maps.google.estimated_cost_inr | number:'1.0-0' }}</strong>
+        </div>
+        <div class="maps-metrics">
+          <article>
+            <span>Google calls</span>
+            <strong>{{ maps.google.total_calls | number }}</strong>
+            <small>{{ maps.google.calls_last_24h | number }} in last 24h</small>
+          </article>
+          <article>
+            <span>Cache saved</span>
+            <strong>₹{{ maps.road_distance_cache.estimated_saved_inr | number:'1.0-0' }}</strong>
+            <small>{{ maps.road_distance_cache.hits | number }} reused lookups</small>
+          </article>
+          <article>
+            <span>Rider GPS pings</span>
+            <strong>{{ maps.rider_location_pings.total | number }}</strong>
+            <small>₹{{ maps.rider_location_pings.google_cost_inr }} Google cost</small>
+          </article>
+        </div>
+        @if (maps.google.by_purpose.length) {
+          <ul class="maps-purposes">
+            @for (row of maps.google.by_purpose; track row.purpose + row.status) {
+              <li>
+                <span>{{ row.purpose }} · {{ row.status }}</span>
+                <span>{{ row.calls }} calls · ₹{{ row.estimated_cost_inr | number:'1.0-2' }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+
     <section class="live-orders-panel">
       <div class="live-orders-panel__header">
         <div>

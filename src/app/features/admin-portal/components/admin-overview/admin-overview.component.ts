@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
-import { AdminService } from '../../../../core/services/admin.service';
+import { AdminService, MapsUsageSummary } from '../../../../core/services/admin.service';
 
 interface DashboardStats {
   total_customers: number;
@@ -51,6 +51,7 @@ const STATUS_SHORT: Record<string, string> = {
 export class AdminOverviewComponent implements OnInit {
   stats = signal<DashboardStats | null>(null);
   liveOrders = signal<LiveOrder[]>([]);
+  mapsUsage = signal<MapsUsageSummary | null>(null);
   loading = signal(true);
   today = new Date();
   readonly statusFlow = LIVE_STATUS_FLOW;
@@ -65,6 +66,10 @@ export class AdminOverviewComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
+    });
+    this.admin.getMapsUsage(30).subscribe({
+      next: (data) => this.mapsUsage.set(data),
+      error: () => {},
     });
   }
 

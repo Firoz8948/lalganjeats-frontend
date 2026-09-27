@@ -327,6 +327,53 @@
   }
 }
 .skeleton-hero { height: 82px; margin-bottom: 20px; }
+.maps-usage-panel {
+  margin: 0 0 20px;
+  padding: 18px 20px;
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: 16px;
+  background: #fff;
+
+  &__header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+    h2 { margin: 2px 0 4px; color: #0f172a; font-size: 20px; }
+    p { margin: 0; color: #64748b; font-size: 13px; }
+    strong { font-size: 28px; color: #b45309; letter-spacing: -.04em; }
+  }
+}
+
+.maps-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  article {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #f8fafc;
+    span, small { display: block; color: #64748b; font-size: 12px; }
+    strong { display: block; margin: 4px 0; color: #0f172a; font-size: 20px; }
+  }
+}
+
+.maps-purposes {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-top: 1px solid #eef2f7;
+    color: #334155;
+    font-size: 13px;
+  }
+}
+
 .skeleton-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 .skeleton-card { height: 162px; }
 
@@ -351,7 +398,7 @@
   .overview-shell { padding: 16px; }
   .overview-hero { align-items: flex-start; flex-direction: column; }
   .overview-hero time { text-align: left; }
-  .stats-grid, .skeleton-grid { grid-template-columns: 1fr; }
+  .stats-grid, .skeleton-grid, .maps-metrics { grid-template-columns: 1fr; }
   .stat-card { min-height: 150px; }
   .live-orders-panel__header { align-items: flex-start; flex-direction: column; }
 }
