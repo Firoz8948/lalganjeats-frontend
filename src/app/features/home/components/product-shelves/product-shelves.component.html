@@ -1,0 +1,27 @@
+@for (shelf of shelves(); track shelf.id) {
+  <section class="shelf" [style.background-color]="shelf.section_bg_color" [attr.aria-label]="shelf.title">
+    <div class="container shelf__inner">
+      <h2 class="shelf__title">{{ shelf.title }}</h2>
+      <div class="shelf__row">
+        @for (product of shelf.products; track product.id) {
+          <app-product-card
+            class="shelf__card"
+            [product]="product"
+            [link]="productLink(product)"
+            [imageBg]="shelf.image_bg_color"
+            [bodyBg]="shelf.card_bg_color" />
+        }
+        <a class="shelf__view-all" [routerLink]="viewAllLink(shelf)">
+          <span class="shelf__view-all-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </span>
+          View all
+        </a>
+      </div>
+    </div>
+  </section>
+}

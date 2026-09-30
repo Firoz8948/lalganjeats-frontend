@@ -1,0 +1,42 @@
+@let item = product();
+<article
+  class="pcard"
+  [style.--pcard-image-bg]="imageBg()"
+  [style.--pcard-body-bg]="bodyBg()">
+  <a class="pcard__media" [routerLink]="link()" [attr.aria-label]="link() ? item.name : null">
+    @if (item.image_url) {
+      <img [src]="item.image_url" [alt]="item.name" loading="lazy" decoding="async" />
+    } @else {
+      <span aria-hidden="true">🛒</span>
+    }
+    @if (!item.restaurant.is_open) {
+      <em class="pcard__closed">{{ item.restaurant.opens_at_label || 'Closed' }}</em>
+    }
+  </a>
+
+  <div class="pcard__body">
+    <a class="pcard__name" [routerLink]="link()">{{ item.name }}</a>
+    @if (item.variant_label) {
+      <span class="pcard__unit">{{ item.variant_label }}</span>
+    }
+
+    <div class="pcard__footer">
+      <div class="pcard__price">
+        <span class="pcard__amount">₹{{ item.price }}</span>
+        @if (hasMrp()) {
+          <s>₹{{ item.original_price }}</s>
+        }
+      </div>
+
+      @if (quantity() === 0) {
+        <button type="button" class="pcard__buy" (click)="add()">Buy</button>
+      } @else {
+        <div class="pcard__stepper" role="group" [attr.aria-label]="'Quantity of ' + item.name">
+          <button type="button" (click)="remove()" aria-label="Remove one">−</button>
+          <span aria-live="polite">{{ quantity() }}</span>
+          <button type="button" (click)="add()" aria-label="Add one">+</button>
+        </div>
+      }
+    </div>
+  </div>
+</article>

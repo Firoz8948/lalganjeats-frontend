@@ -1,7 +1,9 @@
 // frontend/src/app/shared/bottom-nav/bottom-nav.component.ts
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { filter, map } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { UserSidebarService } from '../../core/services/user-sidebar.service';
 
@@ -16,6 +18,27 @@ export class BottomNavComponent {
   auth = inject(AuthService);
   sidebar = inject(UserSidebarService);
   private router = inject(Router);
+
+  private readonly url = toSignal(
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+      map((e) => e.urlAfterRedirects),
+    ),
+    { initialValue: this.router.url },
+  );
+
+  /** Grocery tab on home, or any grocery products page. */
+  readonly isGroceryActive = computed(() => {
+    const tree = this.router.parseUrl(this.url());
+    const path = this.url().split(/[?#]/)[0];
+    return path.startsWith('/home/shop/grocery')
+      || (path === '/home' && tree.queryParams['category'] === 'grocery');
+  });
+
+  readonly isHomeActive = computed(() => {
+    const path = this.url().split(/[?#]/)[0];
+    return (path === '/home' || path === '/') && !this.isGroceryActive() && !this.sidebar.isOpen();
+  });
 
   onProfileClick() {
     if (!this.auth.isLoggedIn() || !this.auth.isCustomer()) {

@@ -1,0 +1,206 @@
+<div class="content-area grocery-panel">
+  <app-portal-page-header
+    eyebrow="GROCERY HOME"
+    title="Grocery Panel"
+    subtitle="Product sections shown in the Grocery tab below the subcategories, in order."
+    tone="admin"
+  >
+    @if (!draft()) {
+      <button class="approve-btn" [disabled]="!categoryId()" (click)="startNew()">+ Add section</button>
+    }
+  </app-portal-page-header>
+
+  @if (success()) { <div class="form-success">{{ success() }}</div> }
+  @if (error() && !draft()) { <div class="form-error">{{ error() }}</div> }
+
+  @if (draft(); as d) {
+    <section class="editor">
+      <header class="editor__head">
+        <h3>{{ d.id == null ? 'New section' : 'Edit section' }}</h3>
+        <button type="button" class="btn-link" (click)="cancel()">Cancel</button>
+      </header>
+
+      <div class="editor__grid">
+        <label class="field field--wide">
+          <span>Heading</span>
+          <input
+            maxlength="120"
+            placeholder="e.g. Daily essentials"
+            [ngModel]="d.title"
+            (ngModelChange)="patchDraft({ title: $event })"
+          />
+        </label>
+        <label class="field">
+          <span>Order</span>
+          <input
+            type="number"
+            min="0"
+            max="9999"
+            [ngModel]="d.sort_order"
+            (ngModelChange)="patchDraft({ sort_order: $event })"
+          />
+        </label>
+        <label class="field">
+          <span>"View all" opens</span>
+          <select
+            [ngModel]="d.view_all_subcategory_id"
+            (ngModelChange)="patchDraft({ view_all_subcategory_id: $event })"
+          >
+            <option [ngValue]="null">All grocery products</option>
+            @for (sub of subcategories(); track sub.id) {
+              <option [ngValue]="sub.id">{{ sub.name }}</option>
+            }
+          </select>
+        </label>
+        <label class="field field--check">
+          <input
+            type="checkbox"
+            [ngModel]="d.is_active"
+            (ngModelChange)="patchDraft({ is_active: $event })"
+          />
+          <span>Visible to customers</span>
+        </label>
+      </div>
+
+      <div class="colors">
+        <label class="color">
+          <input type="color" [ngModel]="d.section_bg_color" (ngModelChange)="patchDraft({ section_bg_color: $event })" />
+          <span><strong>Section background</strong><code>{{ d.section_bg_color }}</code></span>
+        </label>
+        <label class="color">
+          <input type="color" [ngModel]="d.image_bg_color" (ngModelChange)="patchDraft({ image_bg_color: $event })" />
+          <span><strong>Card image box</strong><code>{{ d.image_bg_color }}</code></span>
+        </label>
+        <label class="color">
+          <input type="color" [ngModel]="d.card_bg_color" (ngModelChange)="patchDraft({ card_bg_color: $event })" />
+          <span><strong>Card body</strong><code>{{ d.card_bg_color }}</code></span>
+        </label>
+      </div>
+
+      <div class="preview" [style.background-color]="d.section_bg_color">
+        <p class="preview__title">{{ d.title || 'Section heading' }}</p>
+        <div class="preview__row">
+          @for (p of selected().slice(0, 4); track p.id) {
+            <div class="preview__card" [style.background-color]="d.card_bg_color">
+              <div class="preview__media" [style.background-color]="d.image_bg_color">
+                @if (p.image_url) { <img [src]="p.image_url" [alt]="p.name" /> }
+              </div>
+              <span class="preview__name">{{ p.name }}</span>
+              <span class="preview__price">₹{{ p.price }}</span>
+              <span class="preview__buy">Buy</span>
+            </div>
+          } @empty {
+            @for (n of [1, 2, 3]; track n) {
+              <div class="preview__card" [style.background-color]="d.card_bg_color">
+                <div class="preview__media" [style.background-color]="d.image_bg_color"></div>
+                <span class="preview__name preview__name--ghost"></span>
+                <span class="preview__buy">Buy</span>
+              </div>
+            }
+          }
+          <div class="preview__all">View all →</div>
+        </div>
+      </div>
+
+      <div class="products">
+        <div class="products__col">
+          <h4>Find products</h4>
+          <input
+            class="search-box products__search"
+            placeholder="Search grocery products…"
+            [(ngModel)]="searchText"
+            (ngModelChange)="onSearch($event)"
+          />
+          <ul class="plist">
+            @for (p of searchResults(); track p.id) {
+              <li class="plist__row">
+                <span class="plist__thumb">@if (p.image_url) { <img [src]="p.image_url" alt="" /> }</span>
+                <span class="plist__info">
+                  <strong>{{ p.name }}</strong>
+                  <small>{{ p.restaurant_name }}@if (p.subcategory) { · {{ p.subcategory }} } · ₹{{ p.price }}</small>
+                </span>
+                @if (selectedIds().has(p.id)) {
+                  <span class="plist__added">Added</span>
+                } @else {
+                  <button type="button" class="approve-btn small" (click)="addProduct(p)">Add</button>
+                }
+              </li>
+            } @empty {
+              <li class="plist__empty">{{ searching() ? 'Searching…' : 'No products found.' }}</li>
+            }
+          </ul>
+        </div>
+
+        <div class="products__col">
+          <h4>In this section ({{ selected().length }})</h4>
+          <ul class="plist">
+            @for (p of selected(); track p.id; let i = $index, last = $last) {
+              <li class="plist__row">
+                <span class="plist__pos">{{ i + 1 }}</span>
+                <span class="plist__thumb">@if (p.image_url) { <img [src]="p.image_url" alt="" /> }</span>
+                <span class="plist__info">
+                  <strong>{{ p.name }}</strong>
+                  <small>
+                    {{ p.restaurant_name }} · ₹{{ p.price }}
+                    @if (!p.is_live) { <em class="plist__hidden">hidden (unavailable or store off)</em> }
+                  </small>
+                </span>
+                <span class="plist__actions">
+                  <button type="button" title="Move up" [disabled]="i === 0" (click)="moveProduct(i, -1)">↑</button>
+                  <button type="button" title="Move down" [disabled]="last" (click)="moveProduct(i, 1)">↓</button>
+                  <button type="button" title="Remove" class="plist__remove" (click)="removeProduct(p.id)">×</button>
+                </span>
+              </li>
+            } @empty {
+              <li class="plist__empty">Add products from the list on the left.</li>
+            }
+          </ul>
+        </div>
+      </div>
+
+      @if (error()) { <div class="form-error">{{ error() }}</div> }
+
+      <footer class="editor__foot">
+        <button type="button" class="btn-secondary" (click)="cancel()">Cancel</button>
+        <button type="button" class="approve-btn" [disabled]="saving()" (click)="save()">
+          {{ saving() ? 'Saving…' : 'Save section' }}
+        </button>
+      </footer>
+    </section>
+  }
+
+  @if (loading()) {
+    <div class="loading-state">Loading sections…</div>
+  } @else {
+    <div class="shelf-list">
+      @for (shelf of sortedShelves(); track shelf.id) {
+        <article class="shelf-item" [class.shelf-item--off]="!shelf.is_active">
+          <span class="shelf-item__order">{{ shelf.sort_order }}</span>
+          <div class="shelf-item__body">
+            <h3>
+              {{ shelf.title }}
+              @if (!shelf.is_active) { <span class="shelf-item__tag">Hidden</span> }
+            </h3>
+            <p>
+              {{ shelf.products.length }} product{{ shelf.products.length === 1 ? '' : 's' }}
+              · View all → {{ subcategoryName(shelf.view_all_subcategory_id) }}
+            </p>
+          </div>
+          <span class="shelf-item__swatches" title="Section · image box · card body">
+            <i [style.background-color]="shelf.section_bg_color"></i>
+            <i [style.background-color]="shelf.image_bg_color"></i>
+            <i [style.background-color]="shelf.card_bg_color"></i>
+          </span>
+          <span class="shelf-item__actions">
+            <button type="button" class="btn-secondary" (click)="edit(shelf)">Edit</button>
+            <button type="button" class="danger-link" (click)="remove(shelf)">Delete</button>
+          </span>
+        </article>
+      } @empty {
+        @if (!draft()) {
+          <div class="shelf-empty">No sections yet. Click “+ Add section” to create the first one.</div>
+        }
+      }
+    </div>
+  }
+</div>

@@ -1,6 +1,8 @@
 @use '../shared/admin-shared';
 .page-title-row, .slide header, .preview-card header, footer { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .page-title-row { margin-bottom:8px; .page-title { margin:0; } }
+.header-category { display:grid; gap:5px; color:#666; font-size:12px; font-weight:700; select { min-width:190px; padding:10px 12px; border:1px solid #ddd; border-radius:9px; background:#fff; } @media(max-width:650px){ select{width:100%} } }
+.category-note { margin:0 0 14px; color:#555; font-size:13px; }
 .slide { margin-bottom:28px; padding:18px; border:1px solid #eee; border-radius:12px; background:#fff; &.inactive{opacity:.72} header{margin-bottom:14px} h2{margin:0;font-size:18px} header div{display:flex;gap:14px} }
 .badge { padding:3px 8px; border-radius:999px; background:#e6faf3; color:#0b7a5a; font-size:11px; text-transform:uppercase; }
 .upload-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; @media(max-width:900px){grid-template-columns:1fr} }

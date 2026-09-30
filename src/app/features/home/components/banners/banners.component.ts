@@ -1,18 +1,21 @@
 import {
   Component,
   HostListener,
+  Input,
   OnInit,
   OnDestroy,
   computed,
-  inject,
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
 import { BannerService, HomeBannerSlide } from '../../../../core/services/banner.service';
-import { DishSearchService } from '../../../../core/services/dish-search.service';
 import { FeaturedSubcategoriesComponent } from '../featured-subcategories/featured-subcategories.component';
+import { CategorySearchComponent } from '../category-search/category-search.component';
+import {
+  DEFAULT_HOME_CATEGORY,
+  HOME_CATEGORIES,
+  HomeCategoryKey,
+} from '../../home-categories';
 
 const DEFAULT_SLIDES: HomeBannerSlide[] = [];
 const MOBILE_BREAKPOINT = 768;
@@ -20,7 +23,7 @@ const MOBILE_BREAKPOINT = 768;
 @Component({
   selector: 'app-banners',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, FeaturedSubcategoriesComponent],
+  imports: [CommonModule, FeaturedSubcategoriesComponent, CategorySearchComponent],
   templateUrl: './banners.component.html',
   styleUrl: './banners.component.scss',
 })
@@ -28,7 +31,23 @@ export class BannersComponent implements OnInit, OnDestroy {
   currentIndex = signal(0);
   slides = signal<HomeBannerSlide[]>(DEFAULT_SLIDES);
   loading = signal(true);
-  dishSearch = inject(DishSearchService);
+
+  private categoryKey = signal<HomeCategoryKey>(DEFAULT_HOME_CATEGORY);
+  private initialized = false;
+  readonly isFood = computed(() => this.categoryKey() === 'food');
+  readonly activeCategory = computed(
+    () => HOME_CATEGORIES.find((c) => c.key === this.categoryKey())!,
+  );
+
+  @Input() set category(value: HomeCategoryKey | null | undefined) {
+    const key = value ?? DEFAULT_HOME_CATEGORY;
+    if (key === this.categoryKey()) return;
+    this.categoryKey.set(key);
+    if (this.initialized) {
+      this.loadBanners();
+      this.startAutoPlay();
+    }
+  }
 
   private settledImages = signal<ReadonlySet<string>>(new Set<string>());
   private isMobile = signal(
@@ -57,6 +76,7 @@ export class BannersComponent implements OnInit, OnDestroy {
   constructor(private bannerService: BannerService) {}
 
   ngOnInit() {
+    this.initialized = true;
     this.loadBanners();
     this.startAutoPlay();
   }
@@ -65,27 +85,25 @@ export class BannersComponent implements OnInit, OnDestroy {
     this.stopAutoPlay();
   }
 
-  onDishQuery(value: string) {
-    this.dishSearch.setQuery(value);
-  }
-
-  clearDishSearch() {
-    this.dishSearch.clear();
-  }
-
   @HostListener('window:resize')
   onResize() {
     this.isMobile.set(window.innerWidth <= MOBILE_BREAKPOINT);
   }
 
   loadBanners() {
-    this.bannerService.getHomeBanners().subscribe({
+    const key = this.categoryKey();
+    const categoryId = HOME_CATEGORIES.find((c) => c.key === key)!.categoryId;
+    this.loading.set(true);
+    this.currentIndex.set(0);
+    this.bannerService.getHomeBanners(categoryId).subscribe({
       next: (data) => {
+        if (key !== this.categoryKey()) return;
         this.slides.set(data?.length ? data : []);
         this.currentIndex.set(0);
         this.loading.set(false);
       },
       error: () => {
+        if (key !== this.categoryKey()) return;
         this.slides.set([]);
         this.loading.set(false);
       },

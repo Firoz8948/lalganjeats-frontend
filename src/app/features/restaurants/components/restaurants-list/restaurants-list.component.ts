@@ -10,7 +10,7 @@ import { FeaturedRestaurantsComponent } from '../../../home/components/featured-
   template: `
     <app-navbar />
     <main class="page-content">
-      <app-featured-restaurants />
+      <app-featured-restaurants category="food" />
     </main>
     <app-footer />
   `,

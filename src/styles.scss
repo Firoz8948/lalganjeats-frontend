@@ -16,6 +16,7 @@
   --color-text:             #2D2D2D;
   --color-muted:            #5C5C5C;
   --color-white:            #FFFFFF;
+  --color-black:            #000000;
   --color-border:           #E8E0D8;
   --color-card-bg:          #FFFFFF;
   --color-success:          #2ECC71;
@@ -39,10 +40,45 @@
 
   --navbar-height:          68px;
 
-  // Mobile header: logo + location. Navbar measures real height and overwrites this.
-  --mobile-header-height:   100px;
+  // Mobile header: location + icons. Navbar measures real height and overwrites this.
+  --mobile-header-height:   64px;
   --bottom-nav-height:      64px;
+
+  --grocery-green:          #16a34a;
+  --grocery-green-dark:     #14532d;
+  --grocery-green-light:    #e6f7eb;
+  --grocery-green-soft:     #f1fbf4;
+  --grocery-green-border:   #a7e3b9;
+
+  --food-peach-light:       #ffeadb;
+
+  // Shop theme: follows the active home tab (Food by default).
+  // Style tab-aware elements with these, never with the raw palette.
+  --shop-navbar-bg:         var(--color-white);
+  --shop-header-bg:         #fffaf5;
+  --shop-accent:            var(--color-primary);
+  --shop-accent-soft:       var(--color-primary-soft);
+  --shop-accent-border:     var(--color-primary-border);
 }
+
+body.theme-food {
+  --shop-navbar-bg:         var(--food-peach-light);
+  --shop-header-bg:         var(--food-peach-light);
+}
+
+body.theme-grocery {
+  --shop-navbar-bg:         var(--grocery-green-light);
+  --shop-header-bg:         var(--grocery-green-light);
+  --shop-accent:            var(--grocery-green);
+  --shop-accent-soft:       var(--grocery-green-soft);
+  --shop-accent-border:     var(--grocery-green-border);
+}
+
+.shop-bg          { background-color: var(--shop-header-bg); }
+.shop-accent      { color: var(--shop-accent); }
+.shop-accent-bg   { background-color: var(--shop-accent); color: var(--color-white); }
+.shop-accent-soft { background-color: var(--shop-accent-soft); }
+.shop-border      { border-color: var(--shop-accent-border); }
 
 *, *::before, *::after {
   box-sizing: border-box;

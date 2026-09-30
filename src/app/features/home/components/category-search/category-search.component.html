@@ -1,0 +1,129 @@
+<div class="cat-search">
+  <label class="cat-search__bar">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <circle cx="11" cy="11" r="8"/>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input
+      type="search"
+      enterkeyhint="search"
+      autocomplete="off"
+      [placeholder]="placeholder"
+      [attr.aria-label]="'Search ' + label"
+      (input)="onBarInput($event)" />
+  </label>
+</div>
+
+@if (open()) {
+  <div class="cat-search-page" role="dialog" aria-modal="true" [attr.aria-label]="'Search ' + label">
+    <form class="cat-search-page__head" (submit)="$event.preventDefault(); search()">
+      <div class="cat-search-page__box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          #pageInput
+          type="search"
+          enterkeyhint="search"
+          autocomplete="off"
+          [placeholder]="placeholder"
+          [value]="query()"
+          (input)="onQueryInput($any($event.target).value)"
+          [attr.aria-label]="'Search ' + label" />
+        @if (query()) {
+          <button type="button" class="cat-search-page__clear" (click)="clearQuery()" aria-label="Clear search">×</button>
+        }
+      </div>
+      <button type="submit" class="cat-search-page__submit">Search</button>
+      <button type="button" class="cat-search-page__close" (click)="close()" aria-label="Close search">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </form>
+
+    <div class="cat-search-page__body">
+      @if (hint()) {
+        <p class="cat-search-page__status">{{ hint() }}</p>
+      } @else if (showResults()) {
+        @if (searching()) {
+          <p class="cat-search-page__status">Searching…</p>
+        } @else if (results()!.length) {
+          <p class="cat-search-page__count">
+            {{ results()!.length }} {{ results()!.length === 1 ? 'product' : 'products' }} for “{{ searchedQuery() }}”
+          </p>
+          <div class="cat-search-results">
+            @for (item of results(); track item.id) {
+              <a class="cat-search-result" [routerLink]="storeLink(item)" (click)="close()">
+                <div class="cat-search-result__thumb" aria-hidden="true">
+                  @if (item.image_url) {
+                    <img [src]="item.image_url" alt="" loading="lazy" />
+                  } @else {
+                    <span>{{ fallbackEmoji }}</span>
+                  }
+                </div>
+                <div class="cat-search-result__meta">
+                  <strong>{{ item.name }}</strong>
+                  @if (item.subcategory) {
+                    <span class="cat-search-result__group">{{ item.subcategory }}</span>
+                  }
+                  <span class="cat-search-result__price">
+                    ₹{{ item.price }}
+                    @if (item.original_price && item.original_price > item.price) {
+                      <s>₹{{ item.original_price }}</s>
+                    }
+                  </span>
+                  <span class="cat-search-result__store">
+                    {{ item.restaurant.name }}
+                    <em [class.is-closed]="!item.restaurant.is_open">
+                      · {{ item.restaurant.is_open ? 'Open' : (item.restaurant.opens_at_label || 'Closed') }}
+                    </em>
+                  </span>
+                </div>
+              </a>
+            }
+          </div>
+        } @else {
+          <ng-container *ngTemplateOutlet="notFound" />
+        }
+      } @else if (!canSuggest()) {
+        <p class="cat-search-page__status">Start typing to see {{ label.toLowerCase() }} suggestions</p>
+      } @else if (suggestions().length) {
+        <ul class="cat-search-suggestions" role="listbox">
+          @for (item of suggestions(); track item.id) {
+            <li>
+              <button type="button" role="option" (click)="pickSuggestion(item)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <span class="cat-search-suggestions__text">
+                  <strong>{{ item.name }}</strong>
+                  <small>{{ item.restaurant.name }}@if (item.subcategory) { · {{ item.subcategory }} }</small>
+                </span>
+              </button>
+            </li>
+          }
+        </ul>
+      } @else if (suggesting()) {
+        <p class="cat-search-page__status">Searching…</p>
+      } @else {
+        <ng-container *ngTemplateOutlet="notFound" />
+      }
+    </div>
+  </div>
+}
+
+<ng-template #notFound>
+  <div class="cat-search-empty">
+    <span class="cat-search-empty__icon" aria-hidden="true">🔍</span>
+    <strong>We could not find this product</strong>
+    <p>Try a different keyword or check the spelling.</p>
+  </div>
+</ng-template>

@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CartService, CartItem } from '../../../../core/services/cart.service';
@@ -36,6 +36,9 @@ export class CheckoutComponent implements OnInit {
   private paymentSettings = inject(PaymentSettingsService);
   private promos = inject(PromoService);
   private router = inject(Router);
+  private location = inject(Location);
+  /** Direct opens (shared link, refresh) have no in-app page to go back to. */
+  private readonly openedDirectly = !this.router.lastSuccessfulNavigation?.previousNavigation;
 
   // Address & Recipient State
   addresses = signal<Address[]>([]);
@@ -94,6 +97,14 @@ export class CheckoutComponent implements OnInit {
     if (method === 'cash' && !this.codAvailable()) return;
     if (method === 'online' && !this.allowPrepaid()) return;
     this.paymentMethod = method;
+  }
+
+  goBack() {
+    if (this.openedDirectly) {
+      this.router.navigateByUrl('/home', { replaceUrl: true });
+      return;
+    }
+    this.location.back();
   }
 
   deleteItem(item: CartItem) {

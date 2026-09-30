@@ -11,6 +11,10 @@ import {
 import { HomeBannerSlide } from './banner.service';
 import { HistoryPage } from './earnings.service';
 
+/** Mirrors backend storage.MAX_UPLOAD_BYTES; uploads are compressed server-side. */
+export const MAX_IMAGE_UPLOAD_MB = 10;
+export const MAX_IMAGE_UPLOAD_BYTES = MAX_IMAGE_UPLOAD_MB * 1024 * 1024;
+
 export interface AdminMenuVariant {
   id?: number;
   label: string;
@@ -50,6 +54,34 @@ export interface AdminMenuItemCreate {
   is_veg:         boolean;
   is_bestseller:  boolean;
   variants?:      { label: string; actual_price: number; price?: number | null; original_price?: number | null }[];
+}
+
+export interface AdminShelfProduct {
+  id: number;
+  name: string;
+  image_url: string | null;
+  price: number;
+  subcategory: string | null;
+  restaurant_name: string;
+  /** False when the product or its store is currently hidden from customers. */
+  is_live: boolean;
+}
+
+export interface AdminShelfSave {
+  title: string;
+  sort_order: number;
+  section_bg_color: string;
+  image_bg_color: string;
+  card_bg_color: string;
+  view_all_subcategory_id: number | null;
+  is_active: boolean;
+  product_ids: number[];
+}
+
+export interface AdminShelf extends Omit<AdminShelfSave, 'product_ids'> {
+  id: number;
+  business_category_id: number;
+  products: AdminShelfProduct[];
 }
 
 export interface CatalogCategory {
@@ -132,6 +164,28 @@ export class AdminService {
   private readonly baseUrl = `${environment.apiBaseUrl}/admin`;
 
   constructor(private http: HttpClient) {}
+
+  getShelves(categoryId: number): Observable<AdminShelf[]> {
+    return this.http.get<AdminShelf[]>(`${this.baseUrl}/shelves`, { params: { category_id: categoryId } });
+  }
+
+  searchShelfProducts(categoryId: number, q: string): Observable<AdminShelfProduct[]> {
+    return this.http.get<AdminShelfProduct[]>(`${this.baseUrl}/shelves/products`, {
+      params: { category_id: categoryId, q },
+    });
+  }
+
+  createShelf(categoryId: number, body: AdminShelfSave): Observable<AdminShelf> {
+    return this.http.post<AdminShelf>(`${this.baseUrl}/shelves`, body, { params: { category_id: categoryId } });
+  }
+
+  updateShelf(shelfId: number, body: AdminShelfSave): Observable<AdminShelf> {
+    return this.http.put<AdminShelf>(`${this.baseUrl}/shelves/${shelfId}`, body);
+  }
+
+  deleteShelf(shelfId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/shelves/${shelfId}`);
+  }
 
   getCatalogCategories(): Observable<CatalogCategory[]> {
     return this.http.get<CatalogCategory[]>(`${this.baseUrl}/catalog/categories`);
@@ -327,12 +381,16 @@ export class AdminService {
 
   // ── Home page carousel banners ───────────────────────────────────────────
 
-  getHomeBanners(): Observable<HomeBannerSlide[]> {
-    return this.http.get<HomeBannerSlide[]>(`${this.baseUrl}/home-banners`);
+  getHomeBanners(categoryId: number): Observable<HomeBannerSlide[]> {
+    return this.http.get<HomeBannerSlide[]>(`${this.baseUrl}/home-banners`, {
+      params: { category_id: categoryId },
+    });
   }
 
-  createHomeBanner(): Observable<HomeBannerSlide> {
-    return this.http.post<HomeBannerSlide>(`${this.baseUrl}/home-banners`, {});
+  createHomeBanner(categoryId: number): Observable<HomeBannerSlide> {
+    return this.http.post<HomeBannerSlide>(`${this.baseUrl}/home-banners`, {}, {
+      params: { category_id: categoryId },
+    });
   }
 
   patchHomeBanner(
@@ -348,8 +406,10 @@ export class AdminService {
     );
   }
 
-  saveHomeBanners(slides: HomeBannerSlide[]): Observable<HomeBannerSlide[]> {
-    return this.http.put<HomeBannerSlide[]>(`${this.baseUrl}/home-banners`, { slides });
+  saveHomeBanners(categoryId: number, slides: HomeBannerSlide[]): Observable<HomeBannerSlide[]> {
+    return this.http.put<HomeBannerSlide[]>(`${this.baseUrl}/home-banners`, { slides }, {
+      params: { category_id: categoryId },
+    });
   }
 
   // ── Tenant centre + delivery zones ───────────────────────────────────────

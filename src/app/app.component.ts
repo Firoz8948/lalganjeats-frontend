@@ -8,6 +8,7 @@ import { SeoService } from './core/services/seo.service';
 import { CustomerNotificationService } from './core/services/customer-notification.service';
 import { CustomerLocationService } from './core/services/customer-location.service';
 import { LiveUpdateService } from './core/services/live-update.service';
+import { BackHandlerService } from './core/services/back-handler.service';
 
 @Component({
   selector: 'app-root',
@@ -27,6 +28,7 @@ export class AppComponent {
     private ngLocation: Location,
     private router: Router,
     private zone: NgZone,
+    private backHandler: BackHandlerService,
   ) {
     seo.start();
     notif.init();
@@ -43,6 +45,7 @@ export class AppComponent {
 
     App.addListener('backButton', () => {
       this.zone.run(() => {
+        if (this.backHandler.handle()) return;
         const currentUrl = this.router.url.split('?')[0];
         const isRoot = currentUrl === '/' || currentUrl === '/home' || currentUrl === '';
 

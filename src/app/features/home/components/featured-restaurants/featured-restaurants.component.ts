@@ -1,9 +1,10 @@
-import { Component, OnDestroy, OnInit, effect, inject, signal } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { Restaurant, RestaurantCardSlide } from '../../../../core/models/restaurant.model';
 import { RestaurantService } from '../../../../core/services/restaurant.service';
 import { CustomerLocationService } from '../../../../core/services/customer-location.service';
+import { HomeCategoryKey, homeCategoryLabel, storeCategoryKey } from '../../home-categories';
 
 type CardMetaKind = 'min' | 'time' | 'distance';
 
@@ -45,7 +46,26 @@ export class FeaturedRestaurantsComponent implements OnInit, OnDestroy {
   private slideTimer: ReturnType<typeof setInterval> | null = null;
   private static readonly SLIDE_MS = 3200;
 
+  /** Filters stores by home tab; null shows every store. */
+  @Input() set category(value: HomeCategoryKey | null) {
+    this.categoryFilter.set(value);
+  }
+  private categoryFilter = signal<HomeCategoryKey | null>(null);
+
   restaurants = signal<Restaurant[]>([]);
+  visibleRestaurants = computed(() => {
+    const key = this.categoryFilter();
+    const all = this.restaurants();
+    return key ? all.filter((r) => storeCategoryKey(r) === key) : all;
+  });
+  /** Zone has stores, just none in the selected category. */
+  categoryEmpty = computed(
+    () => this.restaurants().length > 0 && this.visibleRestaurants().length === 0,
+  );
+  categoryLabel = computed(() => {
+    const key = this.categoryFilter();
+    return key ? homeCategoryLabel(key) : '';
+  });
   loading = signal(true);
   error = signal('');
   needsLocation = signal(false);
@@ -108,7 +128,7 @@ export class FeaturedRestaurantsComponent implements OnInit, OnDestroy {
   }
 
   private advanceAllSlides() {
-    const list = this.restaurants();
+    const list = this.visibleRestaurants();
     if (!list.length) return;
     this.slideIndexById.update((map) => {
       const next = { ...map };

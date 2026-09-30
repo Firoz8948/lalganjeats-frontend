@@ -1,43 +1,61 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { FeaturedSubcategory, RestaurantService } from './restaurant.service';
+import {
+  HOME_CATEGORIES,
+  HomeCategoryKey,
+} from '../../features/home/home-categories';
 
-/** Placeholder tiles when admin has not featured any subcategory yet. */
-export const DUMMY_SUBCATEGORIES: FeaturedSubcategory[] = [
-  { id: -1, name: 'Pizza', slug: 'dummy-pizza', image_url: null, product_count: 0, restaurant_count: 0 },
-  { id: -2, name: 'Burgers', slug: 'dummy-burgers', image_url: null, product_count: 0, restaurant_count: 0 },
-  { id: -3, name: 'Biryani', slug: 'dummy-biryani', image_url: null, product_count: 0, restaurant_count: 0 },
-  { id: -4, name: 'Chinese', slug: 'dummy-chinese', image_url: null, product_count: 0, restaurant_count: 0 },
-  { id: -5, name: 'Momos', slug: 'dummy-momos', image_url: null, product_count: 0, restaurant_count: 0 },
-  { id: -6, name: 'Thali', slug: 'dummy-thali', image_url: null, product_count: 0, restaurant_count: 0 },
-  { id: -7, name: 'Sweets', slug: 'dummy-sweets', image_url: null, product_count: 0, restaurant_count: 0 },
-  { id: -8, name: 'Drinks', slug: 'dummy-drinks', image_url: null, product_count: 0, restaurant_count: 0 },
-];
+function dummies(names: string[]): FeaturedSubcategory[] {
+  return names.map((name, i) => ({
+    id: -(i + 1),
+    name,
+    slug: `dummy-${name.toLowerCase().replace(/\W+/g, '-')}`,
+    image_url: null,
+    product_count: 0,
+    restaurant_count: 0,
+  }));
+}
+
+/** Placeholder tiles per tab when admin has not featured any subcategory yet. */
+export const DUMMY_SUBCATEGORIES: Record<HomeCategoryKey, FeaturedSubcategory[]> = {
+  food: dummies(['Pizza', 'Burgers', 'Biryani', 'Chinese', 'Momos', 'Thali', 'Sweets', 'Drinks']),
+  grocery: dummies(['Atta & Flour', 'Rice', 'Dal & Pulses', 'Oil & Ghee', 'Spices', 'Snacks', 'Dairy', 'Beverages']),
+};
+
+interface CategoryState {
+  items: FeaturedSubcategory[];
+  usingDummies: boolean;
+}
 
 @Injectable({ providedIn: 'root' })
 export class FeaturedSubcategoriesStore {
   private readonly restaurants = inject(RestaurantService);
-  private loaded = false;
+  private readonly requested = new Set<HomeCategoryKey>();
+  private readonly state = signal<Partial<Record<HomeCategoryKey, CategoryState>>>({});
 
-  readonly items = signal<FeaturedSubcategory[]>([]);
-  readonly loading = signal(false);
-  readonly usingDummies = signal(true);
-
-  ensureLoaded() {
-    if (this.loaded) return;
-    this.loaded = true;
-    this.loading.set(true);
-    this.restaurants.getFeaturedSubcategories().subscribe({
-      next: rows => {
-        const list = rows?.length ? rows : DUMMY_SUBCATEGORIES;
-        this.items.set(list);
-        this.usingDummies.set(!rows?.length);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.items.set(DUMMY_SUBCATEGORIES);
-        this.usingDummies.set(true);
-        this.loading.set(false);
-      },
+  ensureLoaded(key: HomeCategoryKey) {
+    if (this.requested.has(key)) return;
+    this.requested.add(key);
+    const categoryId = HOME_CATEGORIES.find((c) => c.key === key)!.categoryId;
+    this.restaurants.getFeaturedSubcategories(categoryId).subscribe({
+      next: (rows) => this.set(key, rows?.length ? rows : null),
+      error: () => this.set(key, null),
     });
+  }
+
+  /** Reactive read — call inside a computed/template. */
+  items(key: HomeCategoryKey): FeaturedSubcategory[] {
+    return this.state()[key]?.items ?? DUMMY_SUBCATEGORIES[key];
+  }
+
+  usingDummies(key: HomeCategoryKey): boolean {
+    return this.state()[key]?.usingDummies ?? true;
+  }
+
+  private set(key: HomeCategoryKey, rows: FeaturedSubcategory[] | null) {
+    this.state.update((s) => ({
+      ...s,
+      [key]: { items: rows ?? DUMMY_SUBCATEGORIES[key], usingDummies: !rows },
+    }));
   }
 }

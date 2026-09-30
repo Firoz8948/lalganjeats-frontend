@@ -2,7 +2,7 @@ import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AdminMenuItem, AdminMenuItemCreate, AdminService, CatalogCategory, CatalogSubcategory } from '../../../../core/services/admin.service';
+import { AdminMenuItem, AdminMenuItemCreate, AdminService, CatalogCategory, CatalogSubcategory, MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../../../../core/services/admin.service';
 import { AdminRestaurantRow, RestaurantCardSlide, RestaurantCreatePayload, RestaurantUpdatePayload } from '../../../../core/models/restaurant.model';
 import { PaymentSettingsService } from '../../../../core/services/payment-settings.service';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -38,9 +38,10 @@ export class AdminRestaurantsComponent implements OnInit {
   hasVariants=signal(false);
   variantDrafts:{label:string;actual_price:number|null;price:number|null;original_price:number|null}[]=[];
   newMenuItem:AdminMenuItemCreate={name:'',description:'',price:0,actual_price:0,category_name:'Other',subcategory_id:null,is_veg:true,is_bestseller:false};
-  readonly bannerSpec={label:'Restaurant Card slides',hint:'Up to 5 images on the home/list restaurant card (210px). Empty slides stay hidden.',size:'Fixed card height: 210px (e.g. 600 × 420 px / ~4:3)',formats:'JPG, PNG, or WebP · max 2 MB'};
-  readonly desktopHeroSpec={label:'Hotel Hero Banner — Desktop',hint:'Shown on restaurant menu page for desktop screens',size:'1600 × 600 px (~8:3)',formats:'JPG, PNG, or WebP · max 2 MB'};
-  readonly mobileHeroSpec={label:'Hotel Hero Banner — Mobile',hint:'Shown on restaurant menu page for mobile screens',size:'1080 × 720 px (3:2)',formats:'JPG, PNG, or WebP · max 2 MB'};
+  readonly maxImageMb=MAX_IMAGE_UPLOAD_MB;
+  readonly bannerSpec={label:'Restaurant Card slides',hint:'Up to 5 images on the home/list restaurant card (210px). Empty slides stay hidden.',size:'Fixed card height: 210px (e.g. 600 × 420 px / ~4:3)',formats:`JPG, PNG, or WebP · max ${MAX_IMAGE_UPLOAD_MB} MB`};
+  readonly desktopHeroSpec={label:'Hotel Hero Banner — Desktop',hint:'Shown on restaurant menu page for desktop screens',size:'1600 × 600 px (~8:3)',formats:`JPG, PNG, or WebP · max ${MAX_IMAGE_UPLOAD_MB} MB`};
+  readonly mobileHeroSpec={label:'Hotel Hero Banner — Mobile',hint:'Shown on restaurant menu page for mobile screens',size:'1080 × 720 px (3:2)',formats:`JPG, PNG, or WebP · max ${MAX_IMAGE_UPLOAD_MB} MB`};
   constructor(
     private admin:AdminService,
     private paymentSettings:PaymentSettingsService,
@@ -158,8 +159,8 @@ export class AdminRestaurantsComponent implements OnInit {
       input.value = '';
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      setError('Image must be 2 MB or smaller.');
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+      setError(`Image must be ${MAX_IMAGE_UPLOAD_MB} MB or smaller.`);
       input.value = '';
       return;
     }
@@ -202,8 +203,8 @@ export class AdminRestaurantsComponent implements OnInit {
       input.value = '';
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      setError('Image must be 2 MB or smaller.');
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+      setError(`Image must be ${MAX_IMAGE_UPLOAD_MB} MB or smaller.`);
       input.value = '';
       return;
     }
@@ -297,7 +298,7 @@ export class AdminRestaurantsComponent implements OnInit {
     const input=event.target as HTMLInputElement,file=input.files?.[0];if(!file)return;
     this.menuError.set('');
     if(!['image/jpeg','image/png','image/webp'].includes(file.type)){this.menuError.set('Menu item image must be JPG, PNG, or WebP.');input.value='';return}
-    if(file.size>2*1024*1024){this.menuError.set('Menu item image must be 2 MB or smaller.');input.value='';return}
+    if(file.size>MAX_IMAGE_UPLOAD_BYTES){this.menuError.set(`Menu item image must be ${MAX_IMAGE_UPLOAD_MB} MB or smaller.`);input.value='';return}
     this.menuImagePreview.set(URL.createObjectURL(file));this.menuImageUploading.set(true);
     this.admin.uploadBanner(file,'menu_item').subscribe({
       next:r=>{this.newMenuItem.image_url=r.url;this.menuImagePreview.set(r.url);this.menuImageUploading.set(false);input.value='';},

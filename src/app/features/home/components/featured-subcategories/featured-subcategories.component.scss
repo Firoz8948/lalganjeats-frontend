@@ -116,6 +116,27 @@
   }
 }
 
+:host.is-mobile.is-grocery .subcat-grid {
+  --subcat-circle: 84px;
+  --subcat-cols: 3;
+  --subcat-gap-x: 12px;
+  --subcat-gap-y: 12px;
+  padding-top: 14px;
+  background: var(--color-white);
+}
+
+:host.is-grocery .subcat-tile {
+  gap: 4px;
+  padding: 8px 6px 10px;
+  border: 1px solid var(--shop-accent-border);
+  border-radius: 14px;
+  background: var(--shop-header-bg);
+}
+
+:host.is-grocery .subcat-tile__circle {
+  border-radius: 12px;
+}
+
 /* ── Desktop (outside banner container) ─────────────────── */
 :host.is-desktop .subcat-grid {
   --subcat-circle: 88px;

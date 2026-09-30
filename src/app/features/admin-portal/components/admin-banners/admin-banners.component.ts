@@ -1,6 +1,7 @@
 import { PortalPageHeaderComponent } from '../../../../shared/portal-page-header/portal-page-header.component';
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
-import { AdminService } from '../../../../core/services/admin.service';
+import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { AdminService, CatalogCategory, MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../../../../core/services/admin.service';
 import { HomeBannerSlide } from '../../../../core/services/banner.service';
 
 type BannerVariant = 'desktop' | 'mobile';
@@ -13,11 +14,14 @@ type BannerPreview = {
 @Component({
   selector: 'app-admin-banners',
   standalone: true,
-  imports: [PortalPageHeaderComponent],
+  imports: [PortalPageHeaderComponent, FormsModule],
   templateUrl: './admin-banners.component.html',
   styleUrl: './admin-banners.component.scss',
 })
 export class AdminBannersComponent implements OnInit, OnDestroy {
+  categories = signal<CatalogCategory[]>([]);
+  selectedCategoryId = signal(0);
+  selectedCategoryName = computed(() => this.categories().find(c => c.id === this.selectedCategoryId())?.name ?? '');
   homeSlides = signal<HomeBannerSlide[]>([]);
   loading = signal(false);
   saving = signal(false);
@@ -26,24 +30,55 @@ export class AdminBannersComponent implements OnInit, OnDestroy {
   uploading = signal<string | null>(null);
   preview = signal<BannerPreview | null>(null);
   readonly variants: BannerVariant[] = ['desktop', 'mobile'];
+  readonly maxImageMb = MAX_IMAGE_UPLOAD_MB;
   readonly desktopSpec = { label: 'Desktop Banner', hint: 'Shown on the home page carousel (desktop & tablet landscape)', size: '2140 × 735 px', aspect: 2140 / 735 };
   readonly mobileSpec = { label: 'Mobile Banner', hint: 'Shown on the home page carousel (mobile & small screens)', size: '828 × 350 px (live frame ~ phone width × 175px)', aspect: 358 / 175 };
 
   constructor(private admin: AdminService) {}
-  ngOnInit() { this.load(); }
+  ngOnInit() { this.loadCategories(); }
   ngOnDestroy() { this.closePreview(); }
 
-  load() {
+  loadCategories() {
     this.loading.set(true); this.error.set('');
-    this.admin.getHomeBanners().subscribe({
-      next: slides => { this.homeSlides.set(slides); this.loading.set(false); },
+    this.admin.getCatalogCategories().subscribe({
+      next: categories => {
+        const active = categories.filter(c => c.is_active);
+        this.categories.set(active);
+        const restaurant = active.find(c => c.slug === 'restaurant');
+        this.selectedCategoryId.set(restaurant?.id || active[0]?.id || 0);
+        this.load();
+      },
+      error: () => { this.error.set('Could not load categories.'); this.loading.set(false); },
+    });
+  }
+  selectCategory(value: number | string) {
+    this.selectedCategoryId.set(Number(value));
+    this.closePreview(); this.success.set('');
+    this.load();
+  }
+  load() {
+    const categoryId = this.selectedCategoryId();
+    if (!categoryId) { this.homeSlides.set([]); this.loading.set(false); return; }
+    this.loading.set(true); this.error.set('');
+    this.admin.getHomeBanners(categoryId).subscribe({
+      next: slides => {
+        if (categoryId !== this.selectedCategoryId()) return;
+        this.homeSlides.set(slides); this.loading.set(false);
+      },
       error: () => { this.error.set('Failed to load home banners.'); this.loading.set(false); },
     });
   }
   addSlide() {
+    const categoryId = this.selectedCategoryId();
+    if (!categoryId) return;
     this.error.set(''); this.success.set(''); this.saving.set(true);
-    this.admin.createHomeBanner().subscribe({
-      next: slide => { this.homeSlides.update(v => [...v, slide]); this.saving.set(false); this.success.set(`Slide ${slide.slide_number} added.`); },
+    this.admin.createHomeBanner(categoryId).subscribe({
+      next: slide => {
+        this.saving.set(false);
+        if (categoryId !== this.selectedCategoryId()) return;
+        this.homeSlides.update(v => [...v, slide]);
+        this.success.set(`${this.selectedCategoryName()} slide ${slide.slide_number} added.`);
+      },
       error: e => { this.error.set(typeof e.error?.detail === 'string' ? e.error.detail : 'Failed to add slide.'); this.saving.set(false); },
     });
   }
@@ -56,9 +91,12 @@ export class AdminBannersComponent implements OnInit, OnDestroy {
     });
   }
   remove(slide: HomeBannerSlide) {
-    if (!slide.id || !confirm(`Delete slide ${slide.slide_number}? This cannot be undone.`)) return;
+    if (!slide.id || !confirm(`Delete ${this.selectedCategoryName()} slide ${slide.slide_number}? This cannot be undone.`)) return;
     this.admin.deleteHomeBanner(slide.id).subscribe({
-      next: res => { this.homeSlides.set(res.slides); this.success.set('Slide deleted.'); },
+      next: res => {
+        if (slide.business_category_id === this.selectedCategoryId()) this.homeSlides.set(res.slides);
+        this.success.set('Slide deleted.');
+      },
       error: e => this.error.set(typeof e.error?.detail === 'string' ? e.error.detail : 'Failed to delete slide.'),
     });
   }
@@ -67,7 +105,7 @@ export class AdminBannersComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement; const file = input.files?.[0]; input.value = '';
     if (!file || !slide.id) return;
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { this.error.set('Only JPG, PNG, or WebP images are allowed.'); return; }
-    if (file.size > 5 * 1024 * 1024) { this.error.set('Image must be 5 MB or smaller.'); return; }
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) { this.error.set(`Image must be ${MAX_IMAGE_UPLOAD_MB} MB or smaller.`); return; }
     const objectUrl = URL.createObjectURL(file); const image = new Image();
     image.onload = () => {
       this.closePreview();

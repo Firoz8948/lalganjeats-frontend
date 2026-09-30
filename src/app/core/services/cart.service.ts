@@ -1,5 +1,6 @@
 // frontend/src/app/core/services/cart.service.ts
 import { Injectable, signal, computed } from '@angular/core';
+import type { HomeCategoryKey } from '../../features/home/home-categories';
 
 export interface CartMenuItem {
   id:             number;
@@ -20,6 +21,8 @@ export interface CartItem extends CartMenuItem {
 export interface CartData {
   restaurantId: number;
   restaurantName?: string;
+  /** Home tab of the cart's store; missing on carts saved before it was tracked. */
+  storeCategory?: HomeCategoryKey;
   items:        CartItem[];
 }
 
@@ -60,6 +63,7 @@ export class CartService {
     restaurantId: number,
     item: CartMenuItem,
     restaurantName?: string,
+    storeCategory?: HomeCategoryKey,
   ): 'added' | 'conflict' {
     const current = this._cart();
 
@@ -80,6 +84,7 @@ export class CartService {
     this._save({
       restaurantId,
       restaurantName: restaurantName || existing?.restaurantName,
+      storeCategory: storeCategory ?? existing?.storeCategory,
       items: newItems,
     });
     return 'added';
@@ -109,11 +114,7 @@ export class CartService {
     if (newItems.length === 0) {
       this._save(null);
     } else {
-      this._save({
-        restaurantId,
-        restaurantName: current.restaurantName,
-        items: newItems,
-      });
+      this._save({ ...current, items: newItems });
     }
   }
 
@@ -129,11 +130,7 @@ export class CartService {
     if (newItems.length === 0) {
       this._save(null);
     } else {
-      this._save({
-        restaurantId,
-        restaurantName: current.restaurantName,
-        items: newItems,
-      });
+      this._save({ ...current, items: newItems });
     }
   }
 

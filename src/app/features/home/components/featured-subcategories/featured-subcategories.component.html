@@ -1,10 +1,10 @@
 <section
   class="subcat-grid"
-  [class.subcat-grid--dummy]="store.usingDummies()"
-  aria-label="Food categories">
+  [class.subcat-grid--dummy]="usingDummies()"
+  [attr.aria-label]="ariaLabel()">
   <div class="subcat-grid__inner">
-    @for (item of store.items(); track trackById($index, item); let i = $index) {
-      @if (store.usingDummies()) {
+    @for (item of items(); track trackById($index, item); let i = $index) {
+      @if (usingDummies()) {
         <div
           class="subcat-tile subcat-tile--inert"
           [style.--i]="i"
@@ -15,11 +15,12 @@
           <span class="subcat-tile__label">{{ item.name }}</span>
         </div>
       } @else {
+        @let target = link(item);
         <a
           class="subcat-tile"
           [style.--i]="i"
-          routerLink="/restaurants"
-          [queryParams]="{ subcategory_id: item.id, name: item.name }">
+          [routerLink]="target.commands"
+          [queryParams]="target.queryParams">
           <span class="subcat-tile__circle" aria-hidden="true">
             @if (item.image_url) {
               <img [src]="item.image_url" [alt]="" loading="lazy" decoding="async" />

@@ -83,6 +83,7 @@
     <div class="navbar__links">
       <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">Home</a>
       <a routerLink="/restaurants" routerLinkActive="active" class="nav-link">Restaurants</a>
+      <a routerLink="/home" [queryParams]="{ category: 'grocery' }" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">Grocery</a>
       <a routerLink="/offers" routerLinkActive="active" class="nav-link">Offers</a>
     </div>
 
@@ -241,12 +242,23 @@
         #mobileHeader
         [class.scrolled]="isScrolled()">
 
-  <!-- Row 1: Logo + Icons -->
   <div class="mobile-header__top">
 
-    <a routerLink="/home" class="mobile-logo" aria-label="LalganjEats home">
-      <span class="mobile-logo__lalganj">Lalganj</span><span class="mobile-logo__eats">Eats</span>
-    </a>
+    <button type="button"
+            class="mobile-header__location"
+            aria-label="Change delivery location"
+            (click)="openLocationModal()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+      <span>{{ customerLocation.displayLabel() }}</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </button>
 
     <div class="mobile-header__actions">
       <!-- Cart -->
@@ -276,20 +288,6 @@
         </svg>
       </button>
     </div>
-  </div>
-
-  <!-- Row 2: Location -->
-  <div class="mobile-header__location" (click)="openLocationModal()">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="2.5">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-      <circle cx="12" cy="10" r="3"/>
-    </svg>
-    <span>{{ customerLocation.displayLabel() }}</span>
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="2.5">
-      <polyline points="6 9 12 15 18 9"/>
-    </svg>
   </div>
 
 </header>

@@ -1,0 +1,23 @@
+@if (productCart.pending(); as product) {
+  <div class="cart-conflict" role="dialog" aria-modal="true" aria-labelledby="cart-conflict-title">
+    <button
+      class="cart-conflict__backdrop"
+      type="button"
+      aria-label="Close"
+      (click)="productCart.dismissPending()"></button>
+    <section class="cart-conflict__panel">
+      <h2 id="cart-conflict-title">Items already in your cart</h2>
+      <p>
+        Your cart has items from <strong>{{ productCart.cartStoreName() }}</strong>.
+        A cart can contain items from only one store, and
+        <strong>{{ product.name }}</strong> is from {{ product.restaurant.name }}.
+      </p>
+      <button class="cart-conflict__primary" type="button" (click)="productCart.replaceCartWithPending()">
+        Clear cart and add this item
+      </button>
+      <button class="cart-conflict__secondary" type="button" (click)="goToCheckout()">
+        Don't remove — go to checkout
+      </button>
+    </section>
+  </div>
+}

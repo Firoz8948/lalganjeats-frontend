@@ -56,6 +56,8 @@
   border: 1px solid #e5e7eb;
   color: #374151;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  padding: 0;
+  cursor: pointer;
   transition: transform 0.15s ease, background-color 0.15s ease;
 
   &:hover {
@@ -1025,6 +1027,20 @@
       transform: translateY(-1px);
       box-shadow: 0 6px 18px rgba(255, 0, 0, 0.35);
     }
+
+    &--grocery {
+      background: var(--grocery-green, #16a34a);
+      box-shadow: 0 4px 14px rgba(22, 163, 74, 0.25);
+
+      &:hover { box-shadow: 0 6px 18px rgba(22, 163, 74, 0.35); }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
   }
 }
 

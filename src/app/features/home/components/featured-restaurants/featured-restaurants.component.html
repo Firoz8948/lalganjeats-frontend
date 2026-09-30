@@ -23,6 +23,23 @@
       <p class="section-subtitle">{{ error() }}</p>
     }
 
+    @if (!loading() && !error() && categoryEmpty()) {
+      <div class="empty-restaurants" role="status">
+        <div class="empty-restaurants__icon" aria-hidden="true">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+        </div>
+        <p class="empty-restaurants__title">{{ categoryLabel() }} coming soon</p>
+        <p class="empty-restaurants__sub">
+          We're adding {{ categoryLabel().toLowerCase() }} stores near you. Check back soon.
+        </p>
+      </div>
+    }
+
     @if (!loading() && !error() && restaurants().length === 0) {
       <div class="empty-restaurants" role="status">
         <div class="empty-restaurants__icon" aria-hidden="true">
@@ -53,7 +70,7 @@
     }
 
     <div class="restaurants-grid">
-      @for (restaurant of restaurants(); track restaurant.id) {
+      @for (restaurant of visibleRestaurants(); track restaurant.id) {
         <a class="restaurant-card" [class.closed]="!restaurant.is_open" [routerLink]="['/restaurants', restaurant.slug || restaurant.id]">
 
           <div class="restaurant-card__image" [style.background]="restaurant.image_bg">

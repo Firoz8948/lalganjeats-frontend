@@ -5,6 +5,8 @@ import {
   AdminService,
   CatalogCategory,
   CatalogSubcategory,
+  MAX_IMAGE_UPLOAD_BYTES,
+  MAX_IMAGE_UPLOAD_MB,
 } from '../../../../core/services/admin.service';
 
 @Component({
@@ -143,6 +145,10 @@ export class AdminSubcategoriesComponent implements OnInit {
       this.error.set('Choose an image file.');
       return;
     }
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+      this.error.set(`Image must be ${MAX_IMAGE_UPLOAD_MB} MB or smaller.`);
+      return;
+    }
     this.uploadingId.set(item.id);
     this.error.set('');
     this.admin.uploadBanner(file, 'subcategory').subscribe({
@@ -158,8 +164,8 @@ export class AdminSubcategoriesComponent implements OnInit {
           },
         });
       },
-      error: () => {
-        this.error.set('Could not upload image.');
+      error: err => {
+        this.error.set(err.error?.detail || 'Could not upload image.');
         this.uploadingId.set(null);
       },
     });

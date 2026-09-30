@@ -105,6 +105,15 @@
         </svg>
         Subcategories
       </button>
+      <button class="nav-item" [class.active]="activeTab()==='grocery-panel'" (click)="setTab('grocery-panel')">
+        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+          <path d="M3 6h18"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        Grocery Panel
+      </button>
       <button class="nav-item" [class.active]="activeTab()==='banners'" (click)="setTab('banners')">
         <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -189,6 +198,7 @@
     @if (activeTab() === 'promos') { <app-admin-promos /> }
     @if (activeTab() === 'categories') { <app-admin-categories /> }
     @if (activeTab() === 'subcategories') { <app-admin-subcategories /> }
+    @if (activeTab() === 'grocery-panel') { <app-admin-grocery-panel /> }
     @if (activeTab() === 'banners') { <app-admin-banners /> }
     @if (activeTab() === 'zones') { <app-admin-zones /> }
     @if (activeTab() === 'notifications') { <app-broadcast-notifications /> }

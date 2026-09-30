@@ -1,13 +1,17 @@
 <div class="content-area">
   <app-portal-page-header eyebrow="STOREFRONT MEDIA" title="Home Page Banners" subtitle="Curate responsive carousel slides and preview image cropping before publishing." tone="admin">
-    <button class="approve-btn" [disabled]="saving()" (click)="addSlide()">{{ saving() ? 'Adding...' : '+ Add Slide' }}</button>
+    <label class="header-category"><span>Category</span><select [ngModel]="selectedCategoryId()" (ngModelChange)="selectCategory($event)">@for (category of categories(); track category.id) {<option [value]="category.id">{{ category.name }}</option>}</select></label>
+    <button class="approve-btn" [disabled]="saving() || !selectedCategoryId()" (click)="addSlide()">{{ saving() ? 'Adding...' : '+ Add Slide' }}</button>
   </app-portal-page-header>
+  @if (selectedCategoryName()) {
+    <p class="category-note">Editing the <strong>{{ selectedCategoryName() }}</strong> carousel{{ selectedCategoryName() === 'Restaurant' ? ' (Food tab)' : '' }} on the customer home page.</p>
+  }
   @if (error()) { <p class="form-msg form-msg--error">{{ error() }}</p> }
   @if (success()) { <p class="form-msg form-msg--success">{{ success() }}</p> }
   @if (loading()) {
     <div class="loading-state">Loading banners…</div>
   } @else if (!homeSlides().length) {
-    <div class="loading-state">No slides yet. Click <strong>Add Slide</strong> to create one.</div>
+    <div class="loading-state">No {{ selectedCategoryName() }} slides yet. Customers see the empty banner placeholder until you click <strong>Add Slide</strong> and upload images.</div>
   } @else {
     @for (slide of homeSlides(); track slide.id ?? slide.slide_number) {
       <section class="slide" [class.inactive]="slide.is_active === false">
@@ -20,7 +24,7 @@
             <div class="upload">
               <h3>{{ variant === 'desktop' ? desktopSpec.label : mobileSpec.label }}</h3>
               <p>{{ variant === 'desktop' ? desktopSpec.hint : mobileSpec.hint }}</p>
-              <small>Recommended: {{ variant === 'desktop' ? desktopSpec.size : mobileSpec.size }} · JPG, PNG, or WebP · max 5 MB</small>
+              <small>Recommended: {{ variant === 'desktop' ? desktopSpec.size : mobileSpec.size }} · JPG, PNG, or WebP · max {{ maxImageMb }} MB</small>
               @if (variant === 'desktop' ? slide.desktop_image_url : slide.mobile_image_url; as imageUrl) {
                 <div class="image" [class.mobile]="variant === 'mobile'">
                   <img [src]="imageUrl" [alt]="variant + ' banner preview'">
@@ -47,7 +51,7 @@
 @if (preview(); as value) {
   <div class="preview-backdrop" (click)="closePreview()">
     <div class="preview-card" (click)="$event.stopPropagation()">
-      <header><h2>Preview · Slide {{ value.slideNumber }} · {{ value.variant === 'desktop' ? 'Desktop' : 'Mobile' }}</h2><button (click)="closePreview()">×</button></header>
+      <header><h2>Preview · {{ selectedCategoryName() }} · Slide {{ value.slideNumber }} · {{ value.variant === 'desktop' ? 'Desktop' : 'Mobile' }}</h2><button (click)="closePreview()">×</button></header>
       <p>Home page uses <strong>object-fit: cover</strong> (center). Shaded areas outside the green box will be cropped. Image {{ value.naturalW }}×{{ value.naturalH }}px.</p>
       <div class="preview-grid">
         <div><h3>Full image — green = visible</h3><div class="crop" [style.aspect-ratio]="value.naturalW + ' / ' + value.naturalH"><img [src]="value.objectUrl"><i [style.left.%]="value.crop.left" [style.top.%]="value.crop.top" [style.width.%]="value.crop.width" [style.height.%]="value.crop.height"></i></div></div>

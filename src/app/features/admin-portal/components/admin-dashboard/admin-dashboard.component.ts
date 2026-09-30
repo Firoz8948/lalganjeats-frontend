@@ -11,6 +11,7 @@ import { AdminPromosComponent } from '../admin-promos/admin-promos.component';
 import { AdminRestaurantsComponent } from '../admin-restaurants/admin-restaurants.component';
 import { AdminSettlementsComponent } from '../admin-settlements/admin-settlements.component';
 import { AdminSubcategoriesComponent } from '../admin-subcategories/admin-subcategories.component';
+import { AdminGroceryPanelComponent } from '../admin-grocery-panel/admin-grocery-panel.component';
 import { AdminZonesComponent } from '../admin-zones/admin-zones.component';
 import { AdminPaymentsComponent } from '../admin-payments/admin-payments.component';
 import { PaymentSettingsComponent } from '../payment-settings/payment-settings.component';
@@ -29,6 +30,7 @@ type AdminTab =
   | 'promos'
   | 'categories'
   | 'subcategories'
+  | 'grocery-panel'
   | 'banners'
   | 'zones'
   | 'notifications'
@@ -44,6 +46,7 @@ type AdminTab =
     DeliveryPartnersComponent,
     AdminCategoriesComponent,
     AdminSubcategoriesComponent,
+    AdminGroceryPanelComponent,
     AdminCustomersComponent,
     AdminOrdersComponent,
     AdminPaymentsComponent,

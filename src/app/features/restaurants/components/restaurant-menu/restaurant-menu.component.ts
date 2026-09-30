@@ -11,6 +11,7 @@ import {
 import { CartService, CartItem } from '../../../../core/services/cart.service';
 import { CustomerLocationService } from '../../../../core/services/customer-location.service';
 import { SeoService } from '../../../../core/services/seo.service';
+import { HomeCategoryKey, storeCategoryKey } from '../../../home/home-categories';
 
 interface RestaurantInfo {
   name: string;
@@ -46,6 +47,7 @@ export class RestaurantMenuComponent implements OnInit {
   readonly cartService = inject(CartService);
 
   restaurantId = signal(0);
+  private storeCategory: HomeCategoryKey = 'food';
   menuItems = signal<PublicMenuItem[]>([]);
   loading = signal(true);
   outOfArea = signal(false);
@@ -95,6 +97,11 @@ export class RestaurantMenuComponent implements OnInit {
 
     this.restaurantService.getRestaurant(routeKey, lat, lng).subscribe({
       next: (data) => {
+        this.storeCategory = storeCategoryKey(data);
+        if (this.storeCategory === 'grocery') {
+          this.router.navigate(['/home/shop', 'grocery', 'all'], { replaceUrl: true });
+          return;
+        }
         this.restaurantId.set(data.id);
         // Canonicalize old numeric URLs to the SEO slug.
         if (
@@ -192,7 +199,7 @@ export class RestaurantMenuComponent implements OnInit {
       is_veg: item.is_veg,
       category: item.category,
       image_url: item.image_url,
-    }, this.restaurant().name);
+    }, this.restaurant().name, this.storeCategory);
     if (result === 'conflict') this.pendingCartItem.set(item);
   }
 
@@ -207,7 +214,7 @@ export class RestaurantMenuComponent implements OnInit {
       is_veg: item.is_veg,
       category: item.category,
       image_url: item.image_url,
-    }, this.restaurant().name);
+    }, this.restaurant().name, this.storeCategory);
   }
 
   clearCartAndProceed() {

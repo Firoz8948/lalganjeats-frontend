@@ -32,6 +32,8 @@ export interface Restaurant {
   longitude?: number | null;
   show_packing_charge?: boolean;
   packing_charge?: number;
+  business_category_id?: number | null;
+  business_category?: string | null;
 }
 
 export interface RestaurantCreatePayload {
