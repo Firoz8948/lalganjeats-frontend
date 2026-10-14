@@ -4,6 +4,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   AdminService,
+  CatalogCategory,
   PromoCode,
   PromoCodeCreate,
   PromoUsage,
@@ -30,6 +31,9 @@ export class AdminPromosComponent implements OnInit {
   promoMaxUsesMode: 'unlimited' | 'custom' = 'custom';
   editingId = signal<number | null>(null);
   restaurants = signal<AdminRestaurantRow[]>([]);
+  categories = signal<CatalogCategory[]>([]);
+  /** null until the admin picks one; 'all' = every category. */
+  categoryChoice: number | 'all' | null = null;
   allRestaurants = true;
   selectedRestaurantIds: number[] = [];
   newPromo: PromoCodeCreate = this.blankPromo();
@@ -43,6 +47,30 @@ export class AdminPromosComponent implements OnInit {
         [...rows].sort((a, b) => a.name.localeCompare(b.name)),
       ),
     });
+    this.admin.getCatalogCategories().subscribe({
+      next: (rows) => this.categories.set(rows.filter((c) => c.is_active)),
+    });
+  }
+
+  visibleRestaurants(): AdminRestaurantRow[] {
+    const choice = this.categoryChoice;
+    if (typeof choice !== 'number') return this.restaurants();
+    return this.restaurants().filter((r) => r.business_category_id === choice);
+  }
+
+  selectedCategoryName(): string {
+    const choice = this.categoryChoice;
+    if (typeof choice !== 'number') return '';
+    return this.categories().find((c) => c.id === choice)?.name || '';
+  }
+
+  onCategoryChange() {
+    const visible = new Set(this.visibleRestaurants().map((r) => r.id));
+    this.selectedRestaurantIds = this.selectedRestaurantIds.filter((id) => visible.has(id));
+  }
+
+  categoryLabel(promo: PromoCode): string {
+    return promo.business_category_name || 'All categories';
   }
 
   private blankPromo(): PromoCodeCreate {
@@ -155,6 +183,7 @@ export class AdminPromosComponent implements OnInit {
       : (promo.restaurant_id ? [promo.restaurant_id] : []);
     this.allRestaurants = ids.length === 0;
     this.selectedRestaurantIds = [...ids];
+    this.categoryChoice = promo.business_category_id ?? 'all';
     this.promoMaxUsesMode = promo.max_uses === 0 ? 'unlimited' : 'custom';
     this.promoExpiresLocal = this.toDatetimeLocal(promo.expires_at);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -179,6 +208,7 @@ export class AdminPromosComponent implements OnInit {
     this.promoExpiresLocal = '';
     this.allRestaurants = true;
     this.selectedRestaurantIds = [];
+    this.categoryChoice = null;
   }
 
   savePromo() {
@@ -186,6 +216,10 @@ export class AdminPromosComponent implements OnInit {
     this.promoSuccess.set('');
     if (!this.newPromo.code.trim()) {
       this.promoError.set('Code is required.');
+      return;
+    }
+    if (this.categoryChoice === null) {
+      this.promoError.set('Choose a category for this promocode.');
       return;
     }
     if (this.promoMaxUsesMode === 'custom' && !(this.newPromo.max_uses >= 1)) {
@@ -227,6 +261,7 @@ export class AdminPromosComponent implements OnInit {
         : null,
       restaurant_id: restaurantIds.length === 1 ? restaurantIds[0] : null,
       restaurant_ids: restaurantIds,
+      business_category_id: this.categoryChoice === 'all' ? null : this.categoryChoice,
     };
     this.promoSaving.set(true);
     const editingId = this.editingId();

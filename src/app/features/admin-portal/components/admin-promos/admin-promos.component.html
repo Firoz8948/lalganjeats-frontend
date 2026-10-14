@@ -14,6 +14,16 @@
     <h3>{{ editingId() ? 'Edit promocode' : 'Create promocode' }}</h3>
     <div class="zone-form__row promo-form-row">
       <label>Code<input [(ngModel)]="newPromo.code" placeholder="WELCOME10" [disabled]="!!editingId()"/></label>
+      <label [class.promo-field--missing]="categoryChoice === null">
+        Category *
+        <select [(ngModel)]="categoryChoice" (ngModelChange)="onCategoryChange()">
+          <option [ngValue]="null" disabled>Choose category</option>
+          <option ngValue="all">All categories</option>
+          @for (category of categories(); track category.id) {
+            <option [ngValue]="category.id">{{ category.name }}</option>
+          }
+        </select>
+      </label>
       <label>
         Channel
         <select [(ngModel)]="newPromo.channel">
@@ -70,14 +80,14 @@
       <h4 class="promo-delivery-block__title">Restaurants</h4>
       <label class="promo-delivery-block__check">
         <input type="checkbox" [(ngModel)]="allRestaurants" (ngModelChange)="onAllRestaurantsChange()"/>
-        <span>All restaurants</span>
+        <span>{{ selectedCategoryName() ? 'All ' + selectedCategoryName() + ' stores' : 'All restaurants' }}</span>
       </label>
       <p class="promo-delivery-block__hint">
-        Leave ticked for every hotel. Untick to choose 1 or several restaurants for this code.
+        Leave ticked for every store in the chosen category. Untick to choose 1 or several stores for this code.
       </p>
       @if (!allRestaurants) {
         <div class="promo-restaurant-list">
-          @for (restaurant of restaurants(); track restaurant.id) {
+          @for (restaurant of visibleRestaurants(); track restaurant.id) {
             <label class="promo-delivery-block__check">
               <input
                 type="checkbox"
@@ -85,6 +95,8 @@
                 (change)="toggleRestaurant(restaurant.id, $event)"/>
               <span>{{ restaurant.name }}</span>
             </label>
+          } @empty {
+            <p class="promo-delivery-block__hint">No stores in this category.</p>
           }
         </div>
       }
@@ -99,7 +111,7 @@
   <div class="table-wrap">
     <table class="data-table">
       <thead>
-        <tr><th>Code</th><th>Restaurant</th><th>Channel</th><th>Who</th><th>Visibility</th><th>Benefit</th><th>Uses left</th><th>Expiry</th><th>Status</th><th></th></tr>
+        <tr><th>Code</th><th>Category</th><th>Restaurant</th><th>Channel</th><th>Who</th><th>Visibility</th><th>Benefit</th><th>Uses left</th><th>Expiry</th><th>Status</th><th></th></tr>
       </thead>
       <tbody>
         @for (promo of promos(); track promo.id) {
@@ -110,6 +122,7 @@
                 <div class="promo-desc">{{ promo.description }}</div>
               }
             </td>
+            <td>{{ categoryLabel(promo) }}</td>
             <td>{{ restaurantLabel(promo) }}</td>
             <td>{{ promo.channel === 'mobile_app' ? 'Mobile app only' : 'All' }}</td>
             <td>{{ promo.audience === 'new_users' ? 'New users' : (promo.audience === 'all_time' ? 'All time (unlimited)' : 'All users · 1× / mobile') }}</td>
@@ -130,7 +143,7 @@
             </td>
           </tr>
         } @empty {
-          <tr><td colspan="10" class="empty-table-cell">No promocodes yet.</td></tr>
+          <tr><td colspan="11" class="empty-table-cell">No promocodes yet.</td></tr>
         }
       </tbody>
     </table>
