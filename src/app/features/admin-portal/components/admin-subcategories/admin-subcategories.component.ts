@@ -23,6 +23,7 @@ export class AdminSubcategoriesComponent implements OnInit {
   loading = signal(true);
   saving = signal(false);
   uploadingId = signal<number | null>(null);
+  togglingId = signal<number | null>(null);
   error = signal('');
   search = signal('');
   productSort = signal<'asc' | 'desc'>('desc');
@@ -120,6 +121,29 @@ export class AdminSubcategoriesComponent implements OnInit {
           : subcategory
       )
     );
+  }
+
+  toggleActive(item: CatalogSubcategory) {
+    if (this.togglingId() === item.id) return;
+    if (
+      item.is_active &&
+      item.product_count > 0 &&
+      !confirm(`Disable "${item.name}"? Its ${item.product_count} products will be hidden from customers until you enable it again.`)
+    ) {
+      return;
+    }
+    this.togglingId.set(item.id);
+    this.error.set('');
+    this.admin.toggleCatalogSubcategory(item.id).subscribe({
+      next: updated => {
+        this.mergeSubcategory(updated);
+        this.togglingId.set(null);
+      },
+      error: () => {
+        this.error.set('Could not update subcategory.');
+        this.togglingId.set(null);
+      },
+    });
   }
 
   toggleFeatured(item: CatalogSubcategory) {

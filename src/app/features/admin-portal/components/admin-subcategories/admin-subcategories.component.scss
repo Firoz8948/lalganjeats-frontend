@@ -28,7 +28,10 @@ input { padding: 11px 13px; border: 1px solid #ddd; border-radius: 9px; }
     transition: border-color .12s ease, transform .12s ease;
 
     &:hover { transform: translateY(-1px); border-color: #ffc0c0; }
-    &.inactive { opacity: .55; }
+    &.inactive {
+      background: #fafafa;
+      .item-preview, strong, small, .feature-tick { opacity: .5; }
+    }
     strong, small { display: block; }
     small { color: #999; font-size: 11px; }
   }
@@ -48,6 +51,49 @@ input { padding: 11px 13px; border: 1px solid #ddd; border-radius: 9px; }
   transition: transform .12s ease, background .12s ease;
   &.checked { border-color: #c70000; background: #c70000; color: #fff; }
   &:hover { transform: scale(1.06); }
+}
+
+.active-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #b42318;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled { cursor: wait; opacity: .6; }
+
+  &__track {
+    position: relative;
+    width: 30px;
+    height: 17px;
+    border-radius: 999px;
+    background: #d0d5dd;
+    transition: background .15s ease;
+  }
+
+  &__thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+    transition: transform .15s ease;
+  }
+
+  &.on {
+    color: #067647;
+    .active-switch__track { background: #12b76a; }
+    .active-switch__thumb { transform: translateX(13px); }
+  }
 }
 
 /* Matches customer home circle preview (same size + crop). */

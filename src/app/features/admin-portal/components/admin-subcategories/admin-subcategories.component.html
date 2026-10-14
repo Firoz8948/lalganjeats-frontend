@@ -7,6 +7,7 @@
   <section class="subcategory-tools">
     <p class="featured-help">
       Tick a subcategory to show it on the customer home grid (circle image + name). Upload a square-ish photo — preview matches the live app.
+      Switch a subcategory to Disabled to hide it and all its products from customers.
     </p>
     <div class="add-row">
       <input
@@ -45,7 +46,7 @@
       </div>
     } @else {
       @for (item of filtered(); track item.id) {
-        <article [class.featured]="item.is_featured">
+        <article [class.featured]="item.is_featured && item.is_active" [class.inactive]="!item.is_active">
           <div class="item-preview">
             <label class="item-circle" [class.is-busy]="uploadingId() === item.id">
               @if (item.image_url) {
@@ -69,6 +70,18 @@
           <div>
             <strong>{{ item.name }}</strong>
             <small>{{ item.product_count }} products · {{ item.slug }}</small>
+            <button
+              type="button"
+              class="active-switch"
+              role="switch"
+              [class.on]="item.is_active"
+              [disabled]="togglingId() === item.id"
+              [attr.aria-checked]="item.is_active"
+              [attr.aria-label]="(item.is_active ? 'Disable ' : 'Enable ') + item.name"
+              (click)="toggleActive(item)">
+              <span class="active-switch__track"><span class="active-switch__thumb"></span></span>
+              <span>{{ togglingId() === item.id ? 'Saving…' : item.is_active ? 'Enabled' : 'Disabled' }}</span>
+            </button>
           </div>
           <button
             class="feature-tick"
