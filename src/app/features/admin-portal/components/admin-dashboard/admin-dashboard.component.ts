@@ -1,5 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
 import { AuthService } from '../../../../core/services/auth.service';
 import { AdminBannersComponent } from '../admin-banners/admin-banners.component';
@@ -19,23 +19,12 @@ import { AdminReportsComponent } from '../reports/admin-reports.component';
 import { DeliveryPartnersComponent } from '../delivery-partners/delivery-partners.component';
 import { BroadcastNotificationsComponent } from '../broadcast-notifications/broadcast-notifications.component';
 
-type AdminTab =
-  | 'overview'
-  | 'orders'
-  | 'payments'
-  | 'restaurants'
-  | 'delivery-partners'
-  | 'settlements'
-  | 'customers'
-  | 'promos'
-  | 'categories'
-  | 'subcategories'
-  | 'grocery-panel'
-  | 'banners'
-  | 'zones'
-  | 'notifications'
-  | 'reports'
-  | 'payment-settings';
+const ADMIN_TABS = [
+  'overview', 'orders', 'payments', 'restaurants', 'delivery-partners', 'settlements', 'customers', 'promos',
+  'categories', 'subcategories', 'grocery-panel', 'banners', 'zones', 'notifications', 'reports', 'payment-settings',
+] as const;
+
+type AdminTab = (typeof ADMIN_TABS)[number];
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -69,14 +58,24 @@ export class AdminDashboardComponent implements OnInit {
   constructor(
     private auth: AuthService,
     private router: Router,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit() {
     this.impersonating.set(this.auth.isImpersonating());
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    if (tab && (ADMIN_TABS as readonly string[]).includes(tab)) {
+      this.activeTab.set(tab as AdminTab);
+    }
   }
 
   setTab(tab: AdminTab) {
     this.activeTab.set(tab);
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: tab === 'overview' ? null : tab },
+      replaceUrl: true,
+    });
   }
 
   exitImpersonation() {

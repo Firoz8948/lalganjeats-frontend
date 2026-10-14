@@ -114,7 +114,7 @@
 
               <div class="menu-items">
                 @for (item of group.items; track item.id) {
-                <div class="menu-card" [class.unavailable]="!item.is_available">
+                <div class="menu-card">
 
                   <!-- 1. LEFT SIDE: 1:1 Square Image -->
                   <div class="menu-card__media">
@@ -136,14 +136,9 @@
                       <h3 class="menu-card__name">{{ item.name }}</h3>
                     </div>
 
-                    @if (item.is_bestseller || !item.is_available) {
+                    @if (item.is_bestseller) {
                       <div class="menu-card__tags">
-                        @if (item.is_bestseller) {
-                          <span class="bestseller-tag">🔥 Bestseller</span>
-                        }
-                        @if (!item.is_available) {
-                          <span class="unavailable-tag">Not Available</span>
-                        }
+                        <span class="bestseller-tag">🔥 Bestseller</span>
                       </div>
                     }
 
@@ -167,7 +162,6 @@
                             type="button"
                             class="variant-pill"
                             [class.active]="selectedVariantFor(item)?.id === v.id"
-                            [disabled]="!v.is_available"
                             (click)="selectVariant(item.id, v.id)">
                             {{ v.label }}
                           </button>
@@ -182,7 +176,11 @@
 
                     <!-- Action row: Right-aligned near thumb -->
                     <div class="menu-card__action-row">
-                      @if (item.is_available) {
+                      @if (!restaurant().isOpen) {
+                        <button type="button" class="btn-add-closed" disabled>
+                          {{ restaurant().opensAtLabel || 'Closed' }}
+                        </button>
+                      } @else {
                         @if (getCartQuantity(item) === 0) {
                           <button
                             type="button"
@@ -215,8 +213,6 @@
                             </button>
                           </div>
                         }
-                      } @else {
-                        <span class="action-unavailable">Sold out</span>
                       }
                     </div>
                   </div>
@@ -258,7 +254,7 @@
                         <div class="qty-control mini">
                           <button class="qty-btn" (click)="removeFromCart(item)">−</button>
                           <span class="qty-value">{{ item.quantity }}</span>
-                          <button class="qty-btn" (click)="incrementCartItem(item)">+</button>
+                          <button class="qty-btn" (click)="incrementCartItem(item)" [disabled]="!restaurant().isOpen">+</button>
                         </div>
                         <span class="cart-item__price">₹{{ item.price * item.quantity }}</span>
                       </div>

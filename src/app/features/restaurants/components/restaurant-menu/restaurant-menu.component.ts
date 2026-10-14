@@ -141,11 +141,17 @@ export class RestaurantMenuComponent implements OnInit {
     });
 
     this.restaurantService.getRestaurantMenu(routeKey).subscribe({
-      next: (items) => {
+      next: (response) => {
+        const items = response
+          .filter(item => item.is_available !== false)
+          .map(item => ({
+            ...item,
+            variants: (item.variants || []).filter(v => v.is_available !== false),
+          }));
         this.menuItems.set(items);
         const defaults: Record<number, number> = {};
         for (const item of items) {
-          const first = (item.variants || []).find(v => v.is_available) || item.variants?.[0];
+          const first = item.variants[0];
           if (first) defaults[item.id] = first.id;
         }
         this.selectedVariant.set(defaults);
@@ -184,6 +190,7 @@ export class RestaurantMenuComponent implements OnInit {
   }
 
   addToCart(item: PublicMenuItem) {
+    if (!this.restaurant().isOpen) return;
     const variant = this.selectedVariantFor(item);
     if (this.variantsFor(item).length > 0 && !variant) {
       alert('Choose Half or Full first.');
@@ -204,6 +211,7 @@ export class RestaurantMenuComponent implements OnInit {
   }
 
   incrementCartItem(item: CartItem) {
+    if (!this.restaurant().isOpen) return;
     this.cartService.addItem(this.restaurantId(), {
       id: item.id,
       variant_id: item.variant_id ?? null,

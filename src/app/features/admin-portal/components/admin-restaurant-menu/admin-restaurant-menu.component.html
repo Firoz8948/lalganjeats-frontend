@@ -1,0 +1,162 @@
+<div class="menu-page">
+  <header class="menu-topbar">
+    <a class="back-link" routerLink="/admin/dashboard" [queryParams]="{ tab: 'restaurants' }">← Restaurants</a>
+    <div class="menu-topbar__title">
+      <h1>Menu — {{ restaurantName() || 'Loading…' }}</h1>
+      <p>
+        @if (restaurantOpen() !== null) {
+          <span [class]="restaurantOpen() ? 'badge-open' : 'badge-closed'">{{ restaurantOpen() ? 'Open' : 'Closed' }}</span> ·
+        }
+        {{ totals().total }} items · {{ totals().available }} available · {{ allGroups().length }} categories
+      </p>
+    </div>
+  </header>
+
+  @if (notFound()) {
+    <p class="form-msg form-msg--error">Restaurant not found.</p>
+  } @else {
+  <div class="menu-layout">
+    <section class="menu-form">
+      <div class="menu-form__heading">
+        <h3>{{ editingMenuItemId() ? 'Edit Item' : 'Add Item' }}</h3>
+        @if (editingMenuItemId()) {
+          <button type="button" class="linkish linkish--muted" (click)="resetMenu()">Cancel edit</button>
+        }
+      </div>
+      @if (menuError()) { <p class="form-msg form-msg--error">{{ menuError() }}</p> }
+      @if (menuSuccess()) { <p class="form-msg form-msg--success">{{ menuSuccess() }}</p> }
+      <div class="menu-grid">
+        <label class="menu-field menu-field--wide"><span>Item name *</span><input placeholder="e.g. Paneer Butter Masala" [(ngModel)]="newMenuItem.name"></label>
+        <label class="menu-field menu-field--wide"><span>Description</span><input placeholder="Short item description" [(ngModel)]="newMenuItem.description"></label>
+        <label class="menu-field menu-field--wide">
+          <span>Subcategory *</span>
+          <select [(ngModel)]="newMenuItem.subcategory_id">
+            <option [ngValue]="null">Choose subcategory</option>
+            @for (subcategory of menuSubcategories(); track subcategory.id) {
+              <option [ngValue]="subcategory.id">{{ subcategory.name }}</option>
+            }
+          </select>
+          @if (!menuSubcategories().length) { <small>No subcategories are configured for this business category.</small> }
+        </label>
+        <label class="menu-check"><input type="checkbox" [(ngModel)]="newMenuItem.is_veg"> Veg</label>
+        <label class="menu-check"><input type="checkbox" [(ngModel)]="newMenuItem.is_bestseller"> Bestseller</label>
+      </div>
+
+      <div class="menu-image-upload">
+        <div>
+          <strong>Menu item image</strong>
+          <small>JPG, PNG, or WebP · max {{ maxImageMb }} MB</small>
+        </div>
+        @if (menuImagePreview()) {
+          <div class="menu-image-preview">
+            <img [src]="menuImagePreview()" alt="Menu item preview">
+            @if (menuImageUploading()) { <span>Uploading…</span> }
+            @else { <button type="button" class="danger-link" (click)="removeMenuImage()">Remove</button> }
+          </div>
+        } @else {
+          <label class="menu-image-dropzone">
+            <input hidden type="file" accept="image/jpeg,image/png,image/webp" (change)="selectMenuImage($event)">
+            + Add item image
+          </label>
+        }
+      </div>
+
+      @if (!hasVariants()) {
+        <div class="menu-grid regular-price-grid">
+          <label class="menu-field"><span>Seller transfer (&#8377;) *</span><input type="number" min="0" step="0.01" [(ngModel)]="newMenuItem.actual_price" (ngModelChange)="onItemTransferChange()"></label>
+          <label class="menu-field"><span>Display (&#8377;) *</span><input type="number" min="0" step="0.01" [(ngModel)]="newMenuItem.price"></label>
+          <label class="menu-field"><span>MRP (&#8377;)</span><input type="number" min="0" step="0.01" [(ngModel)]="newMenuItem.original_price"></label>
+        </div>
+        <p class="price-note">Suggested display ₹{{ calculatedDisplayPrice(newMenuItem.actual_price) }} from transfer + markup. <button type="button" class="linkish" (click)="fillSuggestedDisplay()">Use suggested</button></p>
+        <button type="button" class="add-variant-btn" (click)="enableVariants()">+ Add variant</button>
+      } @else {
+        <div class="variant-block">
+          <div class="variant-block__head">
+            <h4>Variant pricing</h4>
+            <div class="variant-actions">
+              <button type="button" class="linkish" (click)="addVariantRow()">+ Add size</button>
+              <button type="button" class="linkish linkish--muted" (click)="disableVariants()">Remove variants</button>
+            </div>
+          </div>
+          <p class="price-note">Enter transfer, display, and MRP for each size. Display is what the customer pays; you can edit it.</p>
+          @for (v of variantDrafts; track $index; let i = $index) {
+            <div class="variant-row">
+              <label class="menu-field variant-row__label"><span>Size label *</span><input placeholder="Half / Full" [(ngModel)]="v.label"></label>
+              <label class="menu-field"><span>Transfer (&#8377;) *</span><input type="number" min="0" step="0.01" [(ngModel)]="v.actual_price" (ngModelChange)="onVariantTransferChange(v)"></label>
+              <label class="menu-field"><span>Display (&#8377;) *</span><input type="number" min="0" step="0.01" [(ngModel)]="v.price"></label>
+              <label class="menu-field"><span>MRP (&#8377;)</span><input type="number" min="0" step="0.01" [(ngModel)]="v.original_price"></label>
+              <div class="variant-row__foot">
+                <small>Suggested ₹{{ calculatedDisplayPrice(v.actual_price) }} <button type="button" class="linkish" (click)="fillSuggestedVariantDisplay(v)">Use</button></small>
+                <button type="button" class="danger-link" [disabled]="variantDrafts.length <= 1" (click)="removeVariantRow(i)">Remove</button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+      <button class="approve-btn save-btn" [disabled]="menuSaving() || menuImageUploading()" (click)="addItem()">
+        {{ menuSaving() ? 'Saving…' : (editingMenuItemId() ? 'Save changes' : '+ Add Item') }}
+      </button>
+    </section>
+
+    <section class="menu-list">
+      <div class="menu-list__toolbar">
+        <input class="search-box" type="search" placeholder="Search items…" [ngModel]="query()" (ngModelChange)="query.set($event)">
+        <div class="category-chips">
+          <button type="button" [class.active]="activeCategory() === 'all'" (click)="activeCategory.set('all')">All <span>{{ totals().total }}</span></button>
+          @for (group of allGroups(); track group.name) {
+            <button type="button" [class.active]="activeCategory() === group.name" (click)="activeCategory.set(group.name)">{{ group.name }} <span>{{ group.items.length }}</span></button>
+          }
+        </div>
+      </div>
+
+      @if (menuLoading() && !menuItems().length) {
+        <p class="empty-note">Loading items…</p>
+      }
+      @for (group of visibleGroups(); track group.name) {
+        <div class="category-group">
+          <div class="category-group__head">
+            <h3>{{ group.name }}</h3>
+            <span>{{ group.items.length }} items · {{ group.available }} available</span>
+          </div>
+          @for (item of group.items; track item.id) {
+            <div class="item" [class.item--off]="!item.is_available" [class.item--editing]="editingMenuItemId() === item.id">
+              @if (item.image_url) { <img class="item__image" [src]="item.image_url" [alt]="item.name" loading="lazy"> }
+              @else { <div class="item__image item__image--empty">No image</div> }
+              <div class="item__body">
+                <div class="item__name">
+                  <span class="veg-dot" [class.veg-dot--nonveg]="!item.is_veg"></span>
+                  <strong>{{ item.name }}</strong>
+                  @if (item.is_bestseller) { <span class="tag">Bestseller</span> }
+                </div>
+                @if (item.subcategory && item.subcategory !== item.category) { <small>{{ item.subcategory }}</small> }
+                @if (item.variants?.length) {
+                  <div class="variant-chips">
+                    @for (v of item.variants!; track v.label) {
+                      <span [class.off]="v.is_available === false">{{ v.label }}: ₹{{ v.price }} · T ₹{{ v.actual_price }}@if (v.original_price) { · MRP ₹{{ v.original_price }} }</span>
+                    }
+                  </div>
+                } @else {
+                  <div class="variant-chips">
+                    <span>₹{{ item.price }} · T ₹{{ item.actual_price }}@if (item.original_price) { · MRP ₹{{ item.original_price }} }</span>
+                  </div>
+                }
+              </div>
+              <div class="item__actions">
+                <button type="button" class="toggle" [class.toggle--on]="item.is_available" [disabled]="togglingId() === item.id" (click)="toggleItem(item)">
+                  {{ item.is_available ? 'Available' : 'Unavailable' }}
+                </button>
+                <button type="button" class="menu-btn" (click)="editMenuItem(item)">Edit</button>
+                <button type="button" class="danger-link" [disabled]="deletingId() === item.id" (click)="deleteItem(item)">Delete</button>
+              </div>
+            </div>
+          }
+        </div>
+      } @empty {
+        @if (!menuLoading()) {
+          <p class="empty-note">{{ menuItems().length ? 'No items match your search.' : 'No items yet. Add the first one from the form.' }}</p>
+        }
+      }
+    </section>
+  </div>
+  }
+</div>

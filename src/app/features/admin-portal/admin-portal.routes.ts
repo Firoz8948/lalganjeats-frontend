@@ -12,4 +12,11 @@ export const ADMIN_PORTAL_ROUTES: Routes = [
       import('./components/admin-dashboard/admin-dashboard.component')
         .then(m => m.AdminDashboardComponent),
   },
+  {
+    path: 'restaurants/:id/menu',
+    canActivate: [roleGuard('admin')],
+    loadComponent: () =>
+      import('./components/admin-restaurant-menu/admin-restaurant-menu.component')
+        .then(m => m.AdminRestaurantMenuComponent),
+  },
 ];
