@@ -149,6 +149,31 @@
   margin-bottom: 16px;
 }
 
+.multi-store-note {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #166534;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.store-group-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 4px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #e5e7eb;
+  font-size: 14px;
+
+  span {
+    color: #6b7280;
+    font-weight: 600;
+  }
+}
+
 .item-row {
   display: flex;
   align-items: center;

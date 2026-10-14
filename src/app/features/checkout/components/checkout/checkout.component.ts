@@ -2,8 +2,14 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { CartService, CartItem } from '../../../../core/services/cart.service';
-import { OrderService, PlaceOrderPayload, PlaceOrderResult } from '../../../../core/services/order.service';
+import { CartService, CartItem, CartStore } from '../../../../core/services/cart.service';
+import {
+  OrderService,
+  PlaceMultiStorePayload,
+  PlaceOrderItem,
+  PlaceOrderPayload,
+  PlaceOrderResult,
+} from '../../../../core/services/order.service';
 import { CheckoutService } from '../../../../core/services/checkout.service';
 import { CustomerLocationService } from '../../../../core/services/customer-location.service';
 import { RestaurantService } from '../../../../core/services/restaurant.service';
@@ -78,6 +84,11 @@ export class CheckoutComponent implements OnInit {
   showAppPromoPopup = signal(false);
 
   cartData = this.cart.cart;
+  isMultiStore = this.cart.isMultiStore;
+  storeNames = this.cart.storeNames;
+  totalItemLines = computed(() =>
+    (this.cartData()?.stores ?? []).reduce((n, s) => n + s.items.length, 0),
+  );
   totalAmount = this.cart.totalAmount;
   effectiveDelivery = computed(() =>
     this.freeDeliveryApplied() ? 0 : this.deliveryCharge(),
@@ -107,10 +118,64 @@ export class CheckoutComponent implements OnInit {
     this.location.back();
   }
 
-  deleteItem(item: CartItem) {
-    const c = this.cartData();
-    if (!c) return;
-    this.cart.deleteItem(c.restaurantId, item.id, item.variant_id ?? null);
+  storeTotal(store: CartStore): number {
+    return this.cart.storeTotal(store);
+  }
+
+  deleteItem(store: CartStore, item: CartItem) {
+    const storesBefore = this.cartData()?.stores.length ?? 0;
+    this.cart.deleteItem(store.restaurantId, item.id, item.variant_id ?? null);
+    if ((this.cartData()?.stores.length ?? 0) !== storesBefore) {
+      this.clearPromoBenefits();
+      this.loadCharges();
+    }
+  }
+
+  private lineItems(store: CartStore): PlaceOrderItem[] {
+    return store.items.map((i: CartItem) => ({
+      menu_item_id: i.id,
+      quantity: i.quantity,
+      variant_id: i.variant_id ?? null,
+    }));
+  }
+
+  /** Delivery + packing (and platform for multi-store) for the current cart. */
+  private loadCharges() {
+    const cart = this.cartData();
+    const location = this.customerLocation.location();
+    if (!cart || !location) return;
+
+    if (this.isMultiStore()) {
+      if (!this.isLoggedIn()) return;
+      this.orders
+        .quoteMultiStore({
+          stores: cart.stores.map(s => ({ restaurant_id: s.restaurantId, items: this.lineItems(s) })),
+          payment_method: this.paymentMethod,
+          delivery_latitude: location.lat,
+          delivery_longitude: location.lng,
+        })
+        .subscribe({
+          next: quote => {
+            this.deliveryCharge.set(Number(quote.delivery_fee) || 0);
+            this.packingCharge.set(Number(quote.packing_charge) || 0);
+            this.platformCharge.set(Number(quote.platform_charge) || 0);
+          },
+          error: (err: { error?: { detail?: unknown } }) => {
+            const detail = err.error?.detail;
+            if (typeof detail === 'string') this.error.set(detail);
+          },
+        });
+      return;
+    }
+
+    this.restaurants
+      .getRestaurant(cart.stores[0].restaurantId, location.lat, location.lng)
+      .subscribe({
+        next: restaurant => {
+          this.deliveryCharge.set(restaurant.delivery_charge || 0);
+          this.packingCharge.set(Number(restaurant.packing_charge) || 0);
+        },
+      });
   }
 
   ngOnInit() {
@@ -120,17 +185,7 @@ export class CheckoutComponent implements OnInit {
       return;
     }
     const cart = this.cartData();
-    const location = this.customerLocation.location();
-    if (cart && location) {
-      this.restaurants
-        .getRestaurant(cart.restaurantId, location.lat, location.lng)
-        .subscribe({
-          next: restaurant => {
-            this.deliveryCharge.set(restaurant.delivery_charge || 0);
-            this.packingCharge.set(Number(restaurant.packing_charge) || 0);
-          },
-        });
-    }
+    this.loadCharges();
     this.paymentSettings.getPublicSettings().subscribe({
       next: settings => {
         this.platformCharge.set(Number(settings.platform_charge_rupees) || 0);
@@ -145,7 +200,7 @@ export class CheckoutComponent implements OnInit {
       },
       error: () => this.platformCharge.set(2),
     });
-    this.promos.listActive(cart?.restaurantId).subscribe({
+    this.promos.listActive(this.isMultiStore() ? null : cart?.stores[0]?.restaurantId).subscribe({
       next: rows => this.publicPromos.set(rows),
     });
     if (this.isLoggedIn()) {
@@ -228,7 +283,7 @@ export class CheckoutComponent implements OnInit {
       .validate(code, {
         subtotal: this.totalAmount(),
         delivery_fee: this.deliveryCharge(),
-        restaurant_id: this.cartData()?.restaurantId,
+        restaurant_id: this.isMultiStore() ? null : this.cartData()?.stores[0]?.restaurantId,
       })
       .subscribe({
         next: (result: PromoValidateResult) => {
@@ -409,8 +464,7 @@ export class CheckoutComponent implements OnInit {
       }).subscribe({ error: () => {} });
     }
 
-    const payload: PlaceOrderPayload = {
-      restaurant_id: c.restaurantId,
+    const common = {
       customer_name: this.recipientMode === 'self' ? enteredName : (this.recipientName.trim() || null),
       payment_method: this.paymentMethod,
       notes: this.notes || null,
@@ -419,23 +473,29 @@ export class CheckoutComponent implements OnInit {
       promo_code: this.appliedPromoCode() || null,
       client_channel: this.promos.clientChannel,
       device_id: getDeviceId() || null,
-      items: c.items.map((i: CartItem) => ({
-        menu_item_id: i.id,
-        quantity: i.quantity,
-        variant_id: i.variant_id ?? null,
-      })),
       delivery_address: finalDeliveryAddress,
       delivery_latitude: loc?.lat ?? null,
       delivery_longitude: loc?.lng ?? null,
     };
 
-    if (payload.delivery_latitude == null || payload.delivery_longitude == null) {
+    if (common.delivery_latitude == null || common.delivery_longitude == null) {
       this.placing.set(false);
       this.error.set('Choose your exact location from the top bar first.');
       return;
     }
 
-    this.orders.placeOrder(payload).subscribe({
+    const request$ = this.isMultiStore()
+      ? this.orders.placeMultiStoreOrder({
+          ...common,
+          stores: c.stores.map(s => ({ restaurant_id: s.restaurantId, items: this.lineItems(s) })),
+        } satisfies PlaceMultiStorePayload)
+      : this.orders.placeOrder({
+          ...common,
+          restaurant_id: c.stores[0].restaurantId,
+          items: this.lineItems(c.stores[0]),
+        } satisfies PlaceOrderPayload);
+
+    request$.subscribe({
       next: (res: PlaceOrderResult) => {
         if (res.needs_payment || (res.payment_method === 'online' && res.payment_status !== 'paid')) {
           this.startRazorpay(res);

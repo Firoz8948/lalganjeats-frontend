@@ -17,8 +17,7 @@ export class CartFloatBarComponent {
   private readonly cart = inject(CartService);
   private readonly body = inject(DOCUMENT).body;
 
-  private readonly isGroceryCart = computed(() => this.cart.cart()?.storeCategory === 'grocery');
-  readonly count = computed(() => (this.isGroceryCart() ? this.cart.totalItems() : 0));
+  readonly count = computed(() => (this.cart.isGroceryCart() ? this.cart.totalItems() : 0));
   readonly total = this.cart.totalAmount;
   readonly label = computed(() => `${this.count()} ${this.count() === 1 ? 'item' : 'items'} added`);
 

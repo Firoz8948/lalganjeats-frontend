@@ -38,6 +38,10 @@ export interface CustomerOrder {
   order_number:    string;
   restaurant_id:   number;
   restaurant_name: string;
+  /** Grocery order from several stores, delivered together by one rider. */
+  is_multi_store?: boolean;
+  stores?:         { order_number: string; restaurant_name: string | null; status: string }[];
+  refunded_amount?: number;
   status:          string;
   status_meta?:    string;
   payment_method:  string;

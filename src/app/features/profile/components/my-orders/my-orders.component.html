@@ -107,6 +107,18 @@
                   {{ order.order_number }} &middot;
                   {{ order.created_at | date:'d MMM yyyy, h:mm a' }}
                 </p>
+                @if (order.is_multi_store && order.stores?.length) {
+                  <p class="order-stores">
+                    @for (s of order.stores; track s.order_number) {
+                      <span class="order-stores__chip" [class.order-stores__chip--cancelled]="s.status === 'cancelled'">
+                        {{ s.restaurant_name }} · {{ s.status === 'cancelled' ? 'cancelled' : s.status }}
+                      </span>
+                    }
+                  </p>
+                }
+                @if ((order.refunded_amount || 0) > 0) {
+                  <p class="order-refund">₹{{ order.refunded_amount | number:'1.0-2' }} refunded to your payment method</p>
+                }
                 <p class="order-items-preview">
                   {{ order.items.length }} item(s) &middot;
                   <span class="pay-inline">

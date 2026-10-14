@@ -41,6 +41,39 @@ export interface PlaceOrderResult {
   needs_payment?: boolean;
 }
 
+/** Grocery cart spanning several stores: one payment, one rider. */
+export interface PlaceMultiStorePayload extends Omit<PlaceOrderPayload, 'restaurant_id' | 'items'> {
+  stores: { restaurant_id: number; items: PlaceOrderItem[] }[];
+}
+
+export interface MultiStoreStoreSummary {
+  restaurant_id: number;
+  restaurant_name: string;
+  order_id: number | null;
+  order_number: string | null;
+  item_count: number;
+  subtotal: number;
+  packing_charge: number;
+}
+
+export interface MultiStoreQuote {
+  subtotal: number;
+  delivery_fee: number;
+  platform_charge: number;
+  packing_charge: number;
+  discount: number;
+  total_amount: number;
+  distance_km: number | null;
+  eta_minutes: number | null;
+  stores: MultiStoreStoreSummary[];
+}
+
+export interface MultiStoreConfig {
+  enabled: boolean;
+  max_stores: number;
+  category: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class OrderService {
   private base = `${environment.apiBaseUrl}/orders`;
@@ -49,6 +82,23 @@ export class OrderService {
 
   placeOrder(payload: PlaceOrderPayload): Observable<PlaceOrderResult> {
     return this.http.post<PlaceOrderResult>(this.base, payload);
+  }
+
+  multiStoreConfig(): Observable<MultiStoreConfig> {
+    return this.http.get<MultiStoreConfig>(`${this.base}/multi-store/config`);
+  }
+
+  quoteMultiStore(payload: PlaceMultiStorePayload): Observable<MultiStoreQuote> {
+    return this.http.post<MultiStoreQuote>(`${this.base}/multi-store/quote`, payload);
+  }
+
+  placeMultiStoreOrder(
+    payload: PlaceMultiStorePayload,
+  ): Observable<PlaceOrderResult & { stores: MultiStoreStoreSummary[] }> {
+    return this.http.post<PlaceOrderResult & { stores: MultiStoreStoreSummary[] }>(
+      `${this.base}/multi-store`,
+      payload,
+    );
   }
 
   getOrder(id: number): Observable<any> {

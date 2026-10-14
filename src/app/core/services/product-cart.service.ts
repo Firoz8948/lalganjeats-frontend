@@ -10,7 +10,7 @@ export class ProductCartService {
 
   /** Product whose Buy hit a cart from another store; the conflict dialog resolves it. */
   readonly pending = signal<CatalogProduct | null>(null);
-  readonly cartStoreName = () => this.cart.cart()?.restaurantName || 'another store';
+  readonly cartStoreName = () => this.cart.storeNames() || 'another store';
 
   quantity(product: CatalogProduct): number {
     return this.cart.getQuantity(product.restaurant.id, product.id, product.variant_id);

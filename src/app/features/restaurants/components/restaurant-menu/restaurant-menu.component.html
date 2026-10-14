@@ -309,7 +309,7 @@
       <h2 id="cart-conflict-title">Items already in your cart</h2>
       <p>
         Your cart has food from
-        <strong>{{ cartService.cart()?.restaurantName || 'another restaurant' }}</strong>.
+        <strong>{{ cartService.storeNames() || 'another restaurant' }}</strong>.
         A cart can contain items from only one restaurant.
       </p>
       <button class="cart-conflict__primary" type="button" (click)="clearCartAndProceed()">
